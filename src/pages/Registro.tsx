@@ -1,22 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'
 
 const Registro = () => {
   return (
     <div className="min-h-screen w-full bg-[#0a0a0f] flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
+
         <div className="mb-8">
-          <Link
-            to="/"
-            className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
-          >
+          <Link to="/" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">
             &larr; Volver
           </Link>
-          <h1 className="mt-4 text-2xl font-semibold text-white">
-            Crear cuenta
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Empieza a hacer llamadas en segundos.
-          </p>
+          <h1 className="mt-4 text-2xl font-semibold text-white">Crear cuenta</h1>
+          <p className="mt-1 text-sm text-slate-500">Empieza a hacer llamadas en segundos.</p>
         </div>
 
         <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/50 px-6 py-8 text-center">
@@ -33,16 +27,13 @@ const Registro = () => {
 
         <p className="mt-6 text-center text-xs text-slate-600">
           ¿Ya tienes cuenta?{' '}
-          <Link
-            to="/login"
-            className="text-slate-400 hover:text-white transition-colors"
-          >
+          <Link to="/login" className="text-slate-400 hover:text-white transition-colors">
             Inicia sesión
           </Link>
         </p>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Registro;
+export default Registro

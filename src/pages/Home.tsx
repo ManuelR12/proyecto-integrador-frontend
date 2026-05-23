@@ -1,16 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'
 
 const Home = () => {
   return (
     <div className="min-h-screen w-full bg-[#0a0a0f] flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm">
+
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-white">
-            Proyecto Integrador
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-white">Proyecto Integrador</h1>
           <p className="mt-2 text-sm text-slate-500">
-            Plataforma de videollamadas. Conectéctate con tu equipo desde
-            cualquier lugar.
+            Plataforma de videollamadas. Conectéctate con tu equipo desde cualquier lugar.
           </p>
         </div>
 
@@ -30,7 +28,8 @@ const Home = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home
+
