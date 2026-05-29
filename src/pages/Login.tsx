@@ -1,39 +1,37 @@
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom";
+import { auth as copy } from "../copy/es";
+import AuthShell from "../components/layout/AuthShell";
 
 const Login = () => {
-  return (
-    <div className="min-h-screen w-full bg-[#0a0a0f] flex items-center justify-center px-6">
-      <div className="w-full max-w-sm">
+	return (
+		<AuthShell>
+			<div className="w-full max-w-sm">
+				<h1 className="text-2xl font-semibold text-slate-900">{copy.login.title}</h1>
+				<p className="mt-1 text-sm text-slate-500">{copy.login.subtitle}</p>
 
-        <div className="mb-8">
-          <Link to="/" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">
-            &larr; Volver
-          </Link>
-          <h1 className="mt-4 text-2xl font-semibold text-white">Inicia sesión</h1>
-          <p className="mt-1 text-sm text-slate-500">Accede a tus salas y reuniones.</p>
-        </div>
+				<div className="mt-6 rounded-2xl border border-slate-200 bg-white px-8 py-8 shadow-sm">
+					<div className="rounded-lg border border-dashed border-slate-200 px-6 py-10 text-center">
+						<p className="text-sm text-slate-400">Formulario en construcción</p>
+						<p className="mt-1 font-mono text-xs text-slate-300">/login</p>
+					</div>
 
-        <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/50 px-6 py-8 text-center">
-          <p className="text-sm text-slate-500">Formulario en construcción</p>
-          <p className="mt-1 font-mono text-xs text-slate-600">/login</p>
-        </div>
+					<Link
+						to="/dashboard"
+						className="mt-6 flex items-center justify-center rounded-lg bg-[#165dfb] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+					>
+						Continuar al panel
+					</Link>
+				</div>
 
-        <Link
-          to="/dashboard"
-          className="mt-4 flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors"
-        >
-          Continuar al panel
-        </Link>
+				<p className="mt-5 text-center text-xs text-slate-500">
+					{copy.login.footerPrompt}{" "}
+					<Link to="/registro" className="text-blue-600 transition-colors hover:text-blue-500">
+						{copy.login.footerLink}
+					</Link>
+				</p>
+			</div>
+		</AuthShell>
+	);
+};
 
-        <p className="mt-6 text-center text-xs text-slate-600">
-          ¿No tienes cuenta?{' '}
-          <Link to="/registro" className="text-slate-400 hover:text-white transition-colors">
-            Regístrate
-          </Link>
-        </p>
-      </div>
-    </div>
-  )
-}
-
-export default Login
+export default Login;
