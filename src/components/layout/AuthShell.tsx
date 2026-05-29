@@ -23,69 +23,77 @@ const FEATURES = [
 ] as const;
 
 const AuthShell = ({ children, backTo = "/" }: AuthShellProps) => (
-	<div className="flex min-h-screen w-full">
+	<div className="flex h-screen w-full overflow-hidden">
 		{/* ── Brand panel (lg+) ── */}
 		<aside
 			aria-hidden="true"
-			className="hidden lg:flex w-[420px] xl:w-[460px] flex-shrink-0 flex-col justify-between bg-[#0d1117] px-12 py-14"
+			className="hidden lg:flex w-[400px] xl:w-[440px] flex-shrink-0 flex-col justify-between bg-[#0d1117] overflow-y-auto px-12 py-14"
 		>
 			<Link
 				to={backTo}
 				tabIndex={-1}
-				className="text-xl font-bold tracking-tight text-white transition-colors hover:text-[#165dfb]"
+				className="text-lg font-bold tracking-tight text-white transition-colors hover:text-[#165dfb]"
 			>
 				{product.name}
 			</Link>
 
-			<div className="space-y-8">
+			<div className="space-y-7">
 				<div>
-					<p className="text-[2rem] font-bold leading-tight text-white">
+					<p className="text-3xl font-semibold leading-snug text-white">
 						{authCopy.landing.heroTitle}
 					</p>
-					<p className="mt-4 text-sm leading-relaxed text-slate-400">{product.description}</p>
+					<p className="mt-3 text-sm leading-relaxed text-slate-500">{product.description}</p>
 				</div>
 
 				<ul className="space-y-3">
 					{FEATURES.map(({ icon, label }) => (
 						<li key={label} className="flex items-center gap-3">
-							<span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#165dfb]/10">
+							<span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-[#165dfb]/10">
 								<svg
 									viewBox="0 0 24 24"
 									fill="none"
 									stroke="currentColor"
 									strokeWidth={1.5}
-									className="h-4 w-4 text-[#165dfb]"
+									className="h-3.5 w-3.5 text-[#165dfb]"
 									aria-hidden="true"
 								>
 									<path strokeLinecap="round" strokeLinejoin="round" d={icon} />
 								</svg>
 							</span>
-							<span className="text-sm text-slate-300">{label}</span>
+							<span className="text-sm text-slate-400">{label}</span>
 						</li>
 					))}
 				</ul>
 			</div>
 
-			<p className="text-xs text-slate-700">Proyecto Integrador · 750018C · 2026&#8209;I</p>
+			{/* empty spacer keeps flex layout */}
+			<span aria-hidden="true" />
 		</aside>
 
-		{/* ── Form area ── */}
-		<main className="relative flex flex-1 flex-col items-center justify-center bg-[#f6f7f8] px-6 py-16">
-			<Link
-				to={backTo}
-				className="absolute top-6 left-6 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-800"
-			>
-				<svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
-					<path
-						fillRule="evenodd"
-						clipRule="evenodd"
-						d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-					/>
-				</svg>
-				Inicio
-			</Link>
+		{/* ── Form area — scrolls independently ── */}
+		<main className="flex-1 overflow-y-auto bg-[#f6f7f8]">
+			<div className="relative flex min-h-full flex-col items-center justify-center px-6 py-12">
+				<Link
+					to={backTo}
+					className="absolute top-6 left-6 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-800"
+				>
+					<svg
+						viewBox="0 0 20 20"
+						fill="currentColor"
+						className="h-3.5 w-3.5"
+						aria-hidden="true"
+					>
+						<path
+							fillRule="evenodd"
+							clipRule="evenodd"
+							d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+						/>
+					</svg>
+					Inicio
+				</Link>
 
-			{children}
+				{children}
+			</div>
 		</main>
 	</div>
 );
