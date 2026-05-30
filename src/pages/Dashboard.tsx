@@ -10,7 +10,7 @@ const Dashboard = () => {
 	const navigate = useNavigate();
 	const { showToast } = useToast();
 	const { user } = useAuth();
-	const { avatarUrl, profileMissing } = useUserProfile();
+	const { avatarUrl } = useUserProfile();
 	const photoURL = user?.photoURL ?? avatarUrl;
 
 
