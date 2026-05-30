@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { auth as copy } from "../copy/es";
 import AuthShell from "../components/layout/AuthShell";
 import FormField from "../components/ui/FormField";
@@ -9,6 +9,9 @@ import { useRegisterForm } from "../hooks/useRegisterForm";
 import { useGoogleAuth } from "../hooks/useGoogleAuth";
 
 const Registro = () => {
+	const location = useLocation();
+	const incompleteProfile = (location.state as { incompleteProfile?: boolean } | null)
+		?.incompleteProfile;
 	const { fields, fieldErrors, serverError, loading, setField, setAvatarError, handleSubmit } =
 		useRegisterForm();
 	const { signIn: signInGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
@@ -34,6 +37,12 @@ const Registro = () => {
 					<p className="mt-1 text-sm text-slate-500">
 						{hasErrors ? copy.register.subtitleError : copy.register.subtitle}
 					</p>
+
+					{incompleteProfile && (
+						<p className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-800">
+							Tu registro anterior no se completó. Por favor vuelve a crear tu cuenta.
+						</p>
+					)}
 
 					<GoogleButton
 						id="btn-google-register"

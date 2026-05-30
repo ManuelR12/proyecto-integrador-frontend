@@ -20,10 +20,10 @@ export function useUsernameSetup() {
 	const [checking, setChecking] = useState(false);
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	// Guard: if auth resolves with no user, send home
+	// Guard: only redirect if auth is fully resolved and there is truly no user
 	useEffect(() => {
 		if (!authLoading && !user) {
-			navigate("/", { replace: true });
+			navigate("/login", { replace: true });
 		}
 	}, [user, authLoading, navigate]);
 
@@ -82,6 +82,7 @@ export function useUsernameSetup() {
 			showToast("¡Todo listo! Ya eres parte de Agora.", "success");
 			navigate("/dashboard", { replace: true });
 		} catch (err: unknown) {
+			console.error("[UsernameSetup] saveGoogleUserProfile error:", err);
 			if (err instanceof Error && err.message === "USERNAME_TAKEN") {
 				setFieldError(SETUP.errors.usernameTaken);
 			} else {

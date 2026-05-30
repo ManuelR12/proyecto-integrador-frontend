@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "../lib/firebase";
@@ -13,11 +13,19 @@ const AuthContext = createContext<AuthContextValue>({ user: null, loading: true 
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
+	// Firebase sometimes fires onAuthStateChanged(null) during initialization
+	// before firing again with the actual user. We wait for auth.authStateReady()
+	// so ProtectedRoute never sees a false-negative null.
+	const ready = useRef(false);
 
 	useEffect(() => {
+		auth.authStateReady().then(() => {
+			ready.current = true;
+		});
+
 		return onAuthStateChanged(auth, (firebaseUser) => {
 			setUser(firebaseUser);
-			setLoading(false);
+			if (ready.current || firebaseUser) setLoading(false);
 		});
 	}, []);
 
