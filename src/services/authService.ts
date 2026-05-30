@@ -64,7 +64,7 @@ export async function registerWithEmail(payload: RegisterPayload): Promise<Regis
 	if (!INSTITUTIONAL_EMAIL_RE.test(email)) throw new Error("NON_INSTITUTIONAL_EMAIL");
 
 	try {
-		await apiClient.post("/auth/register", {
+		await apiClient.post("/auth/signup", {
 			name: nombres,
 			lastName: apellidos,
 			username,
