@@ -30,11 +30,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: client
 
       - name: Run ESLint
         run: npx eslint '**/*.{ts,tsx}' --max-warnings=0
-        working-directory: client
 
   prettier_check:
     name: Check Prettier formatting
@@ -49,8 +47,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: client
 
       - name: Run Prettier check
         run: npx prettier --check '**/*.{ts,tsx,js,jsx,json,css,md}'
-        working-directory: client
