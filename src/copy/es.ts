@@ -44,7 +44,7 @@ export const auth = {
       usernameLabel: 'Nombre de usuario',
       usernamePlaceholder: 'ej. ana_garcia',
       usernameHelper: 'Entre 3 y 20 caracteres: letras, números o guión bajo.',
-      submit: 'Continuar al panel',
+      submit: 'Continuar al dashboard',
       submitLoading: 'Verificando...',
       footnote: 'No podrás cambiar tu nombre de usuario más adelante.',
       errors: {
@@ -70,8 +70,14 @@ export const auth = {
     passwordLabel: 'Contraseña',
     passwordPlaceholder: '••••••••',
     submit: 'Iniciar sesión',
+    submitLoading: 'Iniciando sesión...',
     footerPrompt: '¿No tienes cuenta?',
     footerLink: 'Regístrate',
+    errors: {
+      invalidCredentials: 'Correo o contraseña incorrectos.',
+      tooManyRequests: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+      networkError: 'Sin conexión. Verifica tu red e intenta de nuevo.',
+    },
   },
   register: {
     title: 'Crear cuenta',
