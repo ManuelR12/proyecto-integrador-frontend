@@ -27,13 +27,15 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(22px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        // Page transition: slide from right + fade
         'page-in': {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '0%': { opacity: '0', transform: 'translateX(28px) scale(0.98)' },
+          '100%': { opacity: '1', transform: 'translateX(0) scale(1)' },
         },
-        'page-out': {
-          '0%': { opacity: '1', transform: 'translateY(0)' },
-          '100%': { opacity: '0', transform: 'translateY(-8px)' },
+        // Toast slide-in from right
+        'toast-in': {
+          '0%': { opacity: '0', transform: 'translateX(20px) scale(0.95)' },
+          '100%': { opacity: '1', transform: 'translateX(0) scale(1)' },
         },
       },
       animation: {
@@ -44,8 +46,8 @@ export default {
         'pulse-glow': 'pulse-glow 5s ease-in-out infinite',
         'pulse-glow-delay': 'pulse-glow 5s ease-in-out 2.5s infinite',
         'fade-up': 'fade-up 0.7s ease-out both',
-        'page-in': 'page-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both',
-        'page-out': 'page-out 0.2s ease-in both',
+        'page-in': 'page-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'toast-in': 'toast-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },
   },
