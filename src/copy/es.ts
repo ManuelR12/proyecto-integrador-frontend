@@ -111,6 +111,7 @@ export const auth = {
 			usernameInvalid: "Usa entre 3 y 20 caracteres: letras, números o guión bajo.",
 			emailInvalid: "Introduce un correo válido, por ejemplo tu@correo.edu.",
 				emailNotInstitutional: "Solo se aceptan correos institucionales (.edu.co).",
+				emailTaken: "Este correo ya está registrado. Inicia sesión o usa otro correo.",
 			passwordWeak: "La contraseña debe tener al menos 8 caracteres.",
 			avatarRequired: "Selecciona una imagen para tu avatar.",
 		},
