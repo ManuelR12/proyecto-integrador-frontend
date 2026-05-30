@@ -18,7 +18,6 @@ export function useGoogleAuth() {
 			if (!needsUsername) showToast("¡Conectado con Google! Bienvenido.", "success");
 			navigate(needsUsername ? "/username-setup" : "/dashboard", { replace: true });
 		} catch (err: unknown) {
-			console.error("[Google Auth]", err);
 			if (err instanceof Error && err.message === "POPUP_CLOSED") return;
 			if (err instanceof Error && err.message === "NON_INSTITUTIONAL_EMAIL") {
 				setError(copy.google.nonInstitutional);

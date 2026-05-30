@@ -1,45 +1,30 @@
 /**
  * @module authService
- * @description Firebase Auth + Firestore authentication service.
+ * @description Auth service — Firebase Auth on the client, profile persistence via backend API.
  *
- * ## Firestore data model
+ * ## Backend endpoints used
+ * - POST /auth/register  — creates Firebase Auth user + Firestore profile
+ * - POST /auth/google    — verifies Google ID token, creates Firestore profile on first login
  *
- * ### Collection `users/{username}` — public user profile (keyed by lowercase username)
- * ```
- * {
- *   uid:         string          // Firebase Auth UID
- *   email:       string          // User email
- *   username:    string          // Unique lowercase username (3-20 chars, [a-z0-9_])
- *   displayName: string          // "nombres apellidos"
- *   nombres:     string          // First name(s)
- *   apellidos:   string          // Last name(s)
- *   avatarUrl:   string | null   // Data URL or Google photoURL
- *   createdAt:   Timestamp       // Firestore server timestamp
- * }
- * ```
+ * ## Firestore data model (written by backend)
+ * ### users/{username}
+ * { uid, email, username, name, lastName, provider, profileComplete, createdAt }
  *
- * ### Collection `uids/{uid}` — reverse lookup (keyed by Firebase Auth UID)
- * ```
- * {
- *   username: string   // Points to the users/{username} document
- * }
- * ```
- *
- * Both documents are written atomically on registration to allow O(1)
- * uid → username lookups without Firestore collection scans.
+ * ### uids/{uid}  (written by frontend for Google username-setup flow)
+ * { username }
  */
 
 import {
-	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
 	signInWithPopup,
 	signOut,
 	GoogleAuthProvider,
-	updateProfile,
 	type UserCredential,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { isAxiosError } from "axios";
 import { auth, db } from "../lib/firebase";
+import apiClient from "../lib/apiClient";
 import type { LoginPayload, RegisterPayload, RegisteredUser } from "../types/auth";
 
 const USERS_COLLECTION = "users";
@@ -52,8 +37,6 @@ const INSTITUTIONAL_EMAIL_RE = /\.edu\.co$/i;
 
 /**
  * Checks whether a username is already taken in Firestore.
- * @param username - Raw username (will be lowercased before querying)
- * @returns `true` if the username exists, `false` otherwise
  */
 export async function isUsernameTaken(username: string): Promise<boolean> {
 	const ref = doc(db, USERS_COLLECTION, username.toLowerCase());
@@ -62,61 +45,49 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
 }
 
 /**
- * Registers a new user with email and password.
+ * Registers a new user via backend, then signs in with Firebase Auth on the client.
  *
  * Flow:
- * 1. Verifies username uniqueness (throws `USERNAME_TAKEN` if occupied)
- * 2. Creates Firebase Auth account (`createUserWithEmailAndPassword`)
- * 3. Updates Auth profile with `displayName`
- * 4. Writes `users/{username}` and `uids/{uid}` documents in Firestore
+ * 1. Validate institutional email
+ * 2. POST /auth/register — backend creates Firebase Auth user + Firestore profile
+ * 3. signInWithEmailAndPassword — authenticate on the client
  *
- * @param payload - Registration form data
- * @returns Minimal registered user info (uid, email, username, displayName)
- * @throws `Error('USERNAME_TAKEN')` — username already in use
- * @throws `Error('EMAIL_TAKEN')` — email already registered
- * @throws `Error('PASSWORD_WEAK')` — password does not meet Firebase requirements
- * @throws `Error('NETWORK_ERROR')` — no network connection
+ * @throws `Error('NON_INSTITUTIONAL_EMAIL')`
+ * @throws `Error('USERNAME_TAKEN')`
+ * @throws `Error('EMAIL_TAKEN')`
+ * @throws `Error('PASSWORD_WEAK')`
+ * @throws `Error('NETWORK_ERROR')`
  */
 export async function registerWithEmail(payload: RegisterPayload): Promise<RegisteredUser> {
-	const { nombres, apellidos, username, email, password, avatarDataUrl } = payload;
+	const { nombres, apellidos, username, email, password } = payload;
 
 	if (!INSTITUTIONAL_EMAIL_RE.test(email)) throw new Error("NON_INSTITUTIONAL_EMAIL");
 
-	const taken = await isUsernameTaken(username);
-	if (taken) throw new Error("USERNAME_TAKEN");
+	try {
+		await apiClient.post("/auth/register", {
+			name: nombres,
+			lastName: apellidos,
+			username,
+			email,
+			password,
+		});
+	} catch (error: unknown) {
+		throw mapBackendError(error);
+	}
 
 	let credential: UserCredential;
 	try {
-		credential = await createUserWithEmailAndPassword(auth, email, password);
+		credential = await signInWithEmailAndPassword(auth, email, password);
 	} catch (firebaseError: unknown) {
 		throw mapFirebaseAuthError(firebaseError);
 	}
 
-	const { user } = credential;
+	const lowerUsername = username.toLowerCase();
 	const displayName = `${nombres} ${apellidos}`.trim();
 
-	// photoURL only accepts a real URL — base64 data URIs exceed Firebase's
-	// character limit and return 400. Avatar is persisted in Firestore instead.
-	await updateProfile(user, { displayName });
-
-	const lowerUsername = username.toLowerCase();
-	const userDoc = {
-		uid: user.uid,
-		email: user.email ?? email,
-		username: lowerUsername,
-		displayName,
-		nombres,
-		apellidos,
-		avatarUrl: avatarDataUrl ?? null,
-		createdAt: serverTimestamp(),
-	};
-
-	await setDoc(doc(db, USERS_COLLECTION, lowerUsername), userDoc);
-	await setDoc(doc(db, UIDS_COLLECTION, user.uid), { username: lowerUsername });
-
 	return {
-		uid: user.uid,
-		email: user.email ?? email,
+		uid: credential.user.uid,
+		email: credential.user.email ?? email,
 		username: lowerUsername,
 		displayName,
 	};
@@ -124,10 +95,10 @@ export async function registerWithEmail(payload: RegisterPayload): Promise<Regis
 
 /**
  * Authenticates an existing user with email and password.
- * @param payload - `{ email, password }`
- * @throws `Error('INVALID_CREDENTIALS')` — wrong email or password
- * @throws `Error('TOO_MANY_REQUESTS')` — account temporarily locked
- * @throws `Error('NETWORK_ERROR')` — no network connection
+ * @throws `Error('NON_INSTITUTIONAL_EMAIL')`
+ * @throws `Error('INVALID_CREDENTIALS')`
+ * @throws `Error('TOO_MANY_REQUESTS')`
+ * @throws `Error('NETWORK_ERROR')`
  */
 export async function loginWithEmail(payload: LoginPayload): Promise<void> {
 	if (!INSTITUTIONAL_EMAIL_RE.test(payload.email)) throw new Error("NON_INSTITUTIONAL_EMAIL");
@@ -139,18 +110,18 @@ export async function loginWithEmail(payload: LoginPayload): Promise<void> {
 }
 
 /**
- * Initiates Google OAuth sign-in via popup.
+ * Initiates Google OAuth via popup, then verifies the ID token with the backend.
  *
- * Firebase automatically creates an Auth account on first sign-in with Google,
- * so this function serves as both login and registration for Google users.
+ * Flow:
+ * 1. signInWithPopup — Firebase Auth on the client
+ * 2. Institutional email check
+ * 3. POST /auth/google with ID token — backend creates Firestore profile if first login
  *
- * After sign-in, checks whether a Firestore profile (`uids/{uid}`) already
- * exists to determine if the user needs to set up a username.
- *
- * @returns `{ needsUsername: true }` — first time Google user, redirect to `/username-setup`
- * @returns `{ needsUsername: false }` — returning user, redirect to `/dashboard`
- * @throws `Error('POPUP_CLOSED')` — user closed the Google popup (silent, no UI error shown)
- * @throws `Error('NETWORK_ERROR')` — no network connection
+ * @returns `{ needsUsername: true }` — first login, redirect to /username-setup
+ * @returns `{ needsUsername: false }` — returning user, redirect to /dashboard
+ * @throws `Error('POPUP_CLOSED')`
+ * @throws `Error('NON_INSTITUTIONAL_EMAIL')`
+ * @throws `Error('NETWORK_ERROR')`
  */
 export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 	const provider = new GoogleAuthProvider();
@@ -166,22 +137,28 @@ export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 		throw new Error("NON_INSTITUTIONAL_EMAIL");
 	}
 
-	const uidRef = doc(db, UIDS_COLLECTION, credential.user.uid);
-	const uidSnap = await getDoc(uidRef);
-	return { needsUsername: !uidSnap.exists() };
+	const idToken = await credential.user.getIdToken();
+
+	try {
+		await apiClient.post("/auth/google", { idToken });
+		return { needsUsername: false };
+	} catch (error: unknown) {
+		if (isAxiosError(error) && error.response?.status === 403) {
+			const code = error.response.data?.code as string | undefined;
+			if (code === "google/username-required") {
+				return { needsUsername: true };
+			}
+		}
+		throw new Error("GOOGLE_AUTH_ERROR");
+	}
 }
 
 /**
- * Saves a Firestore profile for a user who signed in with Google.
- * Called after the user completes the username setup screen.
+ * Saves a Firestore profile for a Google user completing username setup.
+ * Called after the user picks a username on /username-setup.
  *
- * Writes both `users/{username}` and `uids/{uid}` to maintain the
- * dual-collection consistency required for O(1) reverse lookups.
- *
- * @param username - Chosen username (will be lowercased before saving)
- * @throws `Error('UNAUTHENTICATED')` — no Firebase Auth session active
- * @throws `Error('USERNAME_TAKEN')` — username was claimed between the
- *   real-time check and the submit (race condition guard)
+ * @throws `Error('UNAUTHENTICATED')`
+ * @throws `Error('USERNAME_TAKEN')`
  */
 export async function saveGoogleUserProfile(username: string): Promise<void> {
 	const currentUser = auth.currentUser;
@@ -211,10 +188,31 @@ export async function saveGoogleUserProfile(username: string): Promise<void> {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Maps Firebase Auth error codes to domain-level error strings.
- * Consumers should switch on `error.message` (e.g. `'INVALID_CREDENTIALS'`).
- */
+function mapBackendError(error: unknown): Error {
+	if (!isAxiosError(error)) return new Error("UNKNOWN_ERROR");
+
+	const status = error.response?.status;
+	const data = error.response?.data as { error?: string; code?: string } | undefined;
+	const code = data?.code ?? "";
+	const msg = (data?.error ?? "").toLowerCase();
+
+	if (!error.response) return new Error("NETWORK_ERROR");
+
+	if (status === 400) {
+		if (msg.includes("username")) return new Error("USERNAME_TAKEN");
+		if (msg.includes("email")) return new Error("EMAIL_TAKEN");
+		return new Error("VALIDATION_ERROR");
+	}
+
+	if (status === 500 || status === 409) {
+		if (code === "auth/email-already-exists" || msg.includes("email")) {
+			return new Error("EMAIL_TAKEN");
+		}
+	}
+
+	return new Error("UNKNOWN_ERROR");
+}
+
 function mapFirebaseAuthError(error: unknown): Error {
 	if (!isFirebaseError(error)) return new Error("UNKNOWN_ERROR");
 
