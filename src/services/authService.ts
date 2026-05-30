@@ -132,13 +132,21 @@ export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 		throw mapFirebaseAuthError(error);
 	}
 
+	console.log("[Google] uid:", credential.user.uid, "email:", credential.user.email);
+
 	if (!INSTITUTIONAL_EMAIL_RE.test(credential.user.email ?? "")) {
 		await signOut(auth);
 		throw new Error("NON_INSTITUTIONAL_EMAIL");
 	}
 
-	const uidSnap = await getDoc(doc(db, UIDS_COLLECTION, credential.user.uid));
-	return { needsUsername: !uidSnap.exists() };
+	try {
+		const uidSnap = await getDoc(doc(db, UIDS_COLLECTION, credential.user.uid));
+		console.log("[Google] uids doc exists:", uidSnap.exists(), "→ needsUsername:", !uidSnap.exists());
+		return { needsUsername: !uidSnap.exists() };
+	} catch (err) {
+		console.error("[Google] Firestore read failed:", err);
+		throw err;
+	}
 }
 
 /**
