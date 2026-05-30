@@ -46,13 +46,14 @@ const Registro = () => {
 					</p>
 
 					<GoogleButton
+						id='btn-google-register'
 						onClick={signInGoogle}
 						loading={googleLoading}
 						disabled={isLoading}
 						className='mt-5'
 					/>
 					{googleError && (
-						<p role='alert' className='mt-2 text-center text-xs text-red-600'>
+						<p id='register-google-error' role='alert' className='mt-2 text-center text-xs text-red-600'>
 							{googleError}
 						</p>
 					)}
@@ -63,7 +64,7 @@ const Registro = () => {
 						<div className='flex-1 border-t border-slate-200' />
 					</div>
 
-					<form onSubmit={handleSubmit} noValidate aria-label='Formulario de registro'>
+					<form id='register-form' onSubmit={handleSubmit} noValidate aria-label='Formulario de registro'>
 						<fieldset disabled={isLoading} className='m-0 flex flex-col gap-4 border-0 p-0'>
 							<div className='grid grid-cols-2 gap-3'>
 								<FormField
@@ -138,7 +139,7 @@ const Registro = () => {
 						</fieldset>
 
 						{serverError && (
-							<p role='alert' className='mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700'>
+							<p id='register-server-error' role='alert' className='mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700'>
 								{serverError}
 							</p>
 						)}

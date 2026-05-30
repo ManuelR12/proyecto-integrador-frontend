@@ -29,13 +29,14 @@ const Login = () => {
 					<p className='mt-1 text-sm text-slate-500'>{copy.login.subtitle}</p>
 
 					<GoogleButton
+						id='btn-google-login'
 						onClick={signInGoogle}
 						loading={googleLoading}
 						disabled={isLoading}
 						className='mt-5'
 					/>
 					{googleError && (
-						<p role='alert' className='mt-2 text-center text-xs text-red-600'>
+						<p id='login-google-error' role='alert' className='mt-2 text-center text-xs text-red-600'>
 							{googleError}
 						</p>
 					)}
@@ -47,6 +48,7 @@ const Login = () => {
 					</div>
 
 					<form
+						id='login-form'
 						onSubmit={handleSubmit}
 						noValidate
 						aria-label='Formulario de inicio de sesión'
@@ -75,7 +77,7 @@ const Login = () => {
 						</fieldset>
 
 						{serverError && (
-							<p role='alert' className='mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700'>
+							<p id='login-server-error' role='alert' className='mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700'>
 								{serverError}
 							</p>
 						)}
