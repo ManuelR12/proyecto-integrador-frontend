@@ -10,7 +10,7 @@ const Dashboard = () => {
 	const navigate = useNavigate();
 	const { showToast } = useToast();
 	const { user } = useAuth();
-	const { avatarUrl } = useUserProfile();
+	const { avatarUrl, profileMissing } = useUserProfile();
 	const photoURL = user?.photoURL ?? avatarUrl;
 
 	const handleSignOut = async () => {
@@ -68,6 +68,12 @@ const Dashboard = () => {
 					<p className="mt-1 text-sm text-slate-500">
 						Tus salas activas y accesos rápidos aparecerán aquí.
 					</p>
+
+					{profileMissing && (
+						<div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+							Tu perfil no se guardó correctamente. Cierra sesión y regístrate de nuevo.
+						</div>
+					)}
 
 					<div className="mt-8 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
 						<p className="text-sm text-slate-500">Vista en construcción</p>
