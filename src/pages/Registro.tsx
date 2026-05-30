@@ -1,4 +1,5 @@
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { auth as copy } from "../copy/es";
 import AuthShell from "../components/layout/AuthShell";
 import FormField from "../components/ui/FormField";
@@ -10,6 +11,7 @@ import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import { useAuth } from "../contexts/AuthContext";
 
 const Registro = () => {
+	const navigate = useNavigate();
 	const { user, loading: authLoading } = useAuth();
 	const location = useLocation();
 	const incompleteProfile = (location.state as { incompleteProfile?: boolean } | null)?.incompleteProfile;
@@ -17,7 +19,11 @@ const Registro = () => {
 		useRegisterForm();
 	const { signIn: signInGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
-	if (!authLoading && user && !loading && !googleLoading) return <Navigate to="/dashboard" replace />;
+	useEffect(() => {
+		if (!authLoading && user && !loading && !googleLoading) {
+			navigate("/dashboard", { replace: true });
+		}
+	}, [authLoading, user, loading, googleLoading, navigate]);
 
 	const isLoading = loading || googleLoading;
 	const hasErrors = Object.values(fieldErrors).some(Boolean);
