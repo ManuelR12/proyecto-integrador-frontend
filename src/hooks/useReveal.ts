@@ -8,12 +8,10 @@ export function useReveal(threshold = 0.12) {
 		const el = ref.current
 		if (!el) return
 
+		// Keep observing (no disconnect) so animation reverses on scroll up
 		const observer = new IntersectionObserver(
 			([entry]) => {
-				if (entry.isIntersecting) {
-					setInView(true)
-					observer.disconnect()
-				}
+				setInView(entry.isIntersecting)
 			},
 			{ threshold },
 		)

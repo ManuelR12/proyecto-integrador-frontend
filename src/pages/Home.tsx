@@ -276,58 +276,47 @@ const Home = () => {
 			</section>
 
 			{/* ── CTA ── */}
-			<section
-				className='relative overflow-hidden py-28'
-				style={{
-					background: 'linear-gradient(135deg, #020617 0%, #0c1e45 40%, #0f2d6e 60%, #020617 100%)',
-				}}
-			>
-				{/* Top edge glow */}
-				<div
-					aria-hidden='true'
-					className='absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/60 to-transparent'
-				/>
+			<section className='bg-white py-20 pb-28'>
+				<div className='mx-auto max-w-4xl px-6'>
+					<Reveal>
+						<div className='relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 px-10 py-16 text-center shadow-2xl shadow-blue-500/20'>
+							{/* Inner orbs */}
+							<div
+								aria-hidden='true'
+								className='animate-pulse-glow absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400 opacity-30 blur-3xl'
+							/>
+							<div
+								aria-hidden='true'
+								className='animate-pulse-glow-delay absolute bottom-0 right-0 h-48 w-48 translate-x-1/4 translate-y-1/4 rounded-full bg-indigo-300 opacity-20 blur-2xl'
+							/>
+							<div
+								aria-hidden='true'
+								className='animate-float absolute left-0 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-300 opacity-15 blur-2xl'
+							/>
 
-				{/* Animated center glow */}
-				<div
-					aria-hidden='true'
-					className='animate-pulse-glow absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 opacity-20 blur-3xl'
-				/>
-				<div
-					aria-hidden='true'
-					className='animate-pulse-glow-delay absolute left-1/3 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-violet-600 opacity-10 blur-2xl'
-				/>
-
-				<Reveal>
-					<div className='relative mx-auto max-w-2xl px-6 text-center'>
-						<h2 className='text-3xl font-bold tracking-tight text-white sm:text-4xl'>
-							Empieza a estudiar en equipo hoy
-						</h2>
-						<p className='mt-4 text-slate-400'>
-							Crea tu cuenta gratis y únete a salas de estudio en segundos.
-						</p>
-						<div className='mt-8 flex flex-wrap items-center justify-center gap-4'>
-							<Link
-								to='/registro'
-								className='rounded-lg bg-blue-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-500 hover:shadow-blue-500/40 hover:shadow-xl'
-							>
-								{copy.home.ctaRegister} — es gratis
-							</Link>
-							<Link
-								to='/login'
-								className='text-sm font-medium text-slate-400 transition-colors hover:text-white'
-							>
-								Ya tengo cuenta →
-							</Link>
+							<h2 className='relative text-3xl font-bold tracking-tight text-white sm:text-4xl'>
+								Empieza a estudiar en equipo hoy
+							</h2>
+							<p className='relative mt-4 text-blue-100'>
+								Crea tu cuenta gratis y únete a salas de estudio en segundos.
+							</p>
+							<div className='relative mt-8 flex flex-wrap items-center justify-center gap-4'>
+								<Link
+									to='/registro'
+									className='rounded-xl bg-white px-8 py-3 text-sm font-semibold text-blue-700 shadow-md transition-all hover:bg-blue-50 hover:shadow-lg'
+								>
+									{copy.home.ctaRegister} — es gratis
+								</Link>
+								<Link
+									to='/login'
+									className='text-sm font-medium text-blue-100 transition-colors hover:text-white'
+								>
+									Ya tengo cuenta →
+								</Link>
+							</div>
 						</div>
-					</div>
-				</Reveal>
-
-				{/* Bottom edge glow */}
-				<div
-					aria-hidden='true'
-					className='absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent'
-				/>
+					</Reveal>
+				</div>
 			</section>
 
 			{/* ── Footer ── */}
