@@ -4,12 +4,25 @@ import SubmitButton from '../components/ui/SubmitButton'
 import { useUsernameSetup } from '../hooks/useUsernameSetup'
 
 const UsernameSetup = () => {
-	const { user, username, fieldError, serverStatus, loading, handleUsernameChange, handleSubmit } =
-		useUsernameSetup()
+	const {
+		user,
+		username,
+		fieldError,
+		serverStatus,
+		loading,
+		checking,
+		handleUsernameChange,
+		handleSubmit,
+	} = useUsernameSetup()
 
 	const setup = copy.google.usernameSetup
 	const hasError = Boolean(fieldError)
-	const subtitle = loading ? setup.subtitleLoading : hasError ? setup.subtitleError : setup.subtitle
+	const isBusy = loading || checking
+	const subtitle = loading
+		? setup.subtitleLoading
+		: hasError
+			? setup.subtitleError
+			: setup.subtitle
 
 	if (!user) return null
 
@@ -96,13 +109,19 @@ const UsernameSetup = () => {
 						placeholder={setup.usernamePlaceholder}
 						value={username}
 						error={fieldError}
-						helper={!fieldError ? setup.usernameHelper : undefined}
+						helper={!fieldError && !checking ? setup.usernameHelper : undefined}
+						checking={checking}
 						required
 						disabled={loading}
 						onChange={(e) => handleUsernameChange(e.target.value)}
 					/>
 
-					<SubmitButton loading={loading} loadingLabel={setup.submitLoading} className='mt-4'>
+					<SubmitButton
+						loading={loading}
+						loadingLabel={setup.submitLoading}
+						disabled={isBusy || hasError}
+						className='mt-4'
+					>
 						{setup.submit}
 					</SubmitButton>
 				</form>
