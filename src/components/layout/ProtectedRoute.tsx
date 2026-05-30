@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -8,6 +8,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 	const { user, loading } = useAuth();
+	const location = useLocation();
 
 	if (loading) {
 		return (
@@ -40,7 +41,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 		);
 	}
 
-	if (!user) return <Navigate to="/login" replace />;
+	if (!user) {
+		console.warn(
+			`[Route Guard] Access denied. URL blocked: ${location.pathname}. Redirecting to /login...`,
+		);
+
+		return <Navigate to="/login" state={{ from: location }} replace />;
+	}
 
 	return <>{children}</>;
 };
