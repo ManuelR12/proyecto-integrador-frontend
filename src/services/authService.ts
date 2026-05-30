@@ -33,6 +33,7 @@ import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
 	signInWithPopup,
+	signOut,
 	GoogleAuthProvider,
 	updateProfile,
 	type UserCredential,
@@ -43,6 +44,7 @@ import type { LoginPayload, RegisterPayload, RegisteredUser } from "../types/aut
 
 const USERS_COLLECTION = "users";
 const UIDS_COLLECTION = "uids";
+const INSTITUTIONAL_EMAIL_RE = /\.edu\.co$/i;
 
 // ---------------------------------------------------------------------------
 // Exported functions
@@ -77,6 +79,8 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
  */
 export async function registerWithEmail(payload: RegisterPayload): Promise<RegisteredUser> {
 	const { nombres, apellidos, username, email, password, avatarDataUrl } = payload;
+
+	if (!INSTITUTIONAL_EMAIL_RE.test(email)) throw new Error("NON_INSTITUTIONAL_EMAIL");
 
 	const taken = await isUsernameTaken(username);
 	if (taken) throw new Error("USERNAME_TAKEN");
@@ -126,6 +130,7 @@ export async function registerWithEmail(payload: RegisterPayload): Promise<Regis
  * @throws `Error('NETWORK_ERROR')` — no network connection
  */
 export async function loginWithEmail(payload: LoginPayload): Promise<void> {
+	if (!INSTITUTIONAL_EMAIL_RE.test(payload.email)) throw new Error("NON_INSTITUTIONAL_EMAIL");
 	try {
 		await signInWithEmailAndPassword(auth, payload.email, payload.password);
 	} catch (error: unknown) {
@@ -154,6 +159,11 @@ export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 		credential = await signInWithPopup(auth, provider);
 	} catch (error: unknown) {
 		throw mapFirebaseAuthError(error);
+	}
+
+	if (!INSTITUTIONAL_EMAIL_RE.test(credential.user.email ?? "")) {
+		await signOut(auth);
+		throw new Error("NON_INSTITUTIONAL_EMAIL");
 	}
 
 	const uidRef = doc(db, UIDS_COLLECTION, credential.user.uid);

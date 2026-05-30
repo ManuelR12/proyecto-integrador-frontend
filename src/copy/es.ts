@@ -33,6 +33,7 @@ export const auth = {
 		divider: "o continúa con correo",
 		loading: "Conectando con Google...",
 		error: "No pudimos iniciar sesión con Google. Inténtalo de nuevo.",
+		nonInstitutional: "Solo se permiten cuentas institucionales (.edu.co). Usa tu correo universitario.",
 		trustNote: "Usamos Google solo para verificar tu identidad. No publicamos nada en tu nombre.",
 		verifiedBadge: "Cuenta verificada con Google",
 		usernameSetup: {
@@ -109,6 +110,7 @@ export const auth = {
 			usernameTaken: "Este nombre de usuario ya está en uso. Prueba con otro.",
 			usernameInvalid: "Usa entre 3 y 20 caracteres: letras, números o guión bajo.",
 			emailInvalid: "Introduce un correo válido, por ejemplo tu@correo.edu.",
+				emailNotInstitutional: "Solo se aceptan correos institucionales (.edu.co).",
 			passwordWeak: "La contraseña debe tener al menos 8 caracteres.",
 			avatarRequired: "Selecciona una imagen para tu avatar.",
 		},

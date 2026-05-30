@@ -49,7 +49,11 @@ export function useRegisterForm() {
 		if (!data.nombres.trim()) errors.nombres = copy.register.errors.nombresRequired;
 		if (!data.apellidos.trim()) errors.apellidos = copy.register.errors.apellidosRequired;
 		if (!USERNAME_REGEX.test(data.username)) errors.username = copy.register.errors.usernameInvalid;
-		if (!EMAIL_REGEX.test(data.email)) errors.email = copy.register.errors.emailInvalid;
+		if (!EMAIL_REGEX.test(data.email)) {
+			errors.email = copy.register.errors.emailInvalid;
+		} else if (!data.email.toLowerCase().endsWith(".edu.co")) {
+			errors.email = copy.register.errors.emailNotInstitutional;
+		}
 		if (data.password.length < 8) errors.password = copy.register.errors.passwordWeak;
 		return errors;
 	}
@@ -100,6 +104,8 @@ export function useRegisterForm() {
 function resolveServerError(err: unknown): string {
 	if (!(err instanceof Error)) return "Ocurrió un error inesperado. Intenta de nuevo.";
 	switch (err.message) {
+		case "NON_INSTITUTIONAL_EMAIL":
+			return copy.register.errors.emailNotInstitutional;
 		case "EMAIL_TAKEN":
 		case "EMAIL_INVALID":
 			return copy.register.errors.emailInvalid;
