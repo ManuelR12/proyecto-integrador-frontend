@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { auth as copy } from '../copy/es'
 import { registerWithEmail } from '../services/authService'
+import { useToast } from '../contexts/ToastContext'
 import type { RegisterFieldErrors, RegisterPayload } from '../types/auth'
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/
@@ -27,6 +28,7 @@ const INITIAL_FORM: FormState = {
 
 export function useRegisterForm() {
 	const navigate = useNavigate()
+	const { showToast } = useToast()
 	const [fields, setFields] = useState<FormState>(INITIAL_FORM)
 	const [fieldErrors, setFieldErrors] = useState<RegisterFieldErrors>({})
 	const [serverError, setServerError] = useState<string | null>(null)
@@ -74,6 +76,7 @@ export function useRegisterForm() {
 		setLoading(true)
 		try {
 			await registerWithEmail(payload)
+			showToast('¡Cuenta creada! Bienvenido a Agora.', 'success')
 			navigate('/dashboard', { replace: true })
 		} catch (err: unknown) {
 			if (err instanceof Error && err.message === 'USERNAME_TAKEN') {
@@ -82,7 +85,9 @@ export function useRegisterForm() {
 					username: copy.register.errors.usernameTaken,
 				}))
 			} else {
-				setServerError(resolveServerError(err))
+				const msg = resolveServerError(err)
+				setServerError(msg)
+				showToast('No se pudo crear la cuenta. Intenta de nuevo.', 'error')
 			}
 		} finally {
 			setLoading(false)

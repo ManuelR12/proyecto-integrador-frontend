@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { auth as copy } from '../copy/es'
 import { isUsernameTaken, saveGoogleUserProfile } from '../services/authService'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/
 const DEBOUNCE_MS = 450
@@ -11,6 +12,7 @@ const SETUP = copy.google.usernameSetup
 export function useUsernameSetup() {
 	const navigate = useNavigate()
 	const { user, loading: authLoading } = useAuth()
+	const { showToast } = useToast()
 	const [username, setUsername] = useState('')
 	const [fieldError, setFieldError] = useState<string | undefined>()
 	const [serverStatus, setServerStatus] = useState<string | null>(null)
@@ -77,6 +79,7 @@ export function useUsernameSetup() {
 		setServerStatus(SETUP.statusLoading)
 		try {
 			await saveGoogleUserProfile(username)
+			showToast('¡Todo listo! Ya eres parte de Agora.', 'success')
 			navigate('/dashboard', { replace: true })
 		} catch (err: unknown) {
 			if (err instanceof Error && err.message === 'USERNAME_TAKEN') {

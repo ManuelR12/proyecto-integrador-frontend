@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { auth as copy } from '../copy/es'
 import { loginWithEmail } from '../services/authService'
+import { useToast } from '../contexts/ToastContext'
 import type { LoginFieldErrors, LoginPayload } from '../types/auth'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -15,6 +16,7 @@ const INITIAL: FormState = { email: '', password: '' }
 
 export function useLoginForm() {
 	const navigate = useNavigate()
+	const { showToast } = useToast()
 	const [fields, setFields] = useState<FormState>(INITIAL)
 	const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({})
 	const [serverError, setServerError] = useState<string | null>(null)
@@ -55,6 +57,7 @@ export function useLoginForm() {
 		setLoading(true)
 		try {
 			await loginWithEmail(payload)
+			showToast('¡Sesión iniciada! Bienvenido de vuelta.', 'success')
 			navigate('/dashboard', { replace: true })
 		} catch (err: unknown) {
 			if (err instanceof Error) {
