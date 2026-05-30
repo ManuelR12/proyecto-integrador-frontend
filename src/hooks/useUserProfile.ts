@@ -19,14 +19,16 @@ export function useUserProfile(): UserProfile {
 		}
 
 		getDoc(doc(db, "uids", user.uid)).then((uidSnap) => {
+			console.log("[useUserProfile] uids snap exists:", uidSnap.exists(), uidSnap.data());
 			if (!uidSnap.exists()) return;
 			const { username } = uidSnap.data() as { username: string };
 			getDoc(doc(db, "users", username)).then((userSnap) => {
+				console.log("[useUserProfile] users snap exists:", userSnap.exists(), userSnap.data());
 				if (!userSnap.exists()) return;
 				const data = userSnap.data() as { avatarUrl?: string | null };
 				setProfile({ avatarUrl: data.avatarUrl ?? null, username });
 			});
-		});
+		}).catch((err) => console.error("[useUserProfile] error:", err));
 	}, [user]);
 
 	return profile;
