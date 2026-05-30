@@ -27,6 +27,14 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(22px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        'page-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'page-out': {
+          '0%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '0', transform: 'translateY(-8px)' },
+        },
       },
       animation: {
         'float': 'float 7s ease-in-out infinite',
@@ -36,6 +44,8 @@ export default {
         'pulse-glow': 'pulse-glow 5s ease-in-out infinite',
         'pulse-glow-delay': 'pulse-glow 5s ease-in-out 2.5s infinite',
         'fade-up': 'fade-up 0.7s ease-out both',
+        'page-in': 'page-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'page-out': 'page-out 0.2s ease-in both',
       },
     },
   },
