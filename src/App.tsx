@@ -5,6 +5,7 @@ import Registro from './pages/Registro'
 import UsernameSetup from './pages/UsernameSetup'
 import Dashboard from './pages/Dashboard'
 import Sala from './pages/Sala'
+import ProtectedRoute from './components/layout/ProtectedRoute'
 
 function App() {
   return (
@@ -14,8 +15,22 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/username-setup" element={<UsernameSetup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/sala/:id" element={<Sala />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sala/:id"
+          element={
+            <ProtectedRoute>
+              <Sala />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )
