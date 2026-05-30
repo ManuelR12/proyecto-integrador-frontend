@@ -32,7 +32,8 @@
 import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
-	signInWithPopup,
+	signInWithRedirect,
+	getRedirectResult,
 	GoogleAuthProvider,
 	updateProfile,
 	type UserCredential,
@@ -147,14 +148,19 @@ export async function loginWithEmail(payload: LoginPayload): Promise<void> {
  * @throws `Error('POPUP_CLOSED')` — user closed the Google popup (silent, no UI error shown)
  * @throws `Error('NETWORK_ERROR')` — no network connection
  */
-export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
+export async function signInWithGoogle(): Promise<void> {
 	const provider = new GoogleAuthProvider();
-	let credential: UserCredential;
+	await signInWithRedirect(auth, provider);
+}
+
+export async function getGoogleRedirectResult(): Promise<{ needsUsername: boolean } | null> {
+	let credential: UserCredential | null;
 	try {
-		credential = await signInWithPopup(auth, provider);
+		credential = await getRedirectResult(auth);
 	} catch (error: unknown) {
 		throw mapFirebaseAuthError(error);
 	}
+	if (!credential) return null;
 
 	const uidRef = doc(db, UIDS_COLLECTION, credential.user.uid);
 	const uidSnap = await getDoc(uidRef);
