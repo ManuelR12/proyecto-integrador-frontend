@@ -2,11 +2,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { common, product } from '../copy/es'
+import { useToast } from '../contexts/ToastContext'
 
 const Dashboard = () => {
   const navigate = useNavigate()
+  const { showToast } = useToast()
 
   const handleSignOut = async () => {
+    showToast('Sesión cerrada. ¡Hasta luego!', 'info')
     await signOut(auth)
     navigate('/login', { replace: true })
   }
