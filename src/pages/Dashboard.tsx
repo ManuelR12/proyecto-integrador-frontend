@@ -13,7 +13,6 @@ const Dashboard = () => {
 	const { avatarUrl } = useUserProfile();
 	const photoURL = user?.photoURL ?? avatarUrl;
 
-
 	const handleSignOut = async () => {
 		showToast("Sesión cerrada. ¡Hasta luego!", "info");
 		await signOut(auth);

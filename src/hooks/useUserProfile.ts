@@ -18,10 +18,7 @@ export function useUserProfile(): UserProfile {
 	});
 
 	useEffect(() => {
-		if (!user) {
-			setProfile({ avatarUrl: null, username: null, profileMissing: false });
-			return;
-		}
+		if (!user) return;
 
 		getDoc(doc(db, "uids", user.uid))
 			.then((uidSnap) => {
@@ -39,5 +36,6 @@ export function useUserProfile(): UserProfile {
 			.catch((err) => console.error("[useUserProfile]", err));
 	}, [user]);
 
+	if (!user) return { avatarUrl: null, username: null, profileMissing: false };
 	return profile;
 }

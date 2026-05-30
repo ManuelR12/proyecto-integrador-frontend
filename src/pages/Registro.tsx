@@ -10,7 +10,8 @@ import { useGoogleAuth } from "../hooks/useGoogleAuth";
 
 const Registro = () => {
 	const location = useLocation();
-	const incompleteProfile = (location.state as { incompleteProfile?: boolean } | null)?.incompleteProfile;
+	const incompleteProfile = (location.state as { incompleteProfile?: boolean } | null)
+		?.incompleteProfile;
 	const { fields, fieldErrors, serverError, loading, setField, setAvatarError, handleSubmit } =
 		useRegisterForm();
 	const { signIn: signInGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
