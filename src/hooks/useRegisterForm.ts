@@ -94,6 +94,7 @@ export function useRegisterForm() {
 					email: copy.register.errors.emailTaken,
 				}));
 			} else {
+				console.error("[Register] error:", err);
 				const msg = resolveServerError(err);
 				setServerError(msg);
 				showToast("No se pudo crear la cuenta. Intenta de nuevo.", "error");
