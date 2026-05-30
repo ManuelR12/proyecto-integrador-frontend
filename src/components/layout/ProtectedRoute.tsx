@@ -45,7 +45,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 		console.warn(
 			`[Route Guard] Access denied. URL blocked: ${location.pathname}. Redirecting to /login...`,
 		);
-
 		return <Navigate to="/login" state={{ from: location }} replace />;
 	}
 
