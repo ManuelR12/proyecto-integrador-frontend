@@ -32,6 +32,8 @@ export function useLoginForm() {
 		const errors: LoginFieldErrors = {};
 		if (!EMAIL_REGEX.test(data.email)) {
 			errors.email = copy.register.errors.emailInvalid;
+		} else if (!data.email.toLowerCase().endsWith(".edu.co")) {
+			errors.email = copy.register.errors.emailNotInstitutional;
 		}
 		if (!data.password) {
 			errors.password = copy.register.errors.passwordWeak;
@@ -62,6 +64,12 @@ export function useLoginForm() {
 		} catch (err: unknown) {
 			if (err instanceof Error) {
 				switch (err.message) {
+					case "NON_INSTITUTIONAL_EMAIL":
+						setFieldErrors((prev) => ({
+							...prev,
+							email: copy.register.errors.emailNotInstitutional,
+						}));
+						break;
 					case "TOO_MANY_REQUESTS":
 						setServerError(copy.login.errors.tooManyRequests);
 						break;

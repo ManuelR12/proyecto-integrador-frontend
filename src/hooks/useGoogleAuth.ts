@@ -20,6 +20,10 @@ export function useGoogleAuth() {
 		} catch (err: unknown) {
 			console.error("[Google Auth]", err);
 			if (err instanceof Error && err.message === "POPUP_CLOSED") return;
+			if (err instanceof Error && err.message === "NON_INSTITUTIONAL_EMAIL") {
+				setError(copy.google.nonInstitutional);
+				return;
+			}
 			setError(copy.google.error);
 		} finally {
 			setLoading(false);
