@@ -13,7 +13,7 @@ const Login = () => {
 	const { fields, fieldErrors, serverError, loading, setField, handleSubmit } = useLoginForm();
 	const { signIn: signInGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
-	if (!authLoading && user) return <Navigate to="/dashboard" replace />;
+	if (!authLoading && user && !loading && !googleLoading) return <Navigate to="/dashboard" replace />;
 
 	const isLoading = loading || googleLoading;
 

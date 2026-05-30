@@ -17,7 +17,7 @@ const Registro = () => {
 		useRegisterForm();
 	const { signIn: signInGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
-	if (!authLoading && user) return <Navigate to="/dashboard" replace />;
+	if (!authLoading && user && !loading && !googleLoading) return <Navigate to="/dashboard" replace />;
 
 	const isLoading = loading || googleLoading;
 	const hasErrors = Object.values(fieldErrors).some(Boolean);
