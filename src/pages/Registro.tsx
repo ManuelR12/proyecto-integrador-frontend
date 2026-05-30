@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { auth as copy } from "../copy/es";
 import AuthShell from "../components/layout/AuthShell";
 import FormField from "../components/ui/FormField";
@@ -7,11 +7,15 @@ import SubmitButton from "../components/ui/SubmitButton";
 import GoogleButton from "../components/ui/GoogleButton";
 import { useRegisterForm } from "../hooks/useRegisterForm";
 import { useGoogleAuth } from "../hooks/useGoogleAuth";
+import { useAuth } from "../contexts/AuthContext";
 
 const Registro = () => {
+	const { user, loading: authLoading } = useAuth();
 	const { fields, fieldErrors, serverError, loading, setField, setAvatarError, handleSubmit } =
 		useRegisterForm();
 	const { signIn: signInGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
+
+	if (!authLoading && user) return <Navigate to="/dashboard" replace />;
 
 	const isLoading = loading || googleLoading;
 	const hasErrors = Object.values(fieldErrors).some(Boolean);
