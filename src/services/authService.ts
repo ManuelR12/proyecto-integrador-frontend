@@ -149,6 +149,11 @@ export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 				return { needsUsername: true };
 			}
 		}
+		// Backend unreachable — fall back to Firestore check so auth still works
+		if (!isAxiosError(error) || !error.response) {
+			const uidSnap = await getDoc(doc(db, UIDS_COLLECTION, credential.user.uid));
+			return { needsUsername: !uidSnap.exists() };
+		}
 		throw new Error("GOOGLE_AUTH_ERROR");
 	}
 }

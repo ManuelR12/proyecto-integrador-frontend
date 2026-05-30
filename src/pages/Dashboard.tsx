@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { common, product } from "../copy/es";
@@ -14,12 +13,6 @@ const Dashboard = () => {
 	const { avatarUrl, profileMissing } = useUserProfile();
 	const photoURL = user?.photoURL ?? avatarUrl;
 
-	useEffect(() => {
-		if (!profileMissing) return;
-		signOut(auth).then(() => {
-			navigate("/registro", { replace: true, state: { incompleteProfile: true } });
-		});
-	}, [profileMissing]);
 
 	const handleSignOut = async () => {
 		showToast("Sesión cerrada. ¡Hasta luego!", "info");
