@@ -1,4 +1,5 @@
-import { Link, Navigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { auth as copy } from "../copy/es";
 import AuthShell from "../components/layout/AuthShell";
 import FormField from "../components/ui/FormField";
@@ -9,11 +10,16 @@ import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
+	const navigate = useNavigate();
 	const { user, loading: authLoading } = useAuth();
 	const { fields, fieldErrors, serverError, loading, setField, handleSubmit } = useLoginForm();
 	const { signIn: signInGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
-	if (!authLoading && user && !loading && !googleLoading) return <Navigate to="/dashboard" replace />;
+	useEffect(() => {
+		if (!authLoading && user && !loading && !googleLoading) {
+			navigate("/dashboard", { replace: true });
+		}
+	}, [authLoading, user, loading, googleLoading, navigate]);
 
 	const isLoading = loading || googleLoading;
 
