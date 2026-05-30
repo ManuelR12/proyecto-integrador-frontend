@@ -4,11 +4,14 @@ import { auth } from "../lib/firebase";
 import { common, product } from "../copy/es";
 import { useToast } from "../contexts/ToastContext";
 import { useAuth } from "../contexts/AuthContext";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 const Dashboard = () => {
 	const navigate = useNavigate();
 	const { showToast } = useToast();
 	const { user } = useAuth();
+	const { avatarUrl } = useUserProfile();
+	const photoURL = user?.photoURL ?? avatarUrl;
 
 	const handleSignOut = async () => {
 		showToast("Sesión cerrada. ¡Hasta luego!", "info");
@@ -29,9 +32,9 @@ const Dashboard = () => {
 			<header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
 				<span className="text-sm font-bold text-blue-600">{product.name}</span>
 				<div className="flex items-center gap-3">
-					{user?.photoURL ? (
+					{photoURL ? (
 						<img
-							src={user.photoURL}
+							src={photoURL}
 							alt={displayName}
 							className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200"
 						/>
