@@ -140,20 +140,30 @@ export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 	const idToken = await credential.user.getIdToken();
 
 	try {
-		await apiClient.post("/auth/google", { idToken });
-		return { needsUsername: false };
+		const { data } = await apiClient.post<{
+			user?: { username?: string | null; profileComplete?: boolean };
+		}>("/auth/google", { idToken });
+
+		console.log("[signInWithGoogle] backend response:", data);
+
+		const profileComplete = data?.user?.profileComplete ?? Boolean(data?.user?.username);
+		return { needsUsername: !profileComplete };
 	} catch (error: unknown) {
 		if (isAxiosError(error) && error.response?.status === 403) {
 			const code = error.response.data?.code as string | undefined;
-			if (code === "google/username-required") {
+			const errMsg = error.response.data?.error as string | undefined;
+			console.log("[signInWithGoogle] backend 403:", { code, errMsg });
+			if (code === "google/username-required" || errMsg === "FIRST_LOGIN_USERNAME_REQUIRED") {
 				return { needsUsername: true };
 			}
 		}
 		// Backend unreachable — fall back to Firestore check so auth still works
 		if (!isAxiosError(error) || !error.response) {
+			console.warn("[signInWithGoogle] backend unreachable, falling back to Firestore");
 			const uidSnap = await getDoc(doc(db, UIDS_COLLECTION, credential.user.uid));
 			return { needsUsername: !uidSnap.exists() };
 		}
+		console.error("[signInWithGoogle] backend error:", error.response?.status, error.response?.data);
 		throw new Error("GOOGLE_AUTH_ERROR");
 	}
 }
