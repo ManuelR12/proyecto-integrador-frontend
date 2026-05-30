@@ -1,26 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth as copy } from "../copy/es";
-import { signInWithGoogle } from "../services/authService";
+import { signInWithGoogle, getGoogleRedirectResult } from "../services/authService";
 import { useToast } from "../contexts/ToastContext";
 
 export function useGoogleAuth() {
 	const navigate = useNavigate();
 	const { showToast } = useToast();
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		(async () => {
+			try {
+				const result = await getGoogleRedirectResult();
+				if (!result) return;
+				if (!result.needsUsername) showToast("¡Conectado con Google! Bienvenido.", "success");
+				navigate(result.needsUsername ? "/username-setup" : "/dashboard", { replace: true });
+			} catch {
+				setError(copy.google.error);
+			} finally {
+				setLoading(false);
+			}
+		})();
+	}, []);
 
 	const signIn = async () => {
 		setLoading(true);
 		setError(null);
 		try {
-			const { needsUsername } = await signInWithGoogle();
-			if (!needsUsername) showToast("¡Conectado con Google! Bienvenido.", "success");
-			navigate(needsUsername ? "/username-setup" : "/dashboard", { replace: true });
-		} catch (err: unknown) {
-			if (err instanceof Error && err.message === "POPUP_CLOSED") return;
+			await signInWithGoogle();
+		} catch {
 			setError(copy.google.error);
-		} finally {
 			setLoading(false);
 		}
 	};
