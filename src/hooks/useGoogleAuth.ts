@@ -18,6 +18,7 @@ export function useGoogleAuth() {
 			if (!needsUsername) showToast("¡Conectado con Google! Bienvenido.", "success");
 			navigate(needsUsername ? "/username-setup" : "/dashboard", { replace: true });
 		} catch (err: unknown) {
+			console.error("[Google Auth]", err);
 			if (err instanceof Error && err.message === "POPUP_CLOSED") return;
 			setError(copy.google.error);
 		} finally {
