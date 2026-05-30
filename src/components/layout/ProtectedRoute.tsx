@@ -1,28 +1,15 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { auth } from '../../lib/firebase'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface ProtectedRouteProps {
 	children: ReactNode
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-	const navigate = useNavigate()
-	const [checking, setChecking] = useState(true)
+	const { user, loading } = useAuth()
 
-	useEffect(() => {
-		const unsubscribe = auth.onAuthStateChanged((user) => {
-			if (!user) {
-				navigate('/login', { replace: true })
-			} else {
-				setChecking(false)
-			}
-		})
-		return unsubscribe
-	}, [navigate])
-
-	if (checking) {
+	if (loading) {
 		return (
 			<div
 				role='status'
@@ -45,6 +32,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 			</div>
 		)
 	}
+
+	if (!user) return <Navigate to='/login' replace />
 
 	return <>{children}</>
 }
