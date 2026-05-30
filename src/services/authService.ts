@@ -35,10 +35,9 @@ export async function registerWithEmail(payload: RegisterPayload): Promise<Regis
 	const { user } = credential
 	const displayName = `${nombres} ${apellidos}`.trim()
 
-	await updateProfile(user, {
-		displayName,
-		...(avatarDataUrl ? { photoURL: avatarDataUrl } : {}),
-	})
+	// photoURL only accepts a real URL — base64 data URIs exceed Firebase's
+	// character limit and return 400. Avatar is persisted in Firestore instead.
+	await updateProfile(user, { displayName })
 
 	const lowerUsername = username.toLowerCase()
 	const userDoc = {
