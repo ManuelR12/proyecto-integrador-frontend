@@ -88,6 +88,11 @@ export function useRegisterForm() {
 					...prev,
 					username: copy.register.errors.usernameTaken,
 				}));
+			} else if (err instanceof Error && err.message === "EMAIL_TAKEN") {
+				setFieldErrors((prev) => ({
+					...prev,
+					email: copy.register.errors.emailTaken,
+				}));
 			} else {
 				const msg = resolveServerError(err);
 				setServerError(msg);
