@@ -126,6 +126,47 @@ export const auth = {
 } as const;
 
 export const dashboard = {
+	title: "Tus salas de estudio",
+	subtitle: "Gestiona y accede a tus espacios colaborativos",
+	createRoom: "+ Crear Sala",
+	joinSection: {
+		title: "Unirse a una sala",
+		placeholder: "Ingresa el ID de la Sala",
+		hint: "Pregunta al creador de la sala por el código de invitación (ej: agl-c4i-9x2)",
+		submit: "Unirse",
+		errorRequired: "Ingresa un ID de sala",
+		errorNotFound: "No encontramos una sala con ese ID",
+		errorGeneric: "No pudimos unirte a la sala. Inténtalo de nuevo.",
+	},
+	createModal: {
+		title: "Crear nueva sala",
+		nameLabel: "Nombre de la sala",
+		namePlaceholder: "Ej: Cálculo III - Parcial 2",
+		nameMaxLength: 60,
+		idLabel: "ID de la sala",
+		idHelper: "Podrás compartir este ID para invitar a otros participantes.",
+		cancel: "Cancelar",
+		submit: "Crear sala",
+		submitLoading: "Creando sala...",
+		errors: {
+			nameRequired: "El nombre de la sala es obligatorio",
+		},
+	},
+	roomCard: {
+		enter: "Entrar",
+		settings: "Configuración",
+		inactive: "Inactiva",
+		idPrefix: "ID:",
+		copySuccess: "ID copiado al portapapeles",
+		participants: (n: number) => `${n} participantes`,
+		settingsSoon: "La configuración estará disponible pronto.",
+	},
+	emptyState: {
+		title: "Aún no tienes salas de estudio",
+		body: "Crea tu primera sala para colaborar con tu equipo en tiempo real con chat, video y pantalla compartida.",
+		cta: "Crear mi primera sala",
+	},
+	loadingRooms: "Cargando tus salas...",
 	proximasSesiones: "Próximas sesiones",
 	verCalendario: "Ver calendario",
 	crearReunion: {
@@ -200,13 +241,57 @@ export const sala = {
 
 export const perfil = {
 	title: "Mi perfil",
-	subtitle: "Gestiona tu información personal y la configuración de tu cuenta.",
+	subtitle: "Gestiona tu información personal y cómo te ven otros estudiantes",
 	save: "Guardar cambios",
-	deleteAccount: "Eliminar cuenta",
-	fields: {
-		nombre: "Nombre completo",
-		correo: "Correo institucional",
-		programa: "Programa",
+	saveLoading: "Guardando cambios...",
+	success: "Cambios guardados exitosamente",
+	avatarLabel: "Avatar",
+	avatarChange: "Cambiar avatar",
+	avatarHelper: "Se mostrarán tus iniciales si no subes una imagen",
+	nombresLabel: "Nombre",
+	nombresPlaceholder: "Tu nombre",
+	apellidosLabel: "Apellido",
+	apellidosPlaceholder: "Tu apellido",
+	usernameLabel: "Nombre de usuario",
+	usernamePlaceholder: "usuario",
+	usernameHelper: "Este es tu identificador único en Agora",
+	emailLabel: "Correo electrónico",
+	emailPlaceholder: "tu@universidad.edu",
+	dangerZone: {
+		title: "Zona de peligro",
+		body: "Una vez elimines tu cuenta, no hay vuelta atrás. Todos tus datos, salas e historial se perderán permanentemente.",
+		deleteButton: "Eliminar mi cuenta",
+	},
+	deleteModal: {
+		title: "¿Estás absolutamente seguro?",
+		intro: "Esta acción no se puede deshacer. Al eliminar tu cuenta:",
+		consequences: [
+			"Todas tus salas de estudio serán eliminadas",
+			"Perderás el acceso a todos los espacios colaborativos",
+			"Tu historial de mensajes y actividad se borrará permanentemente",
+		],
+		confirmPrompt: "Para confirmar, escribe",
+		confirmWord: "eliminar",
+		confirmPlaceholder: "eliminar",
+		confirmButton: "Sí, eliminar mi cuenta permanentemente",
+		cancelButton: "Cancelar, mantener mi cuenta",
+		loadingTitle: "Eliminando cuenta...",
+		loadingBody: "Esto puede tomar unos momentos. Por favor no cierres esta ventana",
+		reauthAlert: {
+			title: "Se requiere iniciar sesión de nuevo",
+			body: "Por motivos de seguridad, debes cerrar sesión e iniciar sesión de nuevo antes de poder eliminar tu cuenta. Tus datos se mantienen intactos.",
+			action: "Cerrar sesión e ir a login",
+		},
+		errors: {
+			generic: "No pudimos eliminar tu cuenta. Intenta de nuevo.",
+		},
+	},
+	loading: "Cargando tu perfil...",
+	profileMissing: "No encontramos tu perfil. Completa el registro para continuar.",
+	errors: {
+		nombresRequired: "El nombre es obligatorio",
+		apellidosRequired: "El apellido es obligatorio",
+		saveFailed: "No pudimos guardar los cambios. Intenta de nuevo.",
 	},
 } as const;
 
