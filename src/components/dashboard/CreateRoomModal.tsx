@@ -5,7 +5,6 @@ import SubmitButton from "../ui/SubmitButton";
 interface CreateRoomModalProps {
 	open: boolean;
 	title: string;
-	previewCode: string;
 	creating: boolean;
 	error: string | null;
 	maxTitleLength: number;
@@ -17,7 +16,6 @@ interface CreateRoomModalProps {
 const CreateRoomModal = ({
 	open,
 	title,
-	previewCode,
 	creating,
 	error,
 	maxTitleLength,
@@ -38,6 +36,7 @@ const CreateRoomModal = ({
 		>
 			<div className="pt-1">
 				<h2 className="text-lg font-semibold text-slate-900">{modalCopy.title}</h2>
+				<p className="mt-1 text-sm text-slate-500">{modalCopy.idHelper}</p>
 
 				<form onSubmit={onSubmit} className="mt-5 space-y-5">
 					<div className="flex flex-col gap-1">
@@ -75,20 +74,6 @@ const CreateRoomModal = ({
 								{error}
 							</p>
 						)}
-					</div>
-
-					<div className="flex flex-col gap-1">
-						<label htmlFor="room-code-preview" className="text-sm font-medium text-slate-700">
-							{modalCopy.idLabel}
-						</label>
-						<input
-							id="room-code-preview"
-							type="text"
-							readOnly
-							value={previewCode || "agl-xxx-xxx"}
-							className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
-						/>
-						<p className="text-xs text-slate-500">{modalCopy.idHelper}</p>
 					</div>
 
 					<div className="flex justify-end gap-3 pt-1">

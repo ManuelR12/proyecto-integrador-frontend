@@ -29,15 +29,9 @@ const Dashboard = () => {
 		.join("")
 		.toUpperCase();
 
-	const { rooms, loading, error } = useRooms(user?.uid);
-	const createRoom = useCreateRoom({
-		ownerId: user?.uid,
-		ownerDisplayName: displayName,
-	});
-	const joinRoom = useJoinRoom({
-		userId: user?.uid,
-		userDisplayName: displayName,
-	});
+	const { rooms, loading, error } = useRooms(Boolean(user));
+	const createRoom = useCreateRoom();
+	const joinRoom = useJoinRoom({ userId: user?.uid });
 
 	const handleSignOut = async () => {
 		showToast("Sesión cerrada. ¡Hasta luego!", "info");
@@ -135,10 +129,10 @@ const Dashboard = () => {
 
 				<div className="mt-6">
 					<JoinRoomSection
-						code={joinRoom.code}
+						roomId={joinRoom.roomId}
 						error={joinRoom.error}
 						joining={joinRoom.joining}
-						onCodeChange={joinRoom.handleCodeChange}
+						onRoomIdChange={joinRoom.handleRoomIdChange}
 						onSubmit={joinRoom.handleSubmit}
 					/>
 				</div>
@@ -149,7 +143,6 @@ const Dashboard = () => {
 			<CreateRoomModal
 				open={createRoom.isOpen}
 				title={createRoom.title}
-				previewCode={createRoom.previewCode}
 				creating={createRoom.creating}
 				error={createRoom.error}
 				maxTitleLength={createRoom.maxTitleLength}

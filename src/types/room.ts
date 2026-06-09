@@ -1,26 +1,25 @@
-import type { Timestamp } from "firebase/firestore";
-
 export interface RoomParticipant {
 	uid: string;
 	displayName: string;
 	initials: string;
 }
 
-export interface FirestoreRoomDocument {
-	title: string;
-	code: string;
-	ownerId: string;
-	memberIds: string[];
-	participants: RoomParticipant[];
-	isLive: boolean;
-	createdAt: Timestamp;
-	updatedAt: Timestamp;
+/** Room shape returned by GET/POST /rooms */
+export interface ApiRoomDocument {
+	id: string;
+	name: string;
+	created_by: string;
+	members: string[];
+	created_at?: ApiTimestamp;
 }
+
+type ApiTimestamp =
+	| string
+	| { seconds?: number; _seconds?: number; nanoseconds?: number; _nanoseconds?: number };
 
 export interface Room {
 	id: string;
 	title: string;
-	code: string;
 	ownerId: string;
 	memberIds: string[];
 	participants: RoomParticipant[];
@@ -29,10 +28,5 @@ export interface Room {
 }
 
 export interface CreateRoomPayload {
-	title: string;
-	code: string;
-}
-
-export interface JoinRoomPayload {
-	code: string;
+	name: string;
 }

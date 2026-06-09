@@ -1,22 +1,16 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { dashboard as copy } from "../copy/es";
 import { useToast } from "../contexts/ToastContext";
-import { createRoom, generateUniqueRoomCode } from "../services/roomService";
+import { createRoom } from "../services/roomService";
 
 const MAX_TITLE_LENGTH = copy.createModal.nameMaxLength;
 
-interface UseCreateRoomOptions {
-	ownerId: string | undefined;
-	ownerDisplayName: string;
-}
-
-export function useCreateRoom({ ownerId, ownerDisplayName }: UseCreateRoomOptions) {
+export function useCreateRoom() {
 	const navigate = useNavigate();
 	const { showToast } = useToast();
 	const [isOpen, setIsOpen] = useState(false);
 	const [title, setTitle] = useState("");
-	const [previewCode, setPreviewCode] = useState("");
 	const [creating, setCreating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -25,33 +19,16 @@ export function useCreateRoom({ ownerId, ownerDisplayName }: UseCreateRoomOption
 		setError(null);
 	}, []);
 
-	const openModal = useCallback(async () => {
+	const openModal = useCallback(() => {
 		resetForm();
 		setIsOpen(true);
-		try {
-			const code = await generateUniqueRoomCode();
-			setPreviewCode(code);
-		} catch {
-			setPreviewCode("");
-			showToast("No pudimos generar un ID de sala. Inténtalo de nuevo.", "error");
-		}
-	}, [resetForm, showToast]);
+	}, [resetForm]);
 
 	const closeModal = useCallback(() => {
 		if (creating) return;
 		setIsOpen(false);
 		resetForm();
 	}, [creating, resetForm]);
-
-	useEffect(() => {
-		if (!isOpen || previewCode) return;
-
-		void generateUniqueRoomCode()
-			.then(setPreviewCode)
-			.catch(() => {
-				showToast("No pudimos generar un ID de sala. Inténtalo de nuevo.", "error");
-			});
-	}, [isOpen, previewCode, showToast]);
 
 	const handleTitleChange = (value: string) => {
 		setTitle(value.slice(0, MAX_TITLE_LENGTH));
@@ -60,7 +37,6 @@ export function useCreateRoom({ ownerId, ownerDisplayName }: UseCreateRoomOption
 
 	const handleSubmit = async (event: FormEvent) => {
 		event.preventDefault();
-		if (!ownerId) return;
 
 		const trimmedTitle = title.trim();
 		if (!trimmedTitle) {
@@ -72,26 +48,13 @@ export function useCreateRoom({ ownerId, ownerDisplayName }: UseCreateRoomOption
 		setError(null);
 
 		try {
-			let code = previewCode;
-			if (!code) code = await generateUniqueRoomCode();
-
-			const roomCode = await createRoom(code, trimmedTitle, {
-				uid: ownerId,
-				displayName: ownerDisplayName,
-			});
-
+			const room = await createRoom(trimmedTitle);
 			setIsOpen(false);
 			resetForm();
-			navigate(`/sala/${roomCode}`, { replace: true });
+			navigate(`/sala/${room.id}`, { replace: true });
 		} catch (err) {
-			if (err instanceof Error && err.message === "CODE_COLLISION") {
-				try {
-					const freshCode = await generateUniqueRoomCode();
-					setPreviewCode(freshCode);
-					setError("El ID generado ya existe. Intenta crear la sala de nuevo.");
-				} catch {
-					showToast("No pudimos crear la sala. Inténtalo de nuevo.", "error");
-				}
+			if (err instanceof Error && err.message === "VALIDATION_ERROR") {
+				setError(copy.createModal.errors.nameRequired);
 			} else {
 				showToast("No pudimos crear la sala. Inténtalo de nuevo.", "error");
 			}
@@ -103,7 +66,6 @@ export function useCreateRoom({ ownerId, ownerDisplayName }: UseCreateRoomOption
 	return {
 		isOpen,
 		title,
-		previewCode,
 		creating,
 		error,
 		maxTitleLength: MAX_TITLE_LENGTH,

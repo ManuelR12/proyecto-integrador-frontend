@@ -1,22 +1,12 @@
 import { isAxiosError } from "axios";
-import { auth } from "../lib/firebase";
 import apiClient from "../lib/apiClient";
+import { authHeaders, getIdToken } from "../lib/authToken";
 import type {
 	ApiProfileDocument,
 	ApiProfileResponse,
 	ProfileUpdatePayload,
 	UserProfileData,
 } from "../types/user";
-
-async function getIdToken(): Promise<string> {
-	const user = auth.currentUser;
-	if (!user) throw new Error("UNAUTHENTICATED");
-	return user.getIdToken();
-}
-
-function authHeaders(token: string) {
-	return { Authorization: `Bearer ${token}` };
-}
 
 function normalizeApiProfile(profile: ApiProfileDocument): UserProfileData {
 	const nombres = (profile.nombres ?? profile.name ?? "").trim();

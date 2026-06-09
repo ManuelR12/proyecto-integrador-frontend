@@ -1,21 +1,20 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { dashboard as copy } from "../copy/es";
-import { joinRoom } from "../services/roomService";
+import { joinRoomViaSocket } from "../services/roomSocketService";
 
 interface UseJoinRoomOptions {
 	userId: string | undefined;
-	userDisplayName: string;
 }
 
-export function useJoinRoom({ userId, userDisplayName }: UseJoinRoomOptions) {
+export function useJoinRoom({ userId }: UseJoinRoomOptions) {
 	const navigate = useNavigate();
-	const [code, setCode] = useState("");
+	const [roomId, setRoomId] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [joining, setJoining] = useState(false);
 
-	const handleCodeChange = (value: string) => {
-		setCode(value);
+	const handleRoomIdChange = (value: string) => {
+		setRoomId(value);
 		if (error) setError(null);
 	};
 
@@ -23,8 +22,8 @@ export function useJoinRoom({ userId, userDisplayName }: UseJoinRoomOptions) {
 		event.preventDefault();
 		if (!userId) return;
 
-		const trimmedCode = code.trim();
-		if (!trimmedCode) {
+		const trimmedId = roomId.trim();
+		if (!trimmedId) {
 			setError(copy.joinSection.errorRequired);
 			return;
 		}
@@ -33,11 +32,8 @@ export function useJoinRoom({ userId, userDisplayName }: UseJoinRoomOptions) {
 		setError(null);
 
 		try {
-			const roomCode = await joinRoom(trimmedCode, {
-				uid: userId,
-				displayName: userDisplayName,
-			});
-			navigate(`/sala/${roomCode}`);
+			await joinRoomViaSocket(trimmedId);
+			navigate(`/sala/${trimmedId}`);
 		} catch (err) {
 			if (err instanceof Error && err.message === "ROOM_NOT_FOUND") {
 				setError(copy.joinSection.errorNotFound);
@@ -50,10 +46,10 @@ export function useJoinRoom({ userId, userDisplayName }: UseJoinRoomOptions) {
 	};
 
 	return {
-		code,
+		roomId,
 		error,
 		joining,
-		handleCodeChange,
+		handleRoomIdChange,
 		handleSubmit,
 	};
 }

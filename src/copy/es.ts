@@ -132,7 +132,7 @@ export const dashboard = {
 	joinSection: {
 		title: "Unirse a una sala",
 		placeholder: "Ingresa el ID de la Sala",
-		hint: "Pregunta al creador de la sala por el código de invitación (ej: agl-c4i-9x2)",
+		hint: "Pregunta al creador de la sala por el ID de la sala (ej: abc123def456)",
 		submit: "Unirse",
 		errorRequired: "Ingresa un ID de sala",
 		errorNotFound: "No encontramos una sala con ese ID",
@@ -143,8 +143,8 @@ export const dashboard = {
 		nameLabel: "Nombre de la sala",
 		namePlaceholder: "Ej: Cálculo III - Parcial 2",
 		nameMaxLength: 60,
-		idLabel: "ID de la sala",
-		idHelper: "Podrás compartir este ID para invitar a otros participantes.",
+		idHelper:
+			"El ID se asignará automáticamente. Podrás compartirlo para invitar a otros participantes.",
 		cancel: "Cancelar",
 		submit: "Crear sala",
 		submitLoading: "Creando sala...",

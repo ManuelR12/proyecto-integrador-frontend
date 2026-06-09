@@ -1,10 +1,10 @@
 import { dashboard as copy } from "../../copy/es";
 
 interface JoinRoomSectionProps {
-	code: string;
+	roomId: string;
 	error: string | null;
 	joining: boolean;
-	onCodeChange: (value: string) => void;
+	onRoomIdChange: (value: string) => void;
 	onSubmit: (event: React.FormEvent) => void;
 }
 
@@ -34,10 +34,10 @@ const ErrorIcon = () => (
 );
 
 const JoinRoomSection = ({
-	code,
+	roomId,
 	error,
 	joining,
-	onCodeChange,
+	onRoomIdChange,
 	onSubmit,
 }: JoinRoomSectionProps) => {
 	const hasError = Boolean(error);
@@ -50,10 +50,10 @@ const JoinRoomSection = ({
 				<div className="flex-1">
 					<div className="relative">
 						<input
-							id="join-room-code"
+							id="join-room-id"
 							type="text"
-							value={code}
-							onChange={(event) => onCodeChange(event.target.value)}
+							value={roomId}
+							onChange={(event) => onRoomIdChange(event.target.value)}
 							placeholder={copy.joinSection.placeholder}
 							aria-invalid={hasError}
 							aria-describedby={hasError ? "join-room-error" : "join-room-hint"}

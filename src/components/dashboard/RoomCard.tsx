@@ -44,9 +44,11 @@ const RoomCard = ({ room }: RoomCardProps) => {
 	const visibleParticipants = room.participants.slice(0, 4);
 	const overflowCount = Math.max(room.participants.length - visibleParticipants.length, 0);
 
-	const handleCopyCode = async () => {
+	const participantCount = room.participants.length || Math.max(room.memberIds.length, 1);
+
+	const handleCopyId = async () => {
 		try {
-			await navigator.clipboard.writeText(room.code);
+			await navigator.clipboard.writeText(room.id);
 			showToast(copy.roomCard.copySuccess, "success");
 		} catch {
 			showToast("No pudimos copiar el ID. Inténtalo de nuevo.", "error");
@@ -68,12 +70,12 @@ const RoomCard = ({ room }: RoomCardProps) => {
 						<h3 className="truncate text-base font-semibold text-slate-900">{room.title}</h3>
 						<div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
 							<span>
-								{copy.roomCard.idPrefix} {room.code}
+								{copy.roomCard.idPrefix} {room.id}
 							</span>
 							<button
 								type="button"
-								onClick={handleCopyCode}
-								aria-label={`Copiar ID ${room.code}`}
+								onClick={handleCopyId}
+								aria-label={`Copiar ID ${room.id}`}
 								className="rounded p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
 							>
 								<CopyIcon />
@@ -93,28 +95,30 @@ const RoomCard = ({ room }: RoomCardProps) => {
 			</div>
 
 			<div className="mt-4 flex items-center gap-2">
-				<div className="flex -space-x-2">
-					{visibleParticipants.map((participant, index) => (
-						<ParticipantAvatar
-							key={participant.uid}
-							initials={participant.initials}
-							index={index}
-						/>
-					))}
-					{overflowCount > 0 && (
-						<div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-200 text-[10px] font-semibold text-slate-600">
-							+{overflowCount}
-						</div>
-					)}
-				</div>
+				{visibleParticipants.length > 0 && (
+					<div className="flex -space-x-2">
+						{visibleParticipants.map((participant, index) => (
+							<ParticipantAvatar
+								key={participant.uid}
+								initials={participant.initials}
+								index={index}
+							/>
+						))}
+						{overflowCount > 0 && (
+							<div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-200 text-[10px] font-semibold text-slate-600">
+								+{overflowCount}
+							</div>
+						)}
+					</div>
+				)}
 				<span className="text-xs text-slate-500">
-					{copy.roomCard.participants(room.participants.length || room.memberIds.length)}
+					{copy.roomCard.participants(participantCount)}
 				</span>
 			</div>
 
 			<div className="mt-5 flex gap-3">
 				<Link
-					to={`/sala/${room.code}`}
+					to={`/sala/${room.id}`}
 					className="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
 				>
 					{copy.roomCard.enter}
