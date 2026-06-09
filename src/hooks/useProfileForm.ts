@@ -50,7 +50,8 @@ function validate(data: ProfileFormFields): ProfileFieldErrors {
 	const errors: ProfileFieldErrors = {};
 	if (!data.nombres.trim()) errors.nombres = perfilCopy.errors.nombresRequired;
 	if (!data.apellidos.trim()) errors.apellidos = perfilCopy.errors.apellidosRequired;
-	if (!USERNAME_REGEX.test(data.username)) errors.username = authCopy.register.errors.usernameInvalid;
+	if (!USERNAME_REGEX.test(data.username))
+		errors.username = authCopy.register.errors.usernameInvalid;
 	return errors;
 }
 
@@ -74,10 +75,13 @@ export function useProfileForm() {
 
 	useEffect(() => {
 		if (!data || !user) return;
+
 		const next = toFormFields(data, user.email ?? "");
-		setFields(next);
-		setBaseline(next);
-		setFieldErrors({});
+		queueMicrotask(() => {
+			setFields(next);
+			setBaseline(next);
+			setFieldErrors({});
+		});
 	}, [data, user]);
 
 	const isDirty = useMemo(() => !formsEqual(fields, baseline), [fields, baseline]);

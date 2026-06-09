@@ -16,7 +16,12 @@ interface DeleteAccountModalProps {
 }
 
 const Spinner = ({ className = "h-10 w-10" }: { className?: string }) => (
-	<svg className={`animate-spin text-red-500 ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+	<svg
+		className={`animate-spin text-red-500 ${className}`}
+		viewBox="0 0 24 24"
+		fill="none"
+		aria-hidden="true"
+	>
 		<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
 		<path
 			className="opacity-75"
@@ -87,9 +92,7 @@ const DeleteAccountModal = ({
 							role="alert"
 							className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-left"
 						>
-							<p className="text-sm font-semibold text-amber-900">
-								{modalCopy.reauthAlert.title}
-							</p>
+							<p className="text-sm font-semibold text-amber-900">{modalCopy.reauthAlert.title}</p>
 							<p className="mt-1 text-xs text-amber-800">{modalCopy.reauthAlert.body}</p>
 							<button
 								type="button"
@@ -104,8 +107,8 @@ const DeleteAccountModal = ({
 					<div className="mt-5">
 						<label htmlFor="delete-confirm-input" className="text-sm text-slate-600">
 							{modalCopy.confirmPrompt}{" "}
-							<strong className="font-semibold text-slate-900">{CONFIRM_WORD}</strong> en el campo de
-							abajo:
+							<strong className="font-semibold text-slate-900">{CONFIRM_WORD}</strong> en el campo
+							de abajo:
 						</label>
 						<input
 							id="delete-confirm-input"

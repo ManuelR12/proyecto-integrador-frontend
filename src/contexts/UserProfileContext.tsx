@@ -33,11 +33,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 	const [profileMissing, setProfileMissing] = useState(false);
 
 	const loadProfile = useCallback(async () => {
-		if (!user) {
-			setData(null);
-			setProfileMissing(false);
-			return;
-		}
+		if (!user) return;
 
 		setLoading(true);
 		try {
@@ -59,23 +55,59 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 	}, [user]);
 
 	useEffect(() => {
-		void loadProfile();
-	}, [loadProfile]);
+		if (!user) return;
+
+		let active = true;
+
+		const run = async () => {
+			setLoading(true);
+			try {
+				const profile = await fetchUserProfile();
+				if (!active) return;
+
+				if (!profile) {
+					setData(null);
+					setProfileMissing(true);
+					return;
+				}
+
+				setData(profile);
+				setProfileMissing(false);
+			} catch (err) {
+				if (!active) return;
+				console.error("[UserProfileContext]", err);
+				setData(null);
+				setProfileMissing(true);
+			} finally {
+				if (active) setLoading(false);
+			}
+		};
+
+		void run();
+
+		return () => {
+			active = false;
+		};
+	}, [user]);
+
+	const effectiveData = user ? data : null;
+	const effectiveLoading = user ? loading : false;
+	const effectiveProfileMissing = user ? profileMissing : false;
 
 	const value = useMemo<UserProfileContextValue>(
 		() => ({
-			data,
-			avatarUrl: data?.avatarUrl ?? null,
-			username: data?.username ?? null,
-			displayName: data?.displayName ?? null,
-			nombres: data?.nombres ?? null,
-			apellidos: data?.apellidos ?? null,
-			email: data?.email ?? null,
-			loading,
-			profileMissing,
+			data: effectiveData,
+			avatarUrl: effectiveData?.avatarUrl ?? null,
+			username: effectiveData?.username ?? null,
+			displayName: effectiveData?.displayName ?? null,
+			nombres: effectiveData?.nombres ?? null,
+			apellidos: effectiveData?.apellidos ?? null,
+			email: effectiveData?.email ?? null,
+			loading: effectiveLoading,
+			profileMissing: effectiveProfileMissing,
 			refetch: loadProfile,
 		}),
-		[data, loading, profileMissing, loadProfile],
+		[effectiveData, effectiveLoading, effectiveProfileMissing, loadProfile],
 	);
 
 	return <UserProfileContext.Provider value={value}>{children}</UserProfileContext.Provider>;

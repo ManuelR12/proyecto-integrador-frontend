@@ -199,11 +199,7 @@ const Perfil = () => {
 											value={fields.username}
 											aria-invalid={Boolean(fieldErrors.username)}
 											aria-busy={checkingUsername}
-											aria-describedby={
-												fieldErrors.username
-													? "username-error"
-													: "username-helper"
-											}
+											aria-describedby={fieldErrors.username ? "username-error" : "username-helper"}
 											required
 											className={[
 												"w-full rounded-lg border py-2 pl-8 pr-3 text-sm text-slate-900 placeholder:text-slate-400",
