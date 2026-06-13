@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import CreateRoomModal from "../components/dashboard/CreateRoomModal";
 import DashboardEmptyState from "../components/dashboard/DashboardEmptyState";
@@ -16,6 +17,7 @@ import { auth } from "../lib/firebase";
 
 const Dashboard = () => {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const { showToast } = useToast();
 	const { user } = useAuth();
 	const { avatarUrl, displayName: profileDisplayName } = useUserProfile();
@@ -29,9 +31,17 @@ const Dashboard = () => {
 		.join("")
 		.toUpperCase();
 
-	const { rooms, loading, error } = useRooms(Boolean(user));
+	const { rooms, loading, error, refetch } = useRooms(Boolean(user));
 	const createRoom = useCreateRoom();
 	const joinRoom = useJoinRoom({ userId: user?.uid });
+
+	useEffect(() => {
+		const state = location.state as { deletedRoomId?: string } | null;
+		if (!state?.deletedRoomId) return;
+
+		void refetch();
+		navigate(location.pathname, { replace: true, state: null });
+	}, [location.pathname, location.state, navigate, refetch]);
 
 	const handleSignOut = async () => {
 		showToast("Sesión cerrada. ¡Hasta luego!", "info");

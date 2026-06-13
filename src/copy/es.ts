@@ -235,9 +235,13 @@ export const sala = {
 	deleteRoom: "Eliminar sala",
 	enVivo: "En vivo",
 	stagePlaceholder: "Pantalla compartida / video principal",
-	chatTitle: "Chat de la sala",
+	chatTitle: "Chat",
+	chatSubtitle: (roomName: string, count: number) => `${roomName} · ${count} msgs`,
 	chatPlaceholder: "Escribe un mensaje...",
 	chatSend: "Enviar",
+	chatDisconnected: "Sin conexión. Reconectando...",
+	chatLoadingHistory: "Cargando historial...",
+	chatEnterHint: "Presiona Enter para enviar. Shift+Enter para nueva línea.",
 	controls: {
 		microfono: "Micrófono",
 		camara: "Cámara",
@@ -305,16 +309,27 @@ export const perfil = {
 
 export const modals = {
 	editarSala: {
-		title: "Editar reunión",
-		body: "Actualiza asunto, fecha u hora de la sala de estudio.",
-		confirm: "Guardar",
+		title: "Configuración de la sala",
+		nameLabel: "Nombre de la sala",
+		namePlaceholder: "Ej: Cálculo III - Parcial 2",
+		nameMaxLength: 60,
+		confirm: "Guardar cambios",
+		confirmLoading: "Guardando...",
 		cancel: "Cancelar",
+		errors: {
+			nameRequired: "El nombre de la sala es obligatorio",
+			generic: "No pudimos guardar los cambios. Inténtalo de nuevo.",
+		},
 	},
 	eliminarSala: {
-		title: "¿Eliminar reunión?",
-		body: "Esta acción no se puede deshacer. Los participantes perderán el acceso.",
-		confirm: "Eliminar",
+		title: "¿Eliminar sala?",
+		body: "Esta acción no se puede deshacer. Los participantes perderán el acceso y se borrará el historial de chat.",
+		confirm: "Sí, eliminar sala",
+		confirmLoading: "Eliminando sala...",
 		cancel: "Cancelar",
+		errors: {
+			generic: "No pudimos eliminar la sala. Inténtalo de nuevo.",
+		},
 	},
 } as const;
 

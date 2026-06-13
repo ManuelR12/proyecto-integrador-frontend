@@ -1,15 +1,36 @@
 import { Link, useParams } from "react-router-dom";
+import DeleteRoomModal from "../components/sala/DeleteRoomModal";
+import RoomChatPanel from "../components/sala/RoomChatPanel";
+import RoomConfigModal from "../components/sala/RoomConfigModal";
 import RoomHeader from "../components/sala/RoomHeader";
 import { sala as copy } from "../copy/es";
 import { useAuth } from "../contexts/AuthContext";
-import { useUserProfile } from "../hooks/useUserProfile";
+import { useDeleteRoom } from "../hooks/useDeleteRoom";
+import { useRoomChat } from "../hooks/useRoomChat";
 import { useRoom } from "../hooks/useRoom";
+import { useUpdateRoom } from "../hooks/useUpdateRoom";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 const Sala = () => {
 	const { id } = useParams<{ id: string }>();
 	const { user } = useAuth();
 	const { displayName } = useUserProfile();
-	const { room, loading, error, isAdmin } = useRoom(id, user?.uid);
+	const { room, loading, error, isAdmin, setRoom } = useRoom(id, user?.uid);
+
+	const updateRoom = useUpdateRoom({
+		roomId: id ?? "",
+		userId: user?.uid,
+		onSuccess: (name) => {
+			setRoom((prev) => (prev ? { ...prev, title: name } : prev));
+		},
+	});
+
+	const deleteRoom = useDeleteRoom({
+		roomId: id ?? "",
+		userId: user?.uid,
+	});
+
+	const chat = useRoomChat(id);
 
 	const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
 	const currentInitials = currentDisplayName
@@ -49,27 +70,59 @@ const Sala = () => {
 				room={room}
 				isAdmin={isAdmin}
 				participantCount={participantCount}
-				onEdit={() => {
-					/* FE-10: open config modal */
-				}}
-				onDelete={() => {
-					/* FE-10: open delete modal */
-				}}
+				onEdit={() => updateRoom.openModal(room.title)}
+				onDelete={deleteRoom.openModal}
 			/>
 
-			<main className="flex flex-1 flex-col items-center justify-center px-6 py-8">
-				<div className="grid w-full max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
-					<div className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-						<div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-lg font-semibold text-white">
-							{currentInitials}
+			<div className="flex flex-1 flex-col lg:flex-row">
+				<main className="flex flex-1 flex-col items-center justify-center px-6 py-8">
+					<div className="grid w-full max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
+						<div className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/80 p-4">
+							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-lg font-semibold text-white">
+								{currentInitials}
+							</div>
+							<p className="mt-3 truncate text-sm font-medium text-slate-200">
+								{currentDisplayName}
+							</p>
+							<span className="mt-1 text-xs text-blue-400">Tú</span>
 						</div>
-						<p className="mt-3 truncate text-sm font-medium text-slate-200">{currentDisplayName}</p>
-						<span className="mt-1 text-xs text-blue-400">Tú</span>
 					</div>
-				</div>
 
-				<p className="mt-8 text-center text-xs text-slate-600">{copy.stagePlaceholder}</p>
-			</main>
+					<p className="mt-8 text-center text-xs text-slate-600">{copy.stagePlaceholder}</p>
+				</main>
+
+				<RoomChatPanel
+					roomName={room.title}
+					messages={chat.messages}
+					loadingHistory={chat.loadingHistory}
+					currentUserId={user?.uid}
+					connected={chat.connected}
+					draft={chat.draft}
+					messagesEndRef={chat.messagesEndRef}
+					onDraftChange={chat.handleDraftChange}
+					onSend={chat.sendMessage}
+					onKeyDown={chat.handleKeyDown}
+				/>
+			</div>
+
+			<RoomConfigModal
+				open={updateRoom.open}
+				name={updateRoom.name}
+				saving={updateRoom.saving}
+				error={updateRoom.error}
+				maxNameLength={updateRoom.maxNameLength}
+				onClose={updateRoom.closeModal}
+				onNameChange={updateRoom.handleNameChange}
+				onSubmit={updateRoom.handleSubmit}
+			/>
+
+			<DeleteRoomModal
+				open={deleteRoom.open}
+				deleting={deleteRoom.deleting}
+				error={deleteRoom.error}
+				onConfirm={() => void deleteRoom.handleConfirm()}
+				onCancel={deleteRoom.closeModal}
+			/>
 		</div>
 	);
 };
