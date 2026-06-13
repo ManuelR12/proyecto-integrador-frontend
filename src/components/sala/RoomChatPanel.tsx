@@ -9,6 +9,7 @@ interface RoomChatPanelProps {
 	loadingHistory: boolean;
 	currentUserId: string | undefined;
 	connected: boolean;
+	connectionError: string | null;
 	draft: string;
 	messagesEndRef: React.RefObject<HTMLDivElement | null>;
 	onDraftChange: (value: string) => void;
@@ -28,6 +29,7 @@ const RoomChatPanel = ({
 	loadingHistory,
 	currentUserId,
 	connected,
+	connectionError,
 	draft,
 	messagesEndRef,
 	onDraftChange,
@@ -65,10 +67,17 @@ const RoomChatPanel = ({
 				</div>
 
 				<div className="border-t border-slate-200 px-4 py-3">
-					{!connected && (
-						<p role="status" className="mb-2 text-xs text-amber-600">
-							{copy.chatDisconnected}
+					{connectionError ? (
+						<p role="alert" className="mb-2 text-xs text-red-600">
+							{connectionError}
 						</p>
+					) : (
+						!connected &&
+						!loadingHistory && (
+							<p role="status" className="mb-2 text-xs text-amber-600">
+								{copy.chatDisconnected}
+							</p>
+						)
 					)}
 					<div className="flex items-end gap-2">
 						<textarea

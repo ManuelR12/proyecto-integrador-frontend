@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import DeleteRoomModal from "../components/sala/DeleteRoomModal";
 import RoomChatPanel from "../components/sala/RoomChatPanel";
@@ -10,27 +11,27 @@ import { useRoomChat } from "../hooks/useRoomChat";
 import { useRoom } from "../hooks/useRoom";
 import { useUpdateRoom } from "../hooks/useUpdateRoom";
 import { useUserProfile } from "../hooks/useUserProfile";
+import { normalizeRoomId } from "../lib/roomId";
 
 const Sala = () => {
-	const { id } = useParams<{ id: string }>();
+	const { id: rawId } = useParams<{ id: string }>();
+	const roomId = useMemo(() => (rawId ? normalizeRoomId(rawId) : undefined), [rawId]);
 	const { user } = useAuth();
 	const { displayName } = useUserProfile();
-	const { room, loading, error, isAdmin, setRoom } = useRoom(id, user?.uid);
+	const { room, loading, error, isAdmin, setRoom } = useRoom(roomId, user?.uid);
 
 	const updateRoom = useUpdateRoom({
-		roomId: id ?? "",
-		userId: user?.uid,
+		roomId: roomId ?? "",
 		onSuccess: (name) => {
 			setRoom((prev) => (prev ? { ...prev, title: name } : prev));
 		},
 	});
 
-	const deleteRoom = useDeleteRoom({
-		roomId: id ?? "",
-		userId: user?.uid,
+	const deleteRoomAction = useDeleteRoom({
+		roomId: roomId ?? "",
 	});
 
-	const chat = useRoomChat(id);
+	const chat = useRoomChat(roomId);
 
 	const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
 	const currentInitials = currentDisplayName
@@ -71,7 +72,7 @@ const Sala = () => {
 				isAdmin={isAdmin}
 				participantCount={participantCount}
 				onEdit={() => updateRoom.openModal(room.title)}
-				onDelete={deleteRoom.openModal}
+				onDelete={deleteRoomAction.openModal}
 			/>
 
 			<div className="flex flex-1 flex-col lg:flex-row">
@@ -97,6 +98,7 @@ const Sala = () => {
 					loadingHistory={chat.loadingHistory}
 					currentUserId={user?.uid}
 					connected={chat.connected}
+					connectionError={chat.connectionError}
 					draft={chat.draft}
 					messagesEndRef={chat.messagesEndRef}
 					onDraftChange={chat.handleDraftChange}
@@ -117,11 +119,11 @@ const Sala = () => {
 			/>
 
 			<DeleteRoomModal
-				open={deleteRoom.open}
-				deleting={deleteRoom.deleting}
-				error={deleteRoom.error}
-				onConfirm={() => void deleteRoom.handleConfirm()}
-				onCancel={deleteRoom.closeModal}
+				open={deleteRoomAction.open}
+				deleting={deleteRoomAction.deleting}
+				error={deleteRoomAction.error}
+				onConfirm={() => void deleteRoomAction.handleConfirm()}
+				onCancel={deleteRoomAction.closeModal}
 			/>
 		</div>
 	);

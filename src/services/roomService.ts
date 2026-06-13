@@ -42,6 +42,8 @@ function mapRoomApiError(error: unknown): Error {
 	if (!error.response) return new Error("NETWORK_ERROR");
 	if (status === 400) return new Error("VALIDATION_ERROR");
 	if (status === 401) return new Error("UNAUTHENTICATED");
+	if (status === 403) return new Error("FORBIDDEN");
+	if (status === 404) return new Error("ROOM_NOT_FOUND");
 	return new Error("UNKNOWN_ERROR");
 }
 
@@ -100,6 +102,53 @@ export async function fetchRoomMessages(roomId: string): Promise<ChatMessage[]> 
 			headers: authHeaders(token),
 		});
 		return data;
+	} catch (error: unknown) {
+		throw mapRoomApiError(error);
+	}
+}
+
+/**
+ * Renames a room via PATCH /rooms/:roomId.
+ *
+ * @throws `Error('UNAUTHENTICATED')`
+ * @throws `Error('VALIDATION_ERROR')`
+ * @throws `Error('FORBIDDEN')`
+ * @throws `Error('ROOM_NOT_FOUND')`
+ * @throws `Error('NETWORK_ERROR')`
+ */
+export async function updateRoomName(
+	roomId: string,
+	name: string,
+): Promise<{ id: string; name: string }> {
+	const token = await getIdToken();
+
+	try {
+		const { data } = await apiClient.patch<{ id: string; name: string }>(
+			`/rooms/${roomId}`,
+			{ name: name.trim() },
+			{ headers: authHeaders(token) },
+		);
+		return data;
+	} catch (error: unknown) {
+		throw mapRoomApiError(error);
+	}
+}
+
+/**
+ * Deletes a room via DELETE /rooms/:roomId.
+ *
+ * @throws `Error('UNAUTHENTICATED')`
+ * @throws `Error('FORBIDDEN')`
+ * @throws `Error('ROOM_NOT_FOUND')`
+ * @throws `Error('NETWORK_ERROR')`
+ */
+export async function deleteRoom(roomId: string): Promise<void> {
+	const token = await getIdToken();
+
+	try {
+		await apiClient.delete(`/rooms/${roomId}`, {
+			headers: authHeaders(token),
+		});
 	} catch (error: unknown) {
 		throw mapRoomApiError(error);
 	}

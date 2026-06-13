@@ -6,10 +6,16 @@ function socketBaseUrl(): string {
 	return import.meta.env.VITE_API_BASE_URL ?? "";
 }
 
+export interface RoomJoinedPayload {
+	roomId: string;
+	isAdmin: boolean;
+}
+
 export interface RoomSocketHandlers {
-	onConnect: () => void;
+	onRoomJoined: (payload: RoomJoinedPayload) => void;
 	onDisconnect: () => void;
 	onMessage: (message: ChatMessage) => void;
+	onError: (message: string) => void;
 }
 
 export interface RoomSocketController {
@@ -19,7 +25,7 @@ export interface RoomSocketController {
 
 /**
  * Opens a persistent Socket.io connection for a study room.
- * Emits join_room on connect and leave_room on disconnect.
+ * Waits for the server `room_joined` ack before reporting a live connection.
  */
 export function createRoomSocket(
 	roomId: string,
@@ -34,6 +40,7 @@ export function createRoomSocket(
 
 			const baseUrl = socketBaseUrl();
 			if (!baseUrl) {
+				handlers.onError("Missing API base URL");
 				handlers.onDisconnect();
 				return;
 			}
@@ -46,14 +53,25 @@ export function createRoomSocket(
 
 			socket.on("connect", () => {
 				socket?.emit("join_room", roomId);
-				handlers.onConnect();
+			});
+
+			socket.on("room_joined", (payload: RoomJoinedPayload) => {
+				if (payload.roomId === roomId) {
+					handlers.onRoomJoined(payload);
+				}
 			});
 
 			socket.on("disconnect", () => {
 				handlers.onDisconnect();
 			});
 
-			socket.on("connect_error", () => {
+			socket.on("connect_error", (err: Error) => {
+				handlers.onError(err.message || "Connection failed");
+				handlers.onDisconnect();
+			});
+
+			socket.on("error", (payload: { message?: string }) => {
+				handlers.onError(payload?.message ?? "Socket error");
 				handlers.onDisconnect();
 			});
 
@@ -62,6 +80,7 @@ export function createRoomSocket(
 			});
 		})
 		.catch(() => {
+			handlers.onError("Authentication failed");
 			handlers.onDisconnect();
 		});
 

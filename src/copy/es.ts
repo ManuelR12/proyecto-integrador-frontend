@@ -132,9 +132,10 @@ export const dashboard = {
 	joinSection: {
 		title: "Unirse a una sala",
 		placeholder: "Ingresa el ID de la Sala",
-		hint: "Pregunta al creador de la sala por el ID de la sala (ej: abc123def456)",
+		hint: "Pregunta al creador de la sala por el código de invitación (ej: ABC-1234)",
 		submit: "Unirse",
 		errorRequired: "Ingresa un ID de sala",
+		errorFormat: "El formato de la sala es inválido, usa el formato ABC-1234",
 		errorNotFound: (id: string) =>
 			`No se encontró ninguna sala con el ID '${id}'. Verifica el código o intenta de nuevo.`,
 		errorGeneric: "No pudimos unirte a la sala. Inténtalo de nuevo.",
@@ -145,7 +146,7 @@ export const dashboard = {
 		namePlaceholder: "Ej: Cálculo III - Parcial 2",
 		nameMaxLength: 60,
 		idHelper:
-			"El ID se asignará automáticamente. Podrás compartirlo para invitar a otros participantes.",
+			"Se asignará un código automático (ej: ABC-1234). Podrás compartirlo para invitar a otros participantes.",
 		cancel: "Cancelar",
 		submit: "Crear sala",
 		submitLoading: "Creando sala...",
@@ -240,6 +241,8 @@ export const sala = {
 	chatPlaceholder: "Escribe un mensaje...",
 	chatSend: "Enviar",
 	chatDisconnected: "Sin conexión. Reconectando...",
+	chatAlreadyConnected:
+		"Ya tienes una sesión activa en otra pestaña. Cierra la otra para usar el chat.",
 	chatLoadingHistory: "Cargando historial...",
 	chatEnterHint: "Presiona Enter para enviar. Shift+Enter para nueva línea.",
 	controls: {

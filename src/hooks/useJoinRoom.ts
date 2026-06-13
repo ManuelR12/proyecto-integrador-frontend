@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { dashboard as copy } from "../copy/es";
+import { isValidRoomIdFormat, normalizeRoomId } from "../lib/roomId";
 import { fetchRoomById } from "../services/roomFirestoreService";
 
 interface UseJoinRoomOptions {
@@ -28,16 +29,23 @@ export function useJoinRoom({ userId }: UseJoinRoomOptions) {
 			return;
 		}
 
+		if (!isValidRoomIdFormat(trimmedId)) {
+			setError(copy.joinSection.errorFormat);
+			return;
+		}
+
+		const normalizedId = normalizeRoomId(trimmedId);
+
 		setJoining(true);
 		setError(null);
 
 		try {
-			const room = await fetchRoomById(trimmedId);
+			const room = await fetchRoomById(normalizedId);
 			if (!room) {
-				setError(copy.joinSection.errorNotFound(trimmedId));
+				setError(copy.joinSection.errorNotFound(normalizedId));
 				return;
 			}
-			navigate(`/sala/${trimmedId}`);
+			navigate(`/sala/${normalizedId}`);
 		} catch {
 			setError(copy.joinSection.errorGeneric);
 		} finally {
