@@ -240,6 +240,7 @@ export const sala = {
 	chatPlaceholder: "Escribe un mensaje...",
 	chatSend: "Enviar",
 	chatDisconnected: "Sin conexión. Reconectando...",
+	chatLoadingHistory: "Cargando historial...",
 	chatEnterHint: "Presiona Enter para enviar. Shift+Enter para nueva línea.",
 	controls: {
 		microfono: "Micrófono",

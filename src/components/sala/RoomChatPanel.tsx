@@ -1,10 +1,12 @@
 import ChatMessageBubble from "./ChatMessageBubble";
+import ChatSkeleton from "./ChatSkeleton";
 import { sala as copy } from "../../copy/es";
 import type { ChatMessage } from "../../types/room";
 
 interface RoomChatPanelProps {
 	roomName: string;
 	messages: ChatMessage[];
+	loadingHistory: boolean;
 	currentUserId: string | undefined;
 	connected: boolean;
 	draft: string;
@@ -23,6 +25,7 @@ const SendIcon = () => (
 const RoomChatPanel = ({
 	roomName,
 	messages,
+	loadingHistory,
 	currentUserId,
 	connected,
 	draft,
@@ -31,7 +34,7 @@ const RoomChatPanel = ({
 	onSend,
 	onKeyDown,
 }: RoomChatPanelProps) => {
-	const canSend = connected && draft.trim().length > 0;
+	const canSend = connected && !loadingHistory && draft.trim().length > 0;
 
 	return (
 		<aside className="flex w-full flex-col border-l border-slate-200 bg-white lg:w-96">
@@ -44,13 +47,20 @@ const RoomChatPanel = ({
 
 			<div className="flex flex-1 flex-col overflow-hidden">
 				<div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
-					{messages.map((message) => (
-						<ChatMessageBubble
-							key={message.id}
-							message={message}
-							isOwn={message.sender_id === currentUserId}
-						/>
-					))}
+					{loadingHistory ? (
+						<>
+							<p className="sr-only">{copy.chatLoadingHistory}</p>
+							<ChatSkeleton />
+						</>
+					) : (
+						messages.map((message) => (
+							<ChatMessageBubble
+								key={message.id}
+								message={message}
+								isOwn={message.sender_id === currentUserId}
+							/>
+						))
+					)}
 					<div ref={messagesEndRef} />
 				</div>
 
@@ -66,7 +76,7 @@ const RoomChatPanel = ({
 							onChange={(event) => onDraftChange(event.target.value)}
 							onKeyDown={onKeyDown}
 							placeholder={copy.chatPlaceholder}
-							disabled={!connected}
+							disabled={!connected || loadingHistory}
 							rows={2}
 							className="min-h-[44px] flex-1 resize-none rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
 						/>
