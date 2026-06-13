@@ -122,6 +122,8 @@ const Sala = () => {
 				open={deleteRoomAction.open}
 				deleting={deleteRoomAction.deleting}
 				error={deleteRoomAction.error}
+				confirmText={deleteRoomAction.confirmText}
+				onConfirmTextChange={deleteRoomAction.setConfirmText}
 				onConfirm={() => void deleteRoomAction.handleConfirm()}
 				onCancel={deleteRoomAction.closeModal}
 			/>

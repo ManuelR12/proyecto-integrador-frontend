@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { auth as copy } from "../copy/es";
 import AuthShell from "../components/layout/AuthShell";
+import AgoraBrandLink from "../components/layout/AgoraBrandLink";
 import FormField from "../components/ui/FormField";
 import AvatarPicker from "../components/ui/AvatarPicker";
 import SubmitButton from "../components/ui/SubmitButton";
@@ -32,7 +33,7 @@ const Registro = () => {
 						{copy.back}
 					</Link>
 
-					<p className="mt-3 text-base font-bold tracking-tight text-blue-600">AGORA</p>
+					<AgoraBrandLink className="mt-3 inline-block text-base font-bold tracking-tight text-blue-600" />
 					<h1 className="mt-1 text-2xl font-semibold text-slate-900">{copy.register.title}</h1>
 					<p className="mt-1 text-sm text-slate-500">
 						{hasErrors ? copy.register.subtitleError : copy.register.subtitle}
@@ -141,6 +142,9 @@ const Registro = () => {
 								value={fields.password}
 								error={fieldErrors.password}
 								helper={!fieldErrors.password ? copy.register.passwordHelper : undefined}
+								showPasswordToggle
+								showPasswordLabel={copy.register.showPassword}
+								hidePasswordLabel={copy.register.hidePassword}
 								required
 								onChange={(e) => setField("password", e.target.value)}
 							/>

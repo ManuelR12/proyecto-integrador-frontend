@@ -1,13 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { sala as copy } from "../copy/es";
-import { fetchRoomMessages } from "../services/roomService";
+import { subscribeRoomMessages } from "../services/roomFirestoreService";
 import { createRoomSocket, type RoomSocketController } from "../services/roomSocketService";
 import type { ChatMessage } from "../types/room";
-
-function appendUniqueMessage(prev: ChatMessage[], message: ChatMessage): ChatMessage[] {
-	if (prev.some((item) => item.id === message.id)) return prev;
-	return [...prev, message];
-}
 
 function sortMessages(messages: ChatMessage[]): ChatMessage[] {
 	return [...messages].sort((a, b) => {
@@ -25,62 +20,56 @@ function formatConnectionError(message: string): string {
 }
 
 export function useRoomChat(roomId: string | undefined) {
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [loadingHistory, setLoadingHistory] = useState(true);
-	const [historyLoaded, setHistoryLoaded] = useState(false);
+	const [messagesByRoom, setMessagesByRoom] = useState<Record<string, ChatMessage[]>>({});
+	const [loadedRooms, setLoadedRooms] = useState<Record<string, true>>({});
 	const [connected, setConnected] = useState(false);
 	const [connectionError, setConnectionError] = useState<string | null>(null);
 	const [draft, setDraft] = useState("");
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const socketRef = useRef<RoomSocketController | null>(null);
 
-	const scrollToBottom = useCallback(() => {
+	const messages = useMemo(
+		() => (roomId ? (messagesByRoom[roomId] ?? []) : []),
+		[roomId, messagesByRoom],
+	);
+	const loadingHistory = roomId ? !loadedRooms[roomId] : true;
+
+	const scrollToBottom = () => {
 		requestAnimationFrame(() => {
 			messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
 		});
-	}, []);
+	};
 
 	useEffect(() => {
 		if (!roomId) return;
 
 		let active = true;
 
-		const run = async () => {
-			setLoadingHistory(true);
-			setHistoryLoaded(false);
-			setMessages([]);
-			setConnected(false);
-			setConnectionError(null);
-
-			try {
-				const history = await fetchRoomMessages(roomId);
+		const unsubscribe = subscribeRoomMessages(
+			roomId,
+			(incoming) => {
 				if (!active) return;
-				setMessages(sortMessages(history));
-			} catch {
+				setMessagesByRoom((prev) => ({ ...prev, [roomId]: sortMessages(incoming) }));
+				setLoadedRooms((prev) => ({ ...prev, [roomId]: true }));
+			},
+			() => {
 				if (!active) return;
-				setMessages([]);
-			} finally {
-				if (active) {
-					setLoadingHistory(false);
-					setHistoryLoaded(true);
-				}
-			}
-		};
-
-		void run();
+				setLoadedRooms((prev) => ({ ...prev, [roomId]: true }));
+			},
+		);
 
 		return () => {
 			active = false;
+			unsubscribe();
 		};
 	}, [roomId]);
 
 	useEffect(() => {
-		if (loadingHistory) return;
-		scrollToBottom();
-	}, [loadingHistory, messages, scrollToBottom]);
+		if (!loadingHistory) scrollToBottom();
+	}, [loadingHistory, messages]);
 
 	useEffect(() => {
-		if (!roomId || !historyLoaded) return;
+		if (!roomId) return;
 
 		const socket = createRoomSocket(roomId, {
 			onRoomJoined: () => {
@@ -89,9 +78,6 @@ export function useRoomChat(roomId: string | undefined) {
 			},
 			onDisconnect: () => {
 				setConnected(false);
-			},
-			onMessage: (message) => {
-				setMessages((prev) => sortMessages(appendUniqueMessage(prev, message)));
 			},
 			onError: (message) => {
 				setConnectionError(formatConnectionError(message));
@@ -106,34 +92,26 @@ export function useRoomChat(roomId: string | undefined) {
 			socketRef.current = null;
 			setConnected(false);
 		};
-	}, [roomId, historyLoaded]);
+	}, [roomId]);
 
-	useEffect(() => {
-		if (!historyLoaded || loadingHistory) return;
-		scrollToBottom();
-	}, [historyLoaded, loadingHistory, scrollToBottom]);
-
-	const sendMessage = useCallback(() => {
+	const sendMessage = () => {
 		const text = draft.trim();
 		if (!text || !connected) return;
 
 		socketRef.current?.sendMessage(text);
 		setDraft("");
-	}, [connected, draft]);
+	};
 
-	const handleDraftChange = useCallback((value: string) => {
+	const handleDraftChange = (value: string) => {
 		setDraft(value);
-	}, []);
+	};
 
-	const handleKeyDown = useCallback(
-		(event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-			if (event.key === "Enter" && !event.shiftKey) {
-				event.preventDefault();
-				sendMessage();
-			}
-		},
-		[sendMessage],
-	);
+	const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if (event.key === "Enter" && !event.shiftKey) {
+			event.preventDefault();
+			sendMessage();
+		}
+	};
 
 	return {
 		messages,
