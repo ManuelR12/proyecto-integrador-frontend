@@ -94,6 +94,7 @@ const Sala = () => {
 				<RoomChatPanel
 					roomName={room.title}
 					messages={chat.messages}
+					loadingHistory={chat.loadingHistory}
 					currentUserId={user?.uid}
 					connected={chat.connected}
 					draft={chat.draft}
