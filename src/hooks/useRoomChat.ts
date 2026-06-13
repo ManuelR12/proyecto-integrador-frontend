@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { sala as copy } from "../copy/es";
 import { fetchRoomMessages } from "../services/roomService";
 import { createRoomSocket, type RoomSocketController } from "../services/roomSocketService";
 import type { ChatMessage } from "../types/room";
@@ -16,11 +17,19 @@ function sortMessages(messages: ChatMessage[]): ChatMessage[] {
 	});
 }
 
+function formatConnectionError(message: string): string {
+	if (message.toLowerCase().includes("already connected")) {
+		return copy.chatAlreadyConnected;
+	}
+	return message;
+}
+
 export function useRoomChat(roomId: string | undefined) {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [loadingHistory, setLoadingHistory] = useState(true);
 	const [historyLoaded, setHistoryLoaded] = useState(false);
 	const [connected, setConnected] = useState(false);
+	const [connectionError, setConnectionError] = useState<string | null>(null);
 	const [draft, setDraft] = useState("");
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const socketRef = useRef<RoomSocketController | null>(null);
@@ -40,6 +49,8 @@ export function useRoomChat(roomId: string | undefined) {
 			setLoadingHistory(true);
 			setHistoryLoaded(false);
 			setMessages([]);
+			setConnected(false);
+			setConnectionError(null);
 
 			try {
 				const history = await fetchRoomMessages(roomId);
@@ -72,10 +83,19 @@ export function useRoomChat(roomId: string | undefined) {
 		if (!roomId || !historyLoaded) return;
 
 		const socket = createRoomSocket(roomId, {
-			onConnect: () => setConnected(true),
-			onDisconnect: () => setConnected(false),
+			onRoomJoined: () => {
+				setConnectionError(null);
+				setConnected(true);
+			},
+			onDisconnect: () => {
+				setConnected(false);
+			},
 			onMessage: (message) => {
 				setMessages((prev) => sortMessages(appendUniqueMessage(prev, message)));
+			},
+			onError: (message) => {
+				setConnectionError(formatConnectionError(message));
+				setConnected(false);
 			},
 		});
 
@@ -119,6 +139,7 @@ export function useRoomChat(roomId: string | undefined) {
 		messages,
 		loadingHistory,
 		connected,
+		connectionError,
 		draft,
 		messagesEndRef,
 		sendMessage,
