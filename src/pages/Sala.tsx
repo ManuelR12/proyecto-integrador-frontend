@@ -1,15 +1,32 @@
 import { Link, useParams } from "react-router-dom";
+import DeleteRoomModal from "../components/sala/DeleteRoomModal";
+import RoomConfigModal from "../components/sala/RoomConfigModal";
 import RoomHeader from "../components/sala/RoomHeader";
 import { sala as copy } from "../copy/es";
 import { useAuth } from "../contexts/AuthContext";
-import { useUserProfile } from "../hooks/useUserProfile";
+import { useDeleteRoom } from "../hooks/useDeleteRoom";
 import { useRoom } from "../hooks/useRoom";
+import { useUpdateRoom } from "../hooks/useUpdateRoom";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 const Sala = () => {
 	const { id } = useParams<{ id: string }>();
 	const { user } = useAuth();
 	const { displayName } = useUserProfile();
-	const { room, loading, error, isAdmin } = useRoom(id, user?.uid);
+	const { room, loading, error, isAdmin, setRoom } = useRoom(id, user?.uid);
+
+	const updateRoom = useUpdateRoom({
+		roomId: id ?? "",
+		userId: user?.uid,
+		onSuccess: (name) => {
+			setRoom((prev) => (prev ? { ...prev, title: name } : prev));
+		},
+	});
+
+	const deleteRoom = useDeleteRoom({
+		roomId: id ?? "",
+		userId: user?.uid,
+	});
 
 	const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
 	const currentInitials = currentDisplayName
@@ -49,12 +66,8 @@ const Sala = () => {
 				room={room}
 				isAdmin={isAdmin}
 				participantCount={participantCount}
-				onEdit={() => {
-					/* FE-10: open config modal */
-				}}
-				onDelete={() => {
-					/* FE-10: open delete modal */
-				}}
+				onEdit={() => updateRoom.openModal(room.title)}
+				onDelete={deleteRoom.openModal}
 			/>
 
 			<main className="flex flex-1 flex-col items-center justify-center px-6 py-8">
@@ -70,6 +83,25 @@ const Sala = () => {
 
 				<p className="mt-8 text-center text-xs text-slate-600">{copy.stagePlaceholder}</p>
 			</main>
+
+			<RoomConfigModal
+				open={updateRoom.open}
+				name={updateRoom.name}
+				saving={updateRoom.saving}
+				error={updateRoom.error}
+				maxNameLength={updateRoom.maxNameLength}
+				onClose={updateRoom.closeModal}
+				onNameChange={updateRoom.handleNameChange}
+				onSubmit={updateRoom.handleSubmit}
+			/>
+
+			<DeleteRoomModal
+				open={deleteRoom.open}
+				deleting={deleteRoom.deleting}
+				error={deleteRoom.error}
+				onConfirm={() => void deleteRoom.handleConfirm()}
+				onCancel={deleteRoom.closeModal}
+			/>
 		</div>
 	);
 };
