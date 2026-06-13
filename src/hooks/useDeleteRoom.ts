@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { modals as copy } from "../copy/es";
-import {
-	deleteRoomDocument,
-	RoomForbiddenError,
-	RoomNotFoundError,
-} from "../services/roomFirestoreService";
+import { deleteRoom } from "../services/roomService";
 
 interface UseDeleteRoomOptions {
 	roomId: string;
-	userId: string | undefined;
 }
 
-export function useDeleteRoom({ roomId, userId }: UseDeleteRoomOptions) {
+export function useDeleteRoom({ roomId }: UseDeleteRoomOptions) {
 	const navigate = useNavigate();
 	const [open, setOpen] = useState(false);
 	const [deleting, setDeleting] = useState(false);
@@ -30,21 +25,17 @@ export function useDeleteRoom({ roomId, userId }: UseDeleteRoomOptions) {
 	};
 
 	const handleConfirm = async () => {
-		if (!userId || deleting) return;
+		if (deleting) return;
 
 		setDeleting(true);
 		setError(null);
 
 		try {
-			await deleteRoomDocument(roomId, userId);
+			await deleteRoom(roomId);
 			setOpen(false);
 			navigate("/dashboard", { state: { deletedRoomId: roomId } });
-		} catch (err) {
-			if (err instanceof RoomNotFoundError || err instanceof RoomForbiddenError) {
-				setError(copy.eliminarSala.errors.generic);
-			} else {
-				setError(copy.eliminarSala.errors.generic);
-			}
+		} catch {
+			setError(copy.eliminarSala.errors.generic);
 		} finally {
 			setDeleting(false);
 		}

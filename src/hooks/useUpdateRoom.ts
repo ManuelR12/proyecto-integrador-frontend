@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { modals as copy } from "../copy/es";
-import {
-	RoomForbiddenError,
-	RoomNotFoundError,
-	updateRoomName,
-} from "../services/roomFirestoreService";
+import { updateRoomName } from "../services/roomService";
 
 interface UseUpdateRoomOptions {
 	roomId: string;
-	userId: string | undefined;
 	onSuccess: (name: string) => void;
 }
 
-export function useUpdateRoom({ roomId, userId, onSuccess }: UseUpdateRoomOptions) {
+export function useUpdateRoom({ roomId, onSuccess }: UseUpdateRoomOptions) {
 	const [open, setOpen] = useState(false);
 	const [name, setName] = useState("");
 	const [saving, setSaving] = useState(false);
@@ -37,7 +32,7 @@ export function useUpdateRoom({ roomId, userId, onSuccess }: UseUpdateRoomOption
 
 	const handleSubmit = async (event: React.FormEvent) => {
 		event.preventDefault();
-		if (!userId || saving) return;
+		if (saving) return;
 
 		const trimmedName = name.trim();
 		if (!trimmedName) {
@@ -49,15 +44,11 @@ export function useUpdateRoom({ roomId, userId, onSuccess }: UseUpdateRoomOption
 		setError(null);
 
 		try {
-			await updateRoomName(roomId, userId, trimmedName);
-			onSuccess(trimmedName);
+			const result = await updateRoomName(roomId, trimmedName);
+			onSuccess(result.name);
 			setOpen(false);
-		} catch (err) {
-			if (err instanceof RoomNotFoundError || err instanceof RoomForbiddenError) {
-				setError(copy.editarSala.errors.generic);
-			} else {
-				setError(copy.editarSala.errors.generic);
-			}
+		} catch {
+			setError(copy.editarSala.errors.generic);
 		} finally {
 			setSaving(false);
 		}
