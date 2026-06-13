@@ -135,7 +135,8 @@ export const dashboard = {
 		hint: "Pregunta al creador de la sala por el ID de la sala (ej: abc123def456)",
 		submit: "Unirse",
 		errorRequired: "Ingresa un ID de sala",
-		errorNotFound: "No encontramos una sala con ese ID",
+		errorNotFound: (id: string) =>
+			`No se encontró ninguna sala con el ID '${id}'. Verifica el código o intenta de nuevo.`,
 		errorGeneric: "No pudimos unirte a la sala. Inténtalo de nuevo.",
 	},
 	createModal: {
@@ -225,6 +226,13 @@ export const calendario = {
 } as const;
 
 export const sala = {
+	backToDashboard: "Dashboard",
+	roomNotFound: "No encontramos esta sala. Verifica el ID o vuelve al dashboard.",
+	loadingRoom: "Cargando sala...",
+	copyId: "Copiar",
+	copyIdSuccess: "ID copiado al portapapeles",
+	editRoom: "Editar sala",
+	deleteRoom: "Eliminar sala",
 	enVivo: "En vivo",
 	stagePlaceholder: "Pantalla compartida / video principal",
 	chatTitle: "Chat de la sala",

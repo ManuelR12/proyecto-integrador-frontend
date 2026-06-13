@@ -66,7 +66,7 @@ const Dashboard = () => {
 			return (
 				<div className="grid gap-4 sm:grid-cols-2">
 					{rooms.map((room) => (
-						<RoomCard key={room.id} room={room} />
+						<RoomCard key={room.id} room={room} currentUserId={user?.uid} />
 					))}
 				</div>
 			);
