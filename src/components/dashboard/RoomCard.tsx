@@ -6,6 +6,7 @@ import ParticipantAvatar from "./ParticipantAvatar";
 
 interface RoomCardProps {
 	room: Room;
+	currentUserId?: string;
 }
 
 const MonitorIcon = () => (
@@ -39,8 +40,9 @@ const GearIcon = () => (
 	</svg>
 );
 
-const RoomCard = ({ room }: RoomCardProps) => {
+const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 	const { showToast } = useToast();
+	const isOwner = Boolean(currentUserId && room.ownerId === currentUserId);
 	const visibleParticipants = room.participants.slice(0, 4);
 	const overflowCount = Math.max(room.participants.length - visibleParticipants.length, 0);
 
@@ -123,14 +125,16 @@ const RoomCard = ({ room }: RoomCardProps) => {
 				>
 					{copy.roomCard.enter}
 				</Link>
-				<button
-					type="button"
-					onClick={handleSettings}
-					className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-				>
-					<GearIcon />
-					{copy.roomCard.settings}
-				</button>
+				{isOwner && (
+					<button
+						type="button"
+						onClick={handleSettings}
+						className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+					>
+						<GearIcon />
+						{copy.roomCard.settings}
+					</button>
+				)}
 			</div>
 		</article>
 	);

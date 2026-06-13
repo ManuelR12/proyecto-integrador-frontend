@@ -55,6 +55,7 @@ const JoinRoomSection = ({
 							value={roomId}
 							onChange={(event) => onRoomIdChange(event.target.value)}
 							placeholder={copy.joinSection.placeholder}
+							disabled={joining}
 							aria-invalid={hasError}
 							aria-describedby={hasError ? "join-room-error" : "join-room-hint"}
 							className={[

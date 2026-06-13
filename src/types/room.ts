@@ -30,3 +30,12 @@ export interface Room {
 export interface CreateRoomPayload {
 	name: string;
 }
+
+export interface ChatMessage {
+	id: string;
+	room_id: string;
+	sender_id: string;
+	username: string;
+	text: string;
+	timestamp: string | null;
+}

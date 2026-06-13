@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { dashboard as copy } from "../copy/es";
-import { joinRoomViaSocket } from "../services/roomSocketService";
+import { fetchRoomById } from "../services/roomFirestoreService";
 
 interface UseJoinRoomOptions {
 	userId: string | undefined;
@@ -32,14 +32,14 @@ export function useJoinRoom({ userId }: UseJoinRoomOptions) {
 		setError(null);
 
 		try {
-			await joinRoomViaSocket(trimmedId);
-			navigate(`/sala/${trimmedId}`);
-		} catch (err) {
-			if (err instanceof Error && err.message === "ROOM_NOT_FOUND") {
-				setError(copy.joinSection.errorNotFound);
-			} else {
-				setError(copy.joinSection.errorGeneric);
+			const room = await fetchRoomById(trimmedId);
+			if (!room) {
+				setError(copy.joinSection.errorNotFound(trimmedId));
+				return;
 			}
+			navigate(`/sala/${trimmedId}`);
+		} catch {
+			setError(copy.joinSection.errorGeneric);
 		} finally {
 			setJoining(false);
 		}

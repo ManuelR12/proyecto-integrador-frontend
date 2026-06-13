@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
 import apiClient from "../lib/apiClient";
 import { authHeaders, getIdToken } from "../lib/authToken";
-import type { ApiRoomDocument, Room } from "../types/room";
+import type { ApiRoomDocument, ChatMessage, Room } from "../types/room";
 
 function parseCreatedAt(value: ApiRoomDocument["created_at"]): Date | null {
 	if (!value) return null;
@@ -81,6 +81,25 @@ export async function fetchOwnedRooms(): Promise<Room[]> {
 			headers: authHeaders(token),
 		});
 		return data.map(normalizeApiRoom);
+	} catch (error: unknown) {
+		throw mapRoomApiError(error);
+	}
+}
+
+/**
+ * Fetches chat history for a room via GET /rooms/:roomId/messages.
+ *
+ * @throws `Error('UNAUTHENTICATED')`
+ * @throws `Error('NETWORK_ERROR')`
+ */
+export async function fetchRoomMessages(roomId: string): Promise<ChatMessage[]> {
+	const token = await getIdToken();
+
+	try {
+		const { data } = await apiClient.get<ChatMessage[]>(`/rooms/${roomId}/messages`, {
+			headers: authHeaders(token),
+		});
+		return data;
 	} catch (error: unknown) {
 		throw mapRoomApiError(error);
 	}
