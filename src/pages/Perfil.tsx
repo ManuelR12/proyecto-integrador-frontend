@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { auth as authCopy, perfil as copy, product } from "../copy/es";
+import { auth as authCopy, perfil as copy } from "../copy/es";
 import DeleteAccountModal from "../components/profile/DeleteAccountModal";
+import AgoraBrandLink from "../components/layout/AgoraBrandLink";
 import FormField from "../components/ui/FormField";
 import SubmitButton from "../components/ui/SubmitButton";
 import { useAuth } from "../contexts/AuthContext";
@@ -56,9 +57,7 @@ const Perfil = () => {
 	return (
 		<div id="perfil" className="flex min-h-screen w-full flex-col bg-[#f6f7f8]">
 			<header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 sm:px-8">
-				<Link to="/dashboard" className="text-sm font-bold text-blue-600">
-					{product.name}
-				</Link>
+				<AgoraBrandLink className="text-sm font-bold text-blue-600" />
 				<Link to="/perfil" aria-label="Ir a mi perfil">
 					{headerPhoto ? (
 						<img

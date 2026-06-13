@@ -1,4 +1,5 @@
 import { perfil as copy } from "../../copy/es";
+import { useConfirmCountdown } from "../../hooks/useConfirmCountdown";
 import Modal from "../ui/Modal";
 
 const CONFIRM_WORD = copy.deleteModal.confirmWord;
@@ -42,7 +43,9 @@ const DeleteAccountModal = ({
 }: DeleteAccountModalProps) => {
 	const modalCopy = copy.deleteModal;
 	const isLoading = phase === "loading";
-	const canConfirm = confirmText.trim().toLowerCase() === CONFIRM_WORD && !isLoading;
+	const wordMatches = confirmText.trim().toLowerCase() === CONFIRM_WORD;
+	const { remaining, canProceed } = useConfirmCountdown(wordMatches && phase === "confirm");
+	const canConfirm = canProceed && !isLoading;
 	const isInteractive = phase === "confirm" || phase === "reauth";
 
 	return (
@@ -120,6 +123,16 @@ const DeleteAccountModal = ({
 							onChange={(e) => onConfirmTextChange(e.target.value)}
 							className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:bg-slate-50"
 						/>
+						{wordMatches && phase === "confirm" && !canProceed && (
+							<p role="status" className="mt-2 text-xs text-amber-700">
+								{modalCopy.countdown(remaining)}
+							</p>
+						)}
+						{wordMatches && canProceed && phase === "confirm" && (
+							<p role="status" className="mt-2 text-xs text-emerald-700">
+								{modalCopy.countdownReady}
+							</p>
+						)}
 					</div>
 
 					<div className="mt-6 flex flex-col gap-3">

@@ -1,10 +1,14 @@
 import { modals as copy } from "../../copy/es";
 import Modal from "../ui/Modal";
 
+const CONFIRM_WORD = copy.eliminarSala.confirmWord;
+
 interface DeleteRoomModalProps {
 	open: boolean;
 	deleting: boolean;
 	error: string | null;
+	confirmText: string;
+	onConfirmTextChange: (value: string) => void;
 	onConfirm: () => void;
 	onCancel: () => void;
 }
@@ -25,8 +29,17 @@ const Spinner = () => (
 	</svg>
 );
 
-const DeleteRoomModal = ({ open, deleting, error, onConfirm, onCancel }: DeleteRoomModalProps) => {
+const DeleteRoomModal = ({
+	open,
+	deleting,
+	error,
+	confirmText,
+	onConfirmTextChange,
+	onConfirm,
+	onCancel,
+}: DeleteRoomModalProps) => {
 	const modalCopy = copy.eliminarSala;
+	const canConfirm = confirmText.trim().toLowerCase() === CONFIRM_WORD && !deleting;
 
 	return (
 		<Modal
@@ -63,6 +76,23 @@ const DeleteRoomModal = ({ open, deleting, error, onConfirm, onCancel }: DeleteR
 
 					<p className="text-center text-sm text-slate-600">{modalCopy.body}</p>
 
+					<div className="mt-5">
+						<label htmlFor="delete-room-confirm-input" className="text-sm text-slate-600">
+							{modalCopy.confirmPrompt}{" "}
+							<strong className="font-semibold text-slate-900">{CONFIRM_WORD}</strong> en el campo
+							de abajo:
+						</label>
+						<input
+							id="delete-room-confirm-input"
+							type="text"
+							value={confirmText}
+							placeholder={modalCopy.confirmPlaceholder}
+							autoComplete="off"
+							onChange={(e) => onConfirmTextChange(e.target.value)}
+							className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300"
+						/>
+					</div>
+
 					{error && (
 						<p role="alert" className="mt-4 text-center text-xs text-red-600">
 							{error}
@@ -72,8 +102,9 @@ const DeleteRoomModal = ({ open, deleting, error, onConfirm, onCancel }: DeleteR
 					<div className="mt-6 flex flex-col gap-3">
 						<button
 							type="button"
+							disabled={!canConfirm}
 							onClick={onConfirm}
-							className="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-500"
+							className="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{modalCopy.confirm}
 						</button>

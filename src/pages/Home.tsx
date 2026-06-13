@@ -2,6 +2,7 @@ import { useRef } from "react";
 import type { ReactNode, MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import { auth as copy, product } from "../copy/es";
+import AgoraBrandLink from "../components/layout/AgoraBrandLink";
 import GoogleButton from "../components/ui/GoogleButton";
 import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import { useReveal } from "../hooks/useReveal";
@@ -292,7 +293,7 @@ const Home = () => {
 				className="sticky top-0 z-50 border-b border-slate-100/80 bg-white/80 backdrop-blur-xl"
 			>
 				<div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-					<span className="text-lg font-bold tracking-tight text-blue-600">{product.name}</span>
+					<AgoraBrandLink className="text-lg font-bold tracking-tight text-blue-600" />
 					<div className="flex items-center gap-1">
 						<Link
 							to="/login"
@@ -466,7 +467,7 @@ const Home = () => {
 			<footer className="border-t border-slate-100 bg-white py-8">
 				<div className="mx-auto max-w-6xl px-6">
 					<div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-						<span className="text-sm font-bold text-blue-600">{product.name}</span>
+						<AgoraBrandLink className="text-sm font-bold text-blue-600" />
 						<div className="flex items-center gap-6">
 							<Link to="/" className="text-xs text-slate-500 transition-colors hover:text-blue-600">
 								Inicio

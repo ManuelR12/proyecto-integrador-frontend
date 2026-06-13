@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { auth as copy } from "../copy/es";
 import AuthShell from "../components/layout/AuthShell";
+import AgoraBrandLink from "../components/layout/AgoraBrandLink";
 import FormField from "../components/ui/FormField";
 import SubmitButton from "../components/ui/SubmitButton";
 import GoogleButton from "../components/ui/GoogleButton";
@@ -21,7 +22,7 @@ const Login = () => {
 						{copy.back}
 					</Link>
 
-					<p className="mt-3 text-base font-bold tracking-tight text-blue-600">AGORA</p>
+					<AgoraBrandLink className="mt-3 inline-block text-base font-bold tracking-tight text-blue-600" />
 					<h1 className="mt-1 text-2xl font-semibold text-slate-900">{copy.login.title}</h1>
 					<p className="mt-1 text-sm text-slate-500">{copy.login.subtitle}</p>
 

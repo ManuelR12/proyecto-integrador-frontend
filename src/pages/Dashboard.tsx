@@ -6,7 +6,8 @@ import DashboardEmptyState from "../components/dashboard/DashboardEmptyState";
 import JoinRoomSection from "../components/dashboard/JoinRoomSection";
 import RoomCard from "../components/dashboard/RoomCard";
 import { RoomCardSkeleton } from "../components/dashboard/RoomCardSkeleton";
-import { common, dashboard as copy, product } from "../copy/es";
+import AgoraBrandLink from "../components/layout/AgoraBrandLink";
+import { common, dashboard as copy } from "../copy/es";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
 import { useCreateRoom } from "../hooks/useCreateRoom";
@@ -88,9 +89,7 @@ const Dashboard = () => {
 	return (
 		<div id="dashboard" className="flex min-h-screen w-full flex-col bg-[#f6f7f8]">
 			<header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 sm:px-8">
-				<Link to="/dashboard" className="text-sm font-bold text-blue-600">
-					{product.name}
-				</Link>
+				<AgoraBrandLink className="text-sm font-bold text-blue-600" />
 				<div className="flex items-center gap-3">
 					<Link to="/perfil" aria-label="Ir a mi perfil" className="transition hover:opacity-80">
 						{photoURL ? (

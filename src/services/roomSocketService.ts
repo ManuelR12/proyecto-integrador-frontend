@@ -14,7 +14,7 @@ export interface RoomJoinedPayload {
 export interface RoomSocketHandlers {
 	onRoomJoined: (payload: RoomJoinedPayload) => void;
 	onDisconnect: () => void;
-	onMessage: (message: ChatMessage) => void;
+	onMessage?: (message: ChatMessage) => void;
 	onError: (message: string) => void;
 }
 
@@ -76,7 +76,7 @@ export function createRoomSocket(
 			});
 
 			socket.on("receive_message", (message: ChatMessage) => {
-				handlers.onMessage(message);
+				handlers.onMessage?.(message);
 			});
 		})
 		.catch(() => {

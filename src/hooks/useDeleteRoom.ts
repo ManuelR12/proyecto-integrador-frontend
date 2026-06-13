@@ -12,9 +12,11 @@ export function useDeleteRoom({ roomId }: UseDeleteRoomOptions) {
 	const [open, setOpen] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [confirmText, setConfirmText] = useState("");
 
 	const openModal = () => {
 		setError(null);
+		setConfirmText("");
 		setOpen(true);
 	};
 
@@ -22,10 +24,12 @@ export function useDeleteRoom({ roomId }: UseDeleteRoomOptions) {
 		if (deleting) return;
 		setOpen(false);
 		setError(null);
+		setConfirmText("");
 	};
 
 	const handleConfirm = async () => {
 		if (deleting) return;
+		if (confirmText.trim().toLowerCase() !== copy.eliminarSala.confirmWord) return;
 
 		setDeleting(true);
 		setError(null);
@@ -45,8 +49,10 @@ export function useDeleteRoom({ roomId }: UseDeleteRoomOptions) {
 		open,
 		deleting,
 		error,
+		confirmText,
 		openModal,
 		closeModal,
+		setConfirmText,
 		handleConfirm,
 	};
 }
