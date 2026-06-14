@@ -60,7 +60,7 @@ const Sala = () => {
 		.join("")
 		.toUpperCase();
 
-	const participantCount = Math.max(room?.memberIds.length ?? 0, 1);
+	const participantCount = chat.participants.length + 1;
 
 	if (loading) {
 		return (
