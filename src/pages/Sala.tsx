@@ -87,6 +87,28 @@ const Sala = () => {
 							</p>
 							<span className="mt-1 text-xs text-blue-400">Tú</span>
 						</div>
+
+						{chat.participants.map((p) => {
+							const initials = p.username
+								.split(/[\s_.\-]+/)
+								.map((w) => w[0])
+								.slice(0, 2)
+								.join("")
+								.toUpperCase();
+							return (
+								<div
+									key={p.uid}
+									className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/80 p-4"
+								>
+									<div className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500 text-lg font-semibold text-white">
+										{initials}
+									</div>
+									<p className="mt-3 truncate text-sm font-medium text-slate-200">
+										{p.username}
+									</p>
+								</div>
+							);
+						})}
 					</div>
 
 					<p className="mt-8 text-center text-xs text-slate-600">{copy.stagePlaceholder}</p>
