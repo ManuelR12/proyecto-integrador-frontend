@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth as copy } from "../copy/es";
 import { registerWithEmail } from "../services/authService";
 import { useToast } from "../contexts/ToastContext";
-import { allPasswordRulesMet } from "../lib/passwordRules";
+import { getPasswordRules } from "../lib/passwordRules";
 import type { RegisterFieldErrors, RegisterPayload } from "../types/auth";
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
@@ -55,7 +55,8 @@ export function useRegisterForm() {
 		} else if (!data.email.toLowerCase().endsWith(".edu.co")) {
 			errors.email = copy.register.errors.emailNotInstitutional;
 		}
-		if (!allPasswordRulesMet(data.password)) errors.password = copy.register.errors.passwordWeak;
+		const failingRule = getPasswordRules(data.password).find((r) => !r.met);
+		if (failingRule) errors.password = failingRule.errorMsg;
 		return errors;
 	}
 
