@@ -21,10 +21,11 @@ import {
 	GoogleAuthProvider,
 	type UserCredential,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { isAxiosError } from "axios";
 import { auth, db } from "../lib/firebase";
 import apiClient from "../lib/apiClient";
+import { updateUserProfile } from "./profileService";
 import type { LoginPayload, RegisterPayload, RegisteredUser } from "../types/auth";
 
 const USERS_COLLECTION = "users";
@@ -88,7 +89,7 @@ export async function registerWithEmail(payload: RegisterPayload): Promise<Regis
 	if (payload.avatarDataUrl) {
 		try {
 			const avatarUrl = await compressAvatar(payload.avatarDataUrl);
-			await updateDoc(doc(db, USERS_COLLECTION, lowerUsername), { avatarUrl });
+			await updateUserProfile({ nombres, apellidos, username: lowerUsername, avatarUrl });
 		} catch (err) {
 			console.warn("[Register] avatar save failed:", err);
 		}
@@ -141,8 +142,6 @@ export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 		throw mapFirebaseAuthError(error);
 	}
 
-	console.log("[Google] uid:", credential.user.uid, "email:", credential.user.email);
-
 	if (!INSTITUTIONAL_EMAIL_RE.test(credential.user.email ?? "")) {
 		await signOut(auth);
 		throw new Error("NON_INSTITUTIONAL_EMAIL");
@@ -150,15 +149,8 @@ export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 
 	try {
 		const uidSnap = await getDoc(doc(db, UIDS_COLLECTION, credential.user.uid));
-		console.log(
-			"[Google] uids doc exists:",
-			uidSnap.exists(),
-			"→ needsUsername:",
-			!uidSnap.exists(),
-		);
 		return { needsUsername: !uidSnap.exists() };
 	} catch (err) {
-		console.error("[Google] Firestore read failed:", err);
 		throw err;
 	}
 }
