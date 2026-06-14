@@ -21,9 +21,10 @@ import {
 	GoogleAuthProvider,
 	type UserCredential,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { isAxiosError } from "axios";
-import { auth, db } from "../lib/firebase";
+import { auth, db, storage } from "../lib/firebase";
 import apiClient from "../lib/apiClient";
 import type { LoginPayload, RegisterPayload, RegisteredUser } from "../types/auth";
 
@@ -84,6 +85,17 @@ export async function registerWithEmail(payload: RegisterPayload): Promise<Regis
 
 	const lowerUsername = username.toLowerCase();
 	const displayName = `${nombres} ${apellidos}`.trim();
+
+	if (payload.avatarDataUrl) {
+		try {
+			const avatarRef = ref(storage, `avatars/${credential.user.uid}/avatar`);
+			await uploadString(avatarRef, payload.avatarDataUrl, "data_url");
+			const avatarUrl = await getDownloadURL(avatarRef);
+			await updateDoc(doc(db, USERS_COLLECTION, lowerUsername), { avatarUrl });
+		} catch (err) {
+			console.warn("[Register] avatar upload failed:", err);
+		}
+	}
 
 	return {
 		uid: credential.user.uid,
