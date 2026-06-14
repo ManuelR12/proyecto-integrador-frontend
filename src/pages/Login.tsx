@@ -22,7 +22,7 @@ const Login = () => {
 						{copy.back}
 					</Link>
 
-					<AgoraBrandLink className="mt-3 inline-block text-base font-bold tracking-tight text-blue-600" />
+					<AgoraBrandLink className="mt-3 block text-base font-bold tracking-tight text-blue-600" />
 					<h1 className="mt-1 text-2xl font-semibold text-slate-900">{copy.login.title}</h1>
 					<p className="mt-1 text-sm text-slate-500">{copy.login.subtitle}</p>
 
