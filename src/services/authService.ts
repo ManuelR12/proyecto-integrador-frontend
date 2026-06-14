@@ -22,9 +22,8 @@ import {
 	type UserCredential,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { isAxiosError } from "axios";
-import { auth, db, storage } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
 import apiClient from "../lib/apiClient";
 import type { LoginPayload, RegisterPayload, RegisteredUser } from "../types/auth";
 
@@ -88,12 +87,10 @@ export async function registerWithEmail(payload: RegisterPayload): Promise<Regis
 
 	if (payload.avatarDataUrl) {
 		try {
-			const avatarRef = ref(storage, `avatars/${credential.user.uid}/avatar`);
-			await uploadString(avatarRef, payload.avatarDataUrl, "data_url");
-			const avatarUrl = await getDownloadURL(avatarRef);
+			const avatarUrl = await compressAvatar(payload.avatarDataUrl);
 			await updateDoc(doc(db, USERS_COLLECTION, lowerUsername), { avatarUrl });
 		} catch (err) {
-			console.warn("[Register] avatar upload failed:", err);
+			console.warn("[Register] avatar save failed:", err);
 		}
 	}
 
@@ -200,6 +197,23 @@ export async function saveGoogleUserProfile(username: string): Promise<void> {
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+function compressAvatar(dataUrl: string, size = 128): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const img = new Image();
+		img.onload = () => {
+			const canvas = document.createElement("canvas");
+			canvas.width = size;
+			canvas.height = size;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) { reject(new Error("canvas unavailable")); return; }
+			ctx.drawImage(img, 0, 0, size, size);
+			resolve(canvas.toDataURL("image/jpeg", 0.75));
+		};
+		img.onerror = reject;
+		img.src = dataUrl;
+	});
+}
 
 function mapBackendError(error: unknown): Error {
 	if (!isAxiosError(error)) return new Error("UNKNOWN_ERROR");
