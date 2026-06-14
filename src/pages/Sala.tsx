@@ -105,7 +105,9 @@ const Sala = () => {
 									className="h-16 w-16 rounded-full object-cover"
 								/>
 							) : (
-								<div className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(user?.uid ?? "self")} text-lg font-semibold text-white`}>
+								<div
+									className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(user?.uid ?? "self")} text-lg font-semibold text-white`}
+								>
 									{currentInitials}
 								</div>
 							)}
@@ -124,7 +126,7 @@ const Sala = () => {
 
 						{chat.participants.map((p) => {
 							const initials = p.username
-								.split(/[\s_.\-]+/)
+								.split(/[\s_.-]+/)
 								.map((w) => w[0])
 								.slice(0, 2)
 								.join("")
@@ -134,7 +136,9 @@ const Sala = () => {
 									key={p.uid}
 									className="relative flex aspect-[4/3] flex-col items-center justify-center rounded-xl bg-slate-900 p-4"
 								>
-									<div className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(p.uid)} text-lg font-semibold text-white`}>
+									<div
+										className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(p.uid)} text-lg font-semibold text-white`}
+									>
 										{initials}
 									</div>
 									<p className="mt-3 max-w-full truncate text-sm font-medium text-slate-200">
@@ -149,7 +153,6 @@ const Sala = () => {
 							);
 						})}
 					</div>
-
 				</main>
 
 				<RoomChatPanel

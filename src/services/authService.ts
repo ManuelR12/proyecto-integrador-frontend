@@ -147,12 +147,8 @@ export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 		throw new Error("NON_INSTITUTIONAL_EMAIL");
 	}
 
-	try {
-		const uidSnap = await getDoc(doc(db, UIDS_COLLECTION, credential.user.uid));
-		return { needsUsername: !uidSnap.exists() };
-	} catch (err) {
-		throw err;
-	}
+	const uidSnap = await getDoc(doc(db, UIDS_COLLECTION, credential.user.uid));
+	return { needsUsername: !uidSnap.exists() };
 }
 
 /**
@@ -198,7 +194,10 @@ function compressAvatar(dataUrl: string, size = 128): Promise<string> {
 			canvas.width = size;
 			canvas.height = size;
 			const ctx = canvas.getContext("2d");
-			if (!ctx) { reject(new Error("canvas unavailable")); return; }
+			if (!ctx) {
+				reject(new Error("canvas unavailable"));
+				return;
+			}
 			ctx.drawImage(img, 0, 0, size, size);
 			resolve(canvas.toDataURL("image/jpeg", 0.75));
 		};

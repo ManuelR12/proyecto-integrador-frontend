@@ -86,9 +86,7 @@ export function useRoomChat(roomId: string | undefined) {
 				setConnected(false);
 			},
 			onParticipantJoined: (p) => {
-				setParticipants((prev) =>
-					prev.some((x) => x.uid === p.uid) ? prev : [...prev, p],
-				);
+				setParticipants((prev) => (prev.some((x) => x.uid === p.uid) ? prev : [...prev, p]));
 			},
 			onParticipantLeft: (p) => {
 				setParticipants((prev) => prev.filter((x) => x.uid !== p.uid));
