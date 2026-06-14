@@ -4,6 +4,11 @@ export interface RoomParticipant {
 	initials: string;
 }
 
+export interface SocketParticipant {
+	uid: string;
+	username: string;
+}
+
 /** Room shape returned by GET/POST /rooms */
 export interface ApiRoomDocument {
 	id: string;
