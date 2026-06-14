@@ -75,7 +75,7 @@ const Sala = () => {
 				onDelete={deleteRoomAction.openModal}
 			/>
 
-			<div className="flex flex-1 flex-col lg:flex-row">
+			<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
 				<main className="flex flex-1 flex-col items-center justify-center px-6 py-8">
 					<div className="grid w-full max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
 						<div className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/80 p-4">

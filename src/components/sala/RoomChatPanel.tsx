@@ -39,7 +39,7 @@ const RoomChatPanel = ({
 	const canSend = connected && !loadingHistory && draft.trim().length > 0;
 
 	return (
-		<aside className="flex w-full flex-col border-l border-slate-200 bg-white lg:w-96">
+		<aside className="flex min-h-0 w-full flex-col border-l border-slate-200 bg-white lg:w-96">
 			<div className="border-b border-slate-200 px-4 py-4">
 				<h2 className="text-sm font-semibold text-slate-900">{copy.chatTitle}</h2>
 				<p className="mt-0.5 text-xs text-slate-500">
@@ -47,7 +47,7 @@ const RoomChatPanel = ({
 				</p>
 			</div>
 
-			<div className="flex flex-1 flex-col overflow-hidden">
+			<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
 				<div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
 					{loadingHistory ? (
 						<>
