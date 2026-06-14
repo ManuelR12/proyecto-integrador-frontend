@@ -13,6 +13,25 @@ import { useUpdateRoom } from "../hooks/useUpdateRoom";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { normalizeRoomId } from "../lib/roomId";
 
+const AVATAR_COLORS = [
+	"bg-blue-600",
+	"bg-indigo-500",
+	"bg-purple-500",
+	"bg-emerald-500",
+	"bg-teal-500",
+	"bg-orange-500",
+	"bg-rose-500",
+	"bg-cyan-500",
+	"bg-violet-500",
+	"bg-amber-500",
+];
+
+function avatarColor(seed: string): string {
+	let h = 0;
+	for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+	return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
 const Sala = () => {
 	const { id: rawId } = useParams<{ id: string }>();
 	const roomId = useMemo(() => (rawId ? normalizeRoomId(rawId) : undefined), [rawId]);
@@ -78,14 +97,21 @@ const Sala = () => {
 			<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
 				<main className="flex flex-1 flex-col items-center justify-center px-6 py-8">
 					<div className="grid w-full max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
-						<div className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-lg font-semibold text-white">
+						<div className="relative flex aspect-[4/3] flex-col items-center justify-center rounded-xl bg-slate-900 p-4 ring-2 ring-blue-500">
+							<div className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(user?.uid ?? "self")} text-lg font-semibold text-white`}>
 								{currentInitials}
 							</div>
-							<p className="mt-3 truncate text-sm font-medium text-slate-200">
+							<p className="mt-3 max-w-full truncate text-sm font-medium text-slate-200">
 								{currentDisplayName}
 							</p>
-							<span className="mt-1 text-xs text-blue-400">Tú</span>
+							<div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+								<span className="max-w-[90px] truncate text-xs text-slate-300">
+									{currentDisplayName}
+								</span>
+								<span className="rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+									Tú
+								</span>
+							</div>
 						</div>
 
 						{chat.participants.map((p) => {
@@ -98,14 +124,19 @@ const Sala = () => {
 							return (
 								<div
 									key={p.uid}
-									className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/80 p-4"
+									className="relative flex aspect-[4/3] flex-col items-center justify-center rounded-xl bg-slate-900 p-4"
 								>
-									<div className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500 text-lg font-semibold text-white">
+									<div className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(p.uid)} text-lg font-semibold text-white`}>
 										{initials}
 									</div>
-									<p className="mt-3 truncate text-sm font-medium text-slate-200">
+									<p className="mt-3 max-w-full truncate text-sm font-medium text-slate-200">
 										{p.username}
 									</p>
+									<div className="absolute bottom-3 left-3">
+										<span className="max-w-[120px] truncate text-xs text-slate-400">
+											{p.username}
+										</span>
+									</div>
 								</div>
 							);
 						})}
