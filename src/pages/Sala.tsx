@@ -142,7 +142,6 @@ const Sala = () => {
 						})}
 					</div>
 
-					<p className="mt-8 text-center text-xs text-slate-600">{copy.stagePlaceholder}</p>
 				</main>
 
 				<RoomChatPanel
