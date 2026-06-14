@@ -17,6 +17,12 @@ interface RoomChatPanelProps {
 	onKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 }
 
+const UsersIcon = () => (
+	<svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-blue-500" aria-hidden="true">
+		<path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" />
+	</svg>
+);
+
 const SendIcon = () => (
 	<svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
 		<path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
@@ -40,11 +46,19 @@ const RoomChatPanel = ({
 
 	return (
 		<aside className="flex min-h-0 w-full flex-col border-l border-slate-200 bg-white lg:w-96">
-			<div className="border-b border-slate-200 px-4 py-4">
-				<h2 className="text-sm font-semibold text-slate-900">{copy.chatTitle}</h2>
-				<p className="mt-0.5 text-xs text-slate-500">
-					{copy.chatSubtitle(roomName, messages.length)}
-				</p>
+			<div className="border-b border-slate-200 px-4 py-3">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-2.5">
+						<UsersIcon />
+						<div>
+							<h2 className="text-sm font-semibold text-slate-900">{copy.chatTitle}</h2>
+							<p className="text-xs text-slate-500">{roomName}</p>
+						</div>
+					</div>
+					<span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+						{messages.length} msgs
+					</span>
+				</div>
 			</div>
 
 			<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
