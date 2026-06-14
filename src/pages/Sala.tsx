@@ -36,7 +36,7 @@ const Sala = () => {
 	const { id: rawId } = useParams<{ id: string }>();
 	const roomId = useMemo(() => (rawId ? normalizeRoomId(rawId) : undefined), [rawId]);
 	const { user } = useAuth();
-	const { displayName } = useUserProfile();
+	const { displayName, avatarUrl } = useUserProfile();
 	const { room, loading, error, isAdmin, setRoom } = useRoom(roomId, user?.uid);
 
 	const updateRoom = useUpdateRoom({
@@ -98,9 +98,17 @@ const Sala = () => {
 				<main className="flex flex-1 flex-col items-center justify-center px-6 py-8">
 					<div className="grid w-full max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
 						<div className="relative flex aspect-[4/3] flex-col items-center justify-center rounded-xl bg-slate-900 p-4 ring-2 ring-blue-500">
-							<div className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(user?.uid ?? "self")} text-lg font-semibold text-white`}>
-								{currentInitials}
-							</div>
+							{avatarUrl ? (
+								<img
+									src={avatarUrl}
+									alt={currentDisplayName}
+									className="h-16 w-16 rounded-full object-cover"
+								/>
+							) : (
+								<div className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(user?.uid ?? "self")} text-lg font-semibold text-white`}>
+									{currentInitials}
+								</div>
+							)}
 							<p className="mt-3 max-w-full truncate text-sm font-medium text-slate-200">
 								{currentDisplayName}
 							</p>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth as copy } from "../copy/es";
 import { registerWithEmail } from "../services/authService";
 import { useToast } from "../contexts/ToastContext";
+import { useUserProfile } from "./useUserProfile";
 import { getPasswordRules } from "../lib/passwordRules";
 import type { RegisterFieldErrors, RegisterPayload } from "../types/auth";
 
@@ -30,6 +31,7 @@ const INITIAL_FORM: FormState = {
 export function useRegisterForm() {
 	const navigate = useNavigate();
 	const { showToast } = useToast();
+	const { refetch: refetchProfile } = useUserProfile();
 	const [fields, setFields] = useState<FormState>(INITIAL_FORM);
 	const [fieldErrors, setFieldErrors] = useState<RegisterFieldErrors>({});
 	const [serverError, setServerError] = useState<string | null>(null);
@@ -82,6 +84,7 @@ export function useRegisterForm() {
 		setLoading(true);
 		try {
 			await registerWithEmail(payload);
+			await refetchProfile();
 			showToast("¡Cuenta creada! Bienvenido a Agora.", "success");
 			navigate("/dashboard", { replace: true });
 		} catch (err: unknown) {
