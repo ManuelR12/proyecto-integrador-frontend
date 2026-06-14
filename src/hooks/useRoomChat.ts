@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { sala as copy } from "../copy/es";
 import { subscribeRoomMessages } from "../services/roomFirestoreService";
 import { createRoomSocket, type RoomSocketController } from "../services/roomSocketService";
-import type { ChatMessage } from "../types/room";
+import type { ChatMessage, SocketParticipant } from "../types/room";
 
 function sortMessages(messages: ChatMessage[]): ChatMessage[] {
 	return [...messages].sort((a, b) => {
@@ -25,6 +25,7 @@ export function useRoomChat(roomId: string | undefined) {
 	const [connected, setConnected] = useState(false);
 	const [connectionError, setConnectionError] = useState<string | null>(null);
 	const [draft, setDraft] = useState("");
+	const [participants, setParticipants] = useState<SocketParticipant[]>([]);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const socketRef = useRef<RoomSocketController | null>(null);
 
@@ -72,9 +73,10 @@ export function useRoomChat(roomId: string | undefined) {
 		if (!roomId) return;
 
 		const socket = createRoomSocket(roomId, {
-			onRoomJoined: () => {
+			onRoomJoined: (payload) => {
 				setConnectionError(null);
 				setConnected(true);
+				setParticipants(payload.participants ?? []);
 			},
 			onDisconnect: () => {
 				setConnected(false);
@@ -82,6 +84,14 @@ export function useRoomChat(roomId: string | undefined) {
 			onError: (message) => {
 				setConnectionError(formatConnectionError(message));
 				setConnected(false);
+			},
+			onParticipantJoined: (p) => {
+				setParticipants((prev) =>
+					prev.some((x) => x.uid === p.uid) ? prev : [...prev, p],
+				);
+			},
+			onParticipantLeft: (p) => {
+				setParticipants((prev) => prev.filter((x) => x.uid !== p.uid));
 			},
 		});
 
@@ -119,6 +129,7 @@ export function useRoomChat(roomId: string | undefined) {
 		connected,
 		connectionError,
 		draft,
+		participants,
 		messagesEndRef,
 		sendMessage,
 		handleDraftChange,
