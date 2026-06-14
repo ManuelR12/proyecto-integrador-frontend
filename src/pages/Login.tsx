@@ -74,6 +74,9 @@ const Login = () => {
 								placeholder={copy.login.passwordPlaceholder}
 								value={fields.password}
 								error={fieldErrors.password}
+								showPasswordToggle
+								showPasswordLabel={copy.login.showPassword}
+								hidePasswordLabel={copy.login.hidePassword}
 								onChange={(e) => setField("password", e.target.value)}
 							/>
 						</fieldset>

@@ -70,6 +70,8 @@ export const auth = {
 		emailPlaceholder: "tu@correo.edu",
 		passwordLabel: "Contraseña",
 		passwordPlaceholder: "••••••••",
+		showPassword: "Mostrar contraseña",
+		hidePassword: "Ocultar contraseña",
 		submit: "Iniciar sesión",
 		submitLoading: "Iniciando sesión...",
 		footerPrompt: "¿No tienes cuenta?",
