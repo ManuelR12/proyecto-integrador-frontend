@@ -8,6 +8,7 @@ import SubmitButton from "../components/ui/SubmitButton";
 import GoogleButton from "../components/ui/GoogleButton";
 import { useRegisterForm } from "../hooks/useRegisterForm";
 import { useGoogleAuth } from "../hooks/useGoogleAuth";
+import PasswordStrengthChecklist from "../components/ui/PasswordStrengthChecklist";
 
 const Registro = () => {
 	const location = useLocation();
@@ -33,7 +34,7 @@ const Registro = () => {
 						{copy.back}
 					</Link>
 
-					<AgoraBrandLink className="mt-3 inline-block text-base font-bold tracking-tight text-blue-600" />
+					<AgoraBrandLink className="mt-3 block text-base font-bold tracking-tight text-blue-600" />
 					<h1 className="mt-1 text-2xl font-semibold text-slate-900">{copy.register.title}</h1>
 					<p className="mt-1 text-sm text-slate-500">
 						{hasErrors ? copy.register.subtitleError : copy.register.subtitle}
@@ -133,21 +134,23 @@ const Registro = () => {
 								onChange={(e) => setField("email", e.target.value)}
 							/>
 
-							<FormField
-								id="password"
-								label={copy.register.passwordLabel}
-								type="password"
-								autoComplete="new-password"
-								placeholder={copy.register.passwordPlaceholder}
-								value={fields.password}
-								error={fieldErrors.password}
-								helper={!fieldErrors.password ? copy.register.passwordHelper : undefined}
-								showPasswordToggle
-								showPasswordLabel={copy.register.showPassword}
-								hidePasswordLabel={copy.register.hidePassword}
-								required
-								onChange={(e) => setField("password", e.target.value)}
-							/>
+							<div>
+								<FormField
+									id="password"
+									label={copy.register.passwordLabel}
+									type="password"
+									autoComplete="new-password"
+									placeholder={copy.register.passwordPlaceholder}
+									value={fields.password}
+									error={fieldErrors.password}
+									showPasswordToggle
+									showPasswordLabel={copy.register.showPassword}
+									hidePasswordLabel={copy.register.hidePassword}
+									required
+									onChange={(e) => setField("password", e.target.value)}
+								/>
+								<PasswordStrengthChecklist password={fields.password} />
+							</div>
 						</fieldset>
 
 						{serverError && (

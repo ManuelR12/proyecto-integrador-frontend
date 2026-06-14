@@ -1,6 +1,6 @@
 import { io, type Socket } from "socket.io-client";
 import { getIdToken } from "../lib/authToken";
-import type { ChatMessage } from "../types/room";
+import type { ChatMessage, SocketParticipant } from "../types/room";
 
 function socketBaseUrl(): string {
 	return import.meta.env.VITE_API_BASE_URL ?? "";
@@ -9,6 +9,7 @@ function socketBaseUrl(): string {
 export interface RoomJoinedPayload {
 	roomId: string;
 	isAdmin: boolean;
+	participants: SocketParticipant[];
 }
 
 export interface RoomSocketHandlers {
@@ -16,6 +17,8 @@ export interface RoomSocketHandlers {
 	onDisconnect: () => void;
 	onMessage?: (message: ChatMessage) => void;
 	onError: (message: string) => void;
+	onParticipantJoined?: (participant: SocketParticipant) => void;
+	onParticipantLeft?: (participant: SocketParticipant) => void;
 }
 
 export interface RoomSocketController {
@@ -77,6 +80,14 @@ export function createRoomSocket(
 
 			socket.on("receive_message", (message: ChatMessage) => {
 				handlers.onMessage?.(message);
+			});
+
+			socket.on("participant_joined", (p: SocketParticipant) => {
+				handlers.onParticipantJoined?.(p);
+			});
+
+			socket.on("participant_left", (p: SocketParticipant) => {
+				handlers.onParticipantLeft?.(p);
 			});
 		})
 		.catch(() => {

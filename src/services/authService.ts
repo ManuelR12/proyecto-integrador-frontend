@@ -25,6 +25,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { isAxiosError } from "axios";
 import { auth, db } from "../lib/firebase";
 import apiClient from "../lib/apiClient";
+import { updateUserProfile } from "./profileService";
 import type { LoginPayload, RegisterPayload, RegisteredUser } from "../types/auth";
 
 const USERS_COLLECTION = "users";
@@ -85,6 +86,15 @@ export async function registerWithEmail(payload: RegisterPayload): Promise<Regis
 	const lowerUsername = username.toLowerCase();
 	const displayName = `${nombres} ${apellidos}`.trim();
 
+	if (payload.avatarDataUrl) {
+		try {
+			const avatarUrl = await compressAvatar(payload.avatarDataUrl);
+			await updateUserProfile({ nombres, apellidos, username: lowerUsername, avatarUrl });
+		} catch (err) {
+			console.warn("[Register] avatar save failed:", err);
+		}
+	}
+
 	return {
 		uid: credential.user.uid,
 		email: credential.user.email ?? email,
@@ -132,26 +142,13 @@ export async function signInWithGoogle(): Promise<{ needsUsername: boolean }> {
 		throw mapFirebaseAuthError(error);
 	}
 
-	console.log("[Google] uid:", credential.user.uid, "email:", credential.user.email);
-
 	if (!INSTITUTIONAL_EMAIL_RE.test(credential.user.email ?? "")) {
 		await signOut(auth);
 		throw new Error("NON_INSTITUTIONAL_EMAIL");
 	}
 
-	try {
-		const uidSnap = await getDoc(doc(db, UIDS_COLLECTION, credential.user.uid));
-		console.log(
-			"[Google] uids doc exists:",
-			uidSnap.exists(),
-			"→ needsUsername:",
-			!uidSnap.exists(),
-		);
-		return { needsUsername: !uidSnap.exists() };
-	} catch (err) {
-		console.error("[Google] Firestore read failed:", err);
-		throw err;
-	}
+	const uidSnap = await getDoc(doc(db, UIDS_COLLECTION, credential.user.uid));
+	return { needsUsername: !uidSnap.exists() };
 }
 
 /**
@@ -189,6 +186,26 @@ export async function saveGoogleUserProfile(username: string): Promise<void> {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
+function compressAvatar(dataUrl: string, size = 128): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const img = new Image();
+		img.onload = () => {
+			const canvas = document.createElement("canvas");
+			canvas.width = size;
+			canvas.height = size;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) {
+				reject(new Error("canvas unavailable"));
+				return;
+			}
+			ctx.drawImage(img, 0, 0, size, size);
+			resolve(canvas.toDataURL("image/jpeg", 0.75));
+		};
+		img.onerror = reject;
+		img.src = dataUrl;
+	});
+}
+
 function mapBackendError(error: unknown): Error {
 	if (!isAxiosError(error)) return new Error("UNKNOWN_ERROR");
 
@@ -200,6 +217,7 @@ function mapBackendError(error: unknown): Error {
 	if (!error.response) return new Error("NETWORK_ERROR");
 
 	if (status === 400) {
+		if (code === "auth/weak-password") return new Error("PASSWORD_WEAK");
 		if (msg.includes("username")) return new Error("USERNAME_TAKEN");
 		if (msg.includes("email")) return new Error("EMAIL_TAKEN");
 		return new Error("VALIDATION_ERROR");
