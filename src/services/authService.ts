@@ -200,6 +200,7 @@ function mapBackendError(error: unknown): Error {
 	if (!error.response) return new Error("NETWORK_ERROR");
 
 	if (status === 400) {
+		if (code === "auth/weak-password") return new Error("PASSWORD_WEAK");
 		if (msg.includes("username")) return new Error("USERNAME_TAKEN");
 		if (msg.includes("email")) return new Error("EMAIL_TAKEN");
 		return new Error("VALIDATION_ERROR");
