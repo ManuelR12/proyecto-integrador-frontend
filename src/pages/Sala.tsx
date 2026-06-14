@@ -66,7 +66,7 @@ const Sala = () => {
 	}
 
 	return (
-		<div className="flex min-h-screen w-full flex-col bg-[#0d0d12]">
+		<div className="flex h-screen w-full flex-col overflow-hidden bg-[#0d0d12]">
 			<RoomHeader
 				room={room}
 				isAdmin={isAdmin}
