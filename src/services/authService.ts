@@ -25,7 +25,6 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { isAxiosError } from "axios";
 import { auth, db } from "../lib/firebase";
 import apiClient from "../lib/apiClient";
-import { updateUserProfile } from "./profileService";
 import type { LoginPayload, RegisterPayload, RegisteredUser } from "../types/auth";
 
 const USERS_COLLECTION = "users";
@@ -85,15 +84,6 @@ export async function registerWithEmail(payload: RegisterPayload): Promise<Regis
 
 	const lowerUsername = username.toLowerCase();
 	const displayName = `${nombres} ${apellidos}`.trim();
-
-	if (payload.avatarDataUrl) {
-		try {
-			const avatarUrl = await compressAvatar(payload.avatarDataUrl);
-			await updateUserProfile({ nombres, apellidos, username: lowerUsername, avatarUrl });
-		} catch (err) {
-			console.warn("[Register] avatar save failed:", err);
-		}
-	}
 
 	return {
 		uid: credential.user.uid,
@@ -185,26 +175,6 @@ export async function saveGoogleUserProfile(username: string): Promise<void> {
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
-
-function compressAvatar(dataUrl: string, size = 128): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const img = new Image();
-		img.onload = () => {
-			const canvas = document.createElement("canvas");
-			canvas.width = size;
-			canvas.height = size;
-			const ctx = canvas.getContext("2d");
-			if (!ctx) {
-				reject(new Error("canvas unavailable"));
-				return;
-			}
-			ctx.drawImage(img, 0, 0, size, size);
-			resolve(canvas.toDataURL("image/jpeg", 0.75));
-		};
-		img.onerror = reject;
-		img.src = dataUrl;
-	});
-}
 
 function mapBackendError(error: unknown): Error {
 	if (!isAxiosError(error)) return new Error("UNKNOWN_ERROR");

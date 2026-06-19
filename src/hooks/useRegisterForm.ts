@@ -16,7 +16,6 @@ interface FormState {
 	username: string;
 	email: string;
 	password: string;
-	avatarDataUrl: string | null;
 }
 
 const INITIAL_FORM: FormState = {
@@ -25,7 +24,6 @@ const INITIAL_FORM: FormState = {
 	username: "",
 	email: "",
 	password: "",
-	avatarDataUrl: null,
 };
 
 export function useRegisterForm() {
@@ -37,14 +35,10 @@ export function useRegisterForm() {
 	const [serverError, setServerError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 
-	const setField = (name: keyof FormState, value: string | null) => {
+	const setField = (name: keyof FormState, value: string) => {
 		setFields((prev) => ({ ...prev, [name]: value }));
 		setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
 		setServerError(null);
-	};
-
-	const setAvatarError = (error: string | undefined) => {
-		setFieldErrors((prev) => ({ ...prev, avatar: error }));
 	};
 
 	function validate(data: FormState): RegisterFieldErrors {
@@ -78,7 +72,6 @@ export function useRegisterForm() {
 			username: fields.username.trim(),
 			email: fields.email.trim(),
 			password: fields.password,
-			avatarDataUrl: fields.avatarDataUrl,
 		};
 
 		setLoading(true);
@@ -109,7 +102,7 @@ export function useRegisterForm() {
 		}
 	};
 
-	return { fields, fieldErrors, serverError, loading, setField, setAvatarError, handleSubmit };
+	return { fields, fieldErrors, serverError, loading, setField, handleSubmit };
 }
 
 function resolveServerError(err: unknown): string {

@@ -3,7 +3,6 @@ import { auth as copy } from "../copy/es";
 import AuthShell from "../components/layout/AuthShell";
 import AgoraBrandLink from "../components/layout/AgoraBrandLink";
 import FormField from "../components/ui/FormField";
-import AvatarPicker from "../components/ui/AvatarPicker";
 import SubmitButton from "../components/ui/SubmitButton";
 import GoogleButton from "../components/ui/GoogleButton";
 import { useRegisterForm } from "../hooks/useRegisterForm";
@@ -14,17 +13,11 @@ const Registro = () => {
 	const location = useLocation();
 	const incompleteProfile = (location.state as { incompleteProfile?: boolean } | null)
 		?.incompleteProfile;
-	const { fields, fieldErrors, serverError, loading, setField, setAvatarError, handleSubmit } =
-		useRegisterForm();
+	const { fields, fieldErrors, serverError, loading, setField, handleSubmit } = useRegisterForm();
 	const { signIn: signInGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
 	const isLoading = loading || googleLoading;
 	const hasErrors = Object.values(fieldErrors).some(Boolean);
-
-	const handleAvatarChange = (dataUrl: string | null, validationError?: string) => {
-		setField("avatarDataUrl", dataUrl);
-		setAvatarError(validationError);
-	};
 
 	return (
 		<AuthShell>
@@ -112,14 +105,6 @@ const Registro = () => {
 								helper={!fieldErrors.username ? copy.register.usernameHelper : undefined}
 								required
 								onChange={(e) => setField("username", e.target.value)}
-							/>
-
-							<AvatarPicker
-								preview={fields.avatarDataUrl}
-								error={fieldErrors.avatar}
-								disabled={isLoading}
-								required
-								onChange={handleAvatarChange}
 							/>
 
 							<FormField
