@@ -5,6 +5,7 @@ export interface RegisterPayload {
 	username: string;
 	email: string;
 	password: string;
+	avatarUrl?: string | null;
 }
 
 /** Validated errors per field for the register form. */

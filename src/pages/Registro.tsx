@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { auth as copy } from "../copy/es";
 import AuthShell from "../components/layout/AuthShell";
 import AgoraBrandLink from "../components/layout/AgoraBrandLink";
+import AvatarPicker from "../components/ui/AvatarPicker";
 import FormField from "../components/ui/FormField";
 import SubmitButton from "../components/ui/SubmitButton";
 import GoogleButton from "../components/ui/GoogleButton";
@@ -105,6 +106,15 @@ const Registro = () => {
 								helper={!fieldErrors.username ? copy.register.usernameHelper : undefined}
 								required
 								onChange={(e) => setField("username", e.target.value)}
+							/>
+
+							<AvatarPicker
+								value={fields.avatarUrl}
+								label={copy.register.avatarLabel}
+								placeholder={copy.register.avatarUrlPlaceholder}
+								helperText={copy.register.avatarHelper}
+								disabled={isLoading}
+								onChange={(url) => setField("avatarUrl", url)}
 							/>
 
 							<FormField
