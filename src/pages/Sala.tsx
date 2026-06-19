@@ -136,11 +136,19 @@ const Sala = () => {
 									key={p.uid}
 									className="relative flex aspect-[4/3] flex-col items-center justify-center rounded-xl bg-slate-900 p-4"
 								>
-									<div
-										className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(p.uid)} text-lg font-semibold text-white`}
-									>
-										{initials}
-									</div>
+									{p.avatarUrl ? (
+										<img
+											src={p.avatarUrl}
+											alt={p.username}
+											className="h-16 w-16 rounded-full object-cover"
+										/>
+									) : (
+										<div
+											className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(p.uid)} text-lg font-semibold text-white`}
+										>
+											{initials}
+										</div>
+									)}
 									<p className="mt-3 max-w-full truncate text-sm font-medium text-slate-200">
 										{p.username}
 									</p>
