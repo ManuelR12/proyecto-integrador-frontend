@@ -112,7 +112,6 @@ const Registro = () => {
 							<AvatarPicker
 								value={fields.avatarUrl}
 								label={copy.register.avatarLabel}
-								changeLabel={copy.register.avatarChange}
 								helperText={copy.register.avatarHelper}
 								error={fieldErrors.avatar}
 								disabled={isLoading}

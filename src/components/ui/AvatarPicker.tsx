@@ -3,7 +3,6 @@ import { useState } from "react";
 interface AvatarPickerProps {
 	value: string | null;
 	label?: string;
-	changeLabel?: string;
 	helperText?: string;
 	error?: string;
 	disabled?: boolean;
@@ -35,15 +34,7 @@ function compressImage(file: File, size = 128): Promise<string> {
 	});
 }
 
-const AvatarPicker = ({
-	value,
-	label,
-	changeLabel = "Subir foto",
-	helperText,
-	error,
-	disabled,
-	onChange,
-}: AvatarPickerProps) => {
+const AvatarPicker = ({ value, label, helperText, error, disabled, onChange }: AvatarPickerProps) => {
 	const [compressing, setCompressing] = useState(false);
 	const isDisabled = disabled || compressing;
 
@@ -73,28 +64,67 @@ const AvatarPicker = ({
 	};
 
 	return (
-		<div className="flex flex-col gap-2">
+		<div className="flex flex-col gap-1.5">
 			{label && <span className="text-sm font-medium text-slate-700">{label}</span>}
+
 			<div className="flex items-center gap-4">
-				<div className="relative h-16 w-16 flex-shrink-0">
+				<label
+					className={[
+						"group relative h-20 w-20 flex-shrink-0 cursor-pointer rounded-full",
+						isDisabled ? "pointer-events-none opacity-50" : "",
+					].join(" ")}
+					aria-label="Cambiar foto de perfil"
+				>
 					{value ? (
-						<img
-							src={value}
-							alt=""
-							className="h-16 w-16 rounded-full object-cover ring-2 ring-slate-200"
-						/>
+						<img src={value} alt="" className="h-20 w-20 rounded-full object-cover" />
 					) : (
-						<div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+						<div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition group-hover:border-blue-400 group-hover:bg-blue-50 group-hover:text-blue-500">
 							<svg
 								viewBox="0 0 24 24"
-								fill="currentColor"
-								className="h-8 w-8"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								className="h-7 w-7"
 								aria-hidden="true"
 							>
-								<path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-3.337 0-10 1.676-10 5v2h20v-2c0-3.324-6.663-5-10-5z" />
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+								/>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
+								/>
 							</svg>
 						</div>
 					)}
+
+					{value && (
+						<div className="absolute inset-0 flex items-center justify-center rounded-full bg-transparent transition group-hover:bg-black/35">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								className="h-6 w-6 text-white opacity-0 transition group-hover:opacity-100"
+								aria-hidden="true"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+								/>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
+								/>
+							</svg>
+						</div>
+					)}
+
 					{compressing && (
 						<div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
 							<svg
@@ -119,24 +149,17 @@ const AvatarPicker = ({
 							</svg>
 						</div>
 					)}
-				</div>
 
-				<div className="flex flex-col gap-1">
-					<label
-						className={[
-							"cursor-pointer text-sm font-medium text-blue-600 transition hover:text-blue-500",
-							isDisabled ? "pointer-events-none opacity-50" : "",
-						].join(" ")}
-					>
-						{compressing ? "Procesando..." : changeLabel}
-						<input
-							type="file"
-							accept="image/jpeg,image/png"
-							className="sr-only"
-							disabled={isDisabled}
-							onChange={handleFile}
-						/>
-					</label>
+					<input
+						type="file"
+						accept="image/jpeg,image/png"
+						className="sr-only"
+						disabled={isDisabled}
+						onChange={handleFile}
+					/>
+				</label>
+
+				<div className="flex flex-col gap-0.5">
 					{error ? (
 						<p role="alert" className="text-xs text-red-600">
 							{error}

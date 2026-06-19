@@ -100,7 +100,6 @@ const Perfil = () => {
 								<AvatarPicker
 									value={fields.avatarUrl}
 									label={copy.avatarLabel}
-									changeLabel={copy.avatarChange}
 									helperText={copy.avatarHelper}
 									error={fieldErrors.avatar}
 									disabled={saving}
