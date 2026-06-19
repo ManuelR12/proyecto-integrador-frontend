@@ -44,6 +44,10 @@ export function useRegisterForm() {
 		setServerError(null);
 	};
 
+	const setAvatarError = (error: string | undefined) => {
+		setFieldErrors((prev) => ({ ...prev, avatar: error }));
+	};
+
 	function validate(data: FormState): RegisterFieldErrors {
 		const errors: RegisterFieldErrors = {};
 		if (!data.nombres.trim()) errors.nombres = copy.register.errors.nombresRequired;
@@ -117,7 +121,7 @@ export function useRegisterForm() {
 		}
 	};
 
-	return { fields, fieldErrors, serverError, loading, setField, handleSubmit };
+	return { fields, fieldErrors, serverError, loading, setField, setAvatarError, handleSubmit };
 }
 
 function resolveServerError(err: unknown): string {

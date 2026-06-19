@@ -23,6 +23,7 @@ const Perfil = () => {
 		canSave,
 		initials,
 		setField,
+		setAvatarError,
 		handleUsernameChange,
 		handleSubmit,
 	} = useProfileForm();
@@ -99,10 +100,14 @@ const Perfil = () => {
 								<AvatarPicker
 									value={fields.avatarUrl}
 									label={copy.avatarLabel}
-									placeholder={copy.avatarUrlPlaceholder}
+									changeLabel={copy.avatarChange}
 									helperText={copy.avatarHelper}
+									error={fieldErrors.avatar}
 									disabled={saving}
-									onChange={(url) => setField("avatarUrl", url)}
+									onChange={(url, err) => {
+										setField("avatarUrl", url);
+										setAvatarError(err);
+									}}
 								/>
 
 								<FormField

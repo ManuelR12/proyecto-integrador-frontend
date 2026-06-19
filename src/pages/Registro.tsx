@@ -14,7 +14,8 @@ const Registro = () => {
 	const location = useLocation();
 	const incompleteProfile = (location.state as { incompleteProfile?: boolean } | null)
 		?.incompleteProfile;
-	const { fields, fieldErrors, serverError, loading, setField, handleSubmit } = useRegisterForm();
+	const { fields, fieldErrors, serverError, loading, setField, setAvatarError, handleSubmit } =
+		useRegisterForm();
 	const { signIn: signInGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
 	const isLoading = loading || googleLoading;
@@ -111,10 +112,14 @@ const Registro = () => {
 							<AvatarPicker
 								value={fields.avatarUrl}
 								label={copy.register.avatarLabel}
-								placeholder={copy.register.avatarUrlPlaceholder}
+								changeLabel={copy.register.avatarChange}
 								helperText={copy.register.avatarHelper}
+								error={fieldErrors.avatar}
 								disabled={isLoading}
-								onChange={(url) => setField("avatarUrl", url)}
+								onChange={(url, err) => {
+									setField("avatarUrl", url);
+									setAvatarError(err);
+								}}
 							/>
 
 							<FormField
