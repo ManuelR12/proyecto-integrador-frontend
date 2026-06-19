@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { perfil as copy } from "../copy/es";
 import DeleteAccountModal from "../components/profile/DeleteAccountModal";
 import AgoraBrandLink from "../components/layout/AgoraBrandLink";
+import AvatarPicker from "../components/ui/AvatarPicker";
 import FormField from "../components/ui/FormField";
 import SubmitButton from "../components/ui/SubmitButton";
 import { useAuth } from "../contexts/AuthContext";
@@ -45,8 +46,6 @@ const Perfil = () => {
 			.slice(0, 2)
 			.join("")
 			.toUpperCase();
-
-	const avatarPreview = fields.avatarUrl ?? headerPhoto;
 
 	return (
 		<div id="perfil" className="flex min-h-screen w-full flex-col bg-[#f6f7f8]">
@@ -97,33 +96,14 @@ const Perfil = () => {
 							className="rounded-xl border border-slate-200 bg-white px-6 py-6 shadow-sm sm:px-8"
 						>
 							<fieldset disabled={saving} className="m-0 flex flex-col gap-5 border-0 p-0">
-								<div className="flex flex-col gap-2">
-									<span className="text-sm font-medium text-slate-700">{copy.avatarLabel}</span>
-									<div className="flex items-center gap-4">
-										{avatarPreview ? (
-											<img
-												src={avatarPreview}
-												alt="Avatar"
-												className="h-16 w-16 flex-shrink-0 rounded-full object-cover ring-2 ring-slate-200"
-											/>
-										) : (
-											<div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-lg font-semibold text-white">
-												{initials}
-											</div>
-										)}
-										<div className="flex flex-1 flex-col gap-1">
-											<input
-												type="url"
-												placeholder={copy.avatarUrlPlaceholder}
-												disabled={saving}
-												value={fields.avatarUrl ?? ""}
-												className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
-												onChange={(e) => setField("avatarUrl", e.target.value || null)}
-											/>
-											<p className="text-xs text-slate-500">{copy.avatarHelper}</p>
-										</div>
-									</div>
-								</div>
+								<AvatarPicker
+									value={fields.avatarUrl}
+									label={copy.avatarLabel}
+									placeholder={copy.avatarUrlPlaceholder}
+									helperText={copy.avatarHelper}
+									disabled={saving}
+									onChange={(url) => setField("avatarUrl", url)}
+								/>
 
 								<FormField
 									id="nombres"
