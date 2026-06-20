@@ -262,6 +262,11 @@ export const sala = {
 		enterRoom: "Entrar a sala",
 		backToDashboard: "Volver al dashboard",
 	},
+	videoGrid: {
+		youLabel: "Tú",
+		connecting: "Conectando video…",
+		cameraOff: "Cámara desactivada",
+	},
 } as const;
 
 export const perfil = {
