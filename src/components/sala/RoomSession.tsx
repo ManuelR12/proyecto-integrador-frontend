@@ -1,13 +1,13 @@
 import DeleteRoomModal from "./DeleteRoomModal";
-import RoomChatPanel from "./RoomChatPanel";
+import RoomChatSection from "./RoomChatSection";
 import RoomConfigModal from "./RoomConfigModal";
 import RoomHeader from "./RoomHeader";
-import RoomMediaStage from "./RoomMediaStage";
+import RoomSocketCoordinator from "./RoomSocketCoordinator";
+import RoomVideoSection from "./RoomVideoSection";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDeleteRoom } from "../../hooks/useDeleteRoom";
-import { useRoomChat } from "../../hooks/useRoomChat";
 import { useUpdateRoom } from "../../hooks/useUpdateRoom";
-import { useUserProfile } from "../../hooks/useUserProfile";
+import { selectParticipantCount, useRoomStore } from "../../stores/useRoomStore";
 import type { Room } from "../../types/room";
 
 interface RoomSessionProps {
@@ -17,9 +17,32 @@ interface RoomSessionProps {
 	onRoomUpdated: (name: string) => void;
 }
 
+const RoomSessionHeader = ({
+	room,
+	isAdmin,
+	onEdit,
+	onDelete,
+}: {
+	room: Room;
+	isAdmin: boolean;
+	onEdit: () => void;
+	onDelete: () => void;
+}) => {
+	const participantCount = useRoomStore(selectParticipantCount);
+
+	return (
+		<RoomHeader
+			room={room}
+			isAdmin={isAdmin}
+			participantCount={participantCount}
+			onEdit={onEdit}
+			onDelete={onDelete}
+		/>
+	);
+};
+
 const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps) => {
 	const { user } = useAuth();
-	const { displayName } = useUserProfile();
 
 	const updateRoom = useUpdateRoom({
 		roomId,
@@ -27,45 +50,24 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 	});
 
 	const deleteRoomAction = useDeleteRoom({ roomId });
-	const chat = useRoomChat(roomId);
-
-	const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
-
-	const participantCount = chat.participants.length + 1;
 
 	return (
 		<div className="flex h-screen w-full flex-col overflow-hidden bg-[#0d0d12]">
-			<RoomHeader
+			<RoomSocketCoordinator roomId={roomId} />
+
+			<RoomSessionHeader
 				room={room}
 				isAdmin={isAdmin}
-				participantCount={participantCount}
 				onEdit={() => updateRoom.openModal(room.title)}
 				onDelete={deleteRoomAction.openModal}
 			/>
 
 			<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
 				<main className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-6 py-8">
-					<RoomMediaStage
-						roomId={roomId}
-						currentDisplayName={currentDisplayName}
-						currentUserId={user?.uid ?? "local"}
-						remoteParticipants={chat.participants}
-					/>
+					<RoomVideoSection roomId={roomId} />
 				</main>
 
-				<RoomChatPanel
-					roomName={room.title}
-					messages={chat.messages}
-					loadingHistory={chat.loadingHistory}
-					currentUserId={user?.uid}
-					connected={chat.connected}
-					connectionError={chat.connectionError}
-					draft={chat.draft}
-					messagesEndRef={chat.messagesEndRef}
-					onDraftChange={chat.handleDraftChange}
-					onSend={chat.sendMessage}
-					onKeyDown={chat.handleKeyDown}
-				/>
+				<RoomChatSection roomId={roomId} roomName={room.title} currentUserId={user?.uid} />
 			</div>
 
 			<RoomConfigModal

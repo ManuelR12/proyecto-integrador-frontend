@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import { sala as copy } from "../../copy/es";
 import type { VideoTileParticipant } from "../../types/media";
 import VideoTileSkeleton from "./VideoTileSkeleton";
@@ -75,4 +75,4 @@ const VideoTile = ({ participant, aspectClassName = "aspect-video" }: VideoTileP
 	);
 };
 
-export default VideoTile;
+export default memo(VideoTile);
