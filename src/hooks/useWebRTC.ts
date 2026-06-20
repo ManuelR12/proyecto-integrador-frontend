@@ -122,28 +122,37 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 			closePeer(targetUid);
 
 			const pc = new RTCPeerConnection(ICE_SERVERS);
+			console.log(`[WebRTC] createPC for ${targetUid}`);
 
 			pc.onicecandidate = ({ candidate }) => {
 				if (candidate && roomId) {
+					console.log(`[WebRTC] sending ICE candidate to ${targetUid}:`, candidate.type, candidate.protocol);
 					emit.sendIceCandidate({ targetUid, roomId, candidate: candidate.toJSON() });
 				}
 			};
 
-			pc.ontrack = ({ streams }) => {
-				if (streams[0]) {
-					setRemoteStreams((prev) => new Map(prev).set(targetUid, streams[0]));
-				}
+			pc.oniceconnectionstatechange = () => {
+				console.log(`[WebRTC] ICE state with ${targetUid}:`, pc.iceConnectionState);
 			};
 
 			pc.onconnectionstatechange = () => {
+				console.log(`[WebRTC] connection state with ${targetUid}:`, pc.connectionState);
 				if (pc.connectionState === "failed" || pc.connectionState === "closed") {
 					peerConnections.current.delete(targetUid);
 					removeRemoteStream(targetUid);
 				}
 			};
 
+			pc.ontrack = ({ streams }) => {
+				console.log(`[WebRTC] ontrack from ${targetUid}, streams:`, streams.length, streams[0]?.getTracks().map(t => `${t.kind}(enabled=${t.enabled})`));
+				if (streams[0]) {
+					setRemoteStreams((prev) => new Map(prev).set(targetUid, streams[0]));
+				}
+			};
+
 			// Answerer receives the offerer's data channel here
 			pc.ondatachannel = ({ channel }) => {
+				console.log(`[WebRTC] data channel received from ${targetUid}`);
 				setupDataChannel(targetUid, channel);
 			};
 
@@ -208,14 +217,14 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 	// Existing peers answer — they do NOT send back an offer — preventing glare.
 	const startCallMuted = useCallback(
 		async (participants: SocketParticipant[]) => {
+			console.log(`[WebRTC] startCallMuted — callActive=${callActive} participants:`, participants.map(p => p.uid));
 			if (!roomId || callActive) return;
 
 			const stream = await getLocalStream();
-			if (!stream) return;
+			if (!stream) { console.warn("[WebRTC] getLocalStream returned null"); return; }
 
 			applyMutedState(stream);
 			setCallActive(true);
-			// Announce initial muted state so others can show the correct indicator
 			emit.toggleMedia(false, false);
 
 			for (const { uid } of participants) {
@@ -229,8 +238,10 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				try {
 					const offer = await pc.createOffer();
 					await pc.setLocalDescription(offer);
+					console.log(`[WebRTC] offer sent to ${uid}`);
 					emit.sendOffer({ targetUid: uid, roomId, sdp: offer });
-				} catch {
+				} catch (e) {
+					console.error(`[WebRTC] createOffer failed for ${uid}:`, e);
 					closePeer(uid);
 				}
 			}
@@ -253,12 +264,13 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 	const handleIncomingOffer = useCallback(
 		async (payload: IncomingOfferPayload) => {
+			console.log(`[WebRTC] handleIncomingOffer from ${payload.fromUid}`);
 			if (!roomId) return;
 
 			let stream = localStreamRef.current;
 			if (!stream) {
 				stream = await getLocalStream();
-				if (!stream) return;
+				if (!stream) { console.warn("[WebRTC] no local stream for answer"); return; }
 				applyMutedState(stream);
 				setCallActive(true);
 			}
@@ -269,14 +281,14 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 			try {
 				await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-				// Flush any ICE candidates that arrived before this PC was ready
 				await flushCandidates(payload.fromUid, pc);
 				const answer = await pc.createAnswer();
 				await pc.setLocalDescription(answer);
+				console.log(`[WebRTC] answer sent to ${payload.fromUid}`);
 				emit.sendAnswer({ targetUid: payload.fromUid, roomId, sdp: answer });
-				// Tell the new joiner our current mic/camera state
 				emit.toggleMedia(micEnabledRef.current, cameraEnabledRef.current);
-			} catch {
+			} catch (e) {
+				console.error(`[WebRTC] answer failed for ${payload.fromUid}:`, e);
 				closePeer(payload.fromUid);
 			}
 		},
@@ -301,7 +313,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 	const handleIncomingIceCandidate = useCallback(async (payload: IncomingIceCandidatePayload) => {
 		const pc = peerConnections.current.get(payload.fromUid);
 		if (!pc) {
-			// PC not created yet — buffer until offer/answer processing creates it
+			console.log(`[WebRTC] buffering ICE candidate from ${payload.fromUid} (no PC yet)`);
 			const buf = pendingCandidates.current.get(payload.fromUid) ?? [];
 			buf.push(payload.candidate);
 			pendingCandidates.current.set(payload.fromUid, buf);
@@ -309,8 +321,8 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		}
 		try {
 			await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
-		} catch {
-			// ignore stale candidates during renegotiation
+		} catch (e) {
+			console.warn(`[WebRTC] addIceCandidate failed from ${payload.fromUid}:`, e);
 		}
 	}, []);
 
@@ -358,6 +370,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 	}, [roomId, emit]);
 
 	const handlePeerMediaToggled = useCallback((uid: string, mic: boolean, camera: boolean) => {
+		console.log(`[WebRTC] peer_media_toggled from ${uid}: mic=${mic} camera=${camera}`);
 		setRemoteMediaStates((prev) =>
 			new Map(prev).set(uid, { micEnabled: mic, cameraEnabled: camera }),
 		);
