@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
+import CallControls from "../components/sala/CallControls";
 import DeleteRoomModal from "../components/sala/DeleteRoomModal";
 import RoomChatPanel from "../components/sala/RoomChatPanel";
 import RoomConfigModal from "../components/sala/RoomConfigModal";
 import RoomHeader from "../components/sala/RoomHeader";
+import VideoGrid from "../components/sala/VideoGrid";
 import { sala as copy } from "../copy/es";
 import { useAuth } from "../contexts/AuthContext";
 import { useDeleteRoom } from "../hooks/useDeleteRoom";
@@ -11,7 +13,9 @@ import { useRoomChat } from "../hooks/useRoomChat";
 import { useRoom } from "../hooks/useRoom";
 import { useUpdateRoom } from "../hooks/useUpdateRoom";
 import { useUserProfile } from "../hooks/useUserProfile";
+import { useWebRTC } from "../hooks/useWebRTC";
 import { normalizeRoomId } from "../lib/roomId";
+import type { WebRTCSocketHandlers } from "../types/room";
 
 const AVATAR_COLORS = [
 	"bg-blue-600",
@@ -50,7 +54,34 @@ const Sala = () => {
 		roomId: roomId ?? "",
 	});
 
-	const chat = useRoomChat(roomId);
+	// webrtcRef is read inside socket event callbacks (async) — always reflects latest handlers
+	const webrtcRef = useRef<WebRTCSocketHandlers | null>(null);
+
+	const chat = useRoomChat(roomId, webrtcRef);
+
+	const webrtcEmit = useMemo(
+		() => ({
+			sendOffer: chat.sendOffer,
+			sendAnswer: chat.sendAnswer,
+			sendIceCandidate: chat.sendIceCandidate,
+			endCall: chat.emitEndCall,
+		}),
+		[chat.sendOffer, chat.sendAnswer, chat.sendIceCandidate, chat.emitEndCall],
+	);
+
+	const webrtc = useWebRTC(roomId, webrtcEmit);
+
+	// Keep ref in sync with latest handlers so socket callbacks always call the current version
+	useLayoutEffect(() => {
+		webrtcRef.current = {
+			onIncomingOffer: webrtc.handleIncomingOffer,
+			onIncomingAnswer: webrtc.handleIncomingAnswer,
+			onIncomingIceCandidate: webrtc.handleIncomingIceCandidate,
+			onCallEnded: webrtc.handleCallEnded,
+			onParticipantLeftCall: webrtc.handleParticipantLeft,
+			onParticipantJoinedCall: (uid) => void webrtc.callPeer(uid),
+		};
+	});
 
 	const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
 	const currentInitials = currentDisplayName
@@ -95,71 +126,99 @@ const Sala = () => {
 			/>
 
 			<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-				<main className="flex flex-1 flex-col items-center justify-center px-6 py-8">
-					<div className="grid w-full max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
-						<div className="relative flex aspect-[4/3] flex-col items-center justify-center rounded-xl bg-slate-900 p-4 ring-2 ring-blue-500">
-							{avatarUrl ? (
-								<img
-									src={avatarUrl}
-									alt={currentDisplayName}
-									className="h-16 w-16 rounded-full object-cover"
-								/>
-							) : (
-								<div
-									className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(user?.uid ?? "self")} text-lg font-semibold text-white`}
-								>
-									{currentInitials}
-								</div>
-							)}
-							<p className="mt-3 max-w-full truncate text-sm font-medium text-slate-200">
-								{currentDisplayName}
-							</p>
-							<div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-								<span className="max-w-[90px] truncate text-xs text-slate-300">
-									{currentDisplayName}
-								</span>
-								<span className="rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
-									Tú
-								</span>
-							</div>
-						</div>
-
-						{chat.participants.map((p) => {
-							const initials = p.username
-								.split(/[\s_.-]+/)
-								.map((w) => w[0])
-								.slice(0, 2)
-								.join("")
-								.toUpperCase();
-							return (
-								<div
-									key={p.uid}
-									className="relative flex aspect-[4/3] flex-col items-center justify-center rounded-xl bg-slate-900 p-4"
-								>
-									{p.avatarUrl ? (
+				<main className="flex flex-1 flex-col gap-4 px-6 py-6">
+					<div className="flex flex-1 items-center justify-center">
+						{webrtc.callActive && webrtc.localStream ? (
+							<VideoGrid
+								localStream={webrtc.localStream}
+								localLabel={currentDisplayName}
+								localUid={user?.uid ?? "self"}
+								localAvatarUrl={avatarUrl}
+								cameraEnabled={webrtc.cameraEnabled}
+								micEnabled={webrtc.micEnabled}
+								remoteStreams={webrtc.remoteStreams}
+								participants={chat.participants}
+							/>
+						) : (
+							<div className="grid w-full max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
+								<div className="relative flex aspect-[4/3] flex-col items-center justify-center rounded-xl bg-slate-900 p-4 ring-2 ring-blue-500">
+									{avatarUrl ? (
 										<img
-											src={p.avatarUrl}
-											alt={p.username}
+											src={avatarUrl}
+											alt={currentDisplayName}
 											className="h-16 w-16 rounded-full object-cover"
 										/>
 									) : (
 										<div
-											className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(p.uid)} text-lg font-semibold text-white`}
+											className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(user?.uid ?? "self")} text-lg font-semibold text-white`}
 										>
-											{initials}
+											{currentInitials}
 										</div>
 									)}
 									<p className="mt-3 max-w-full truncate text-sm font-medium text-slate-200">
-										{p.username}
+										{currentDisplayName}
 									</p>
-									<div className="absolute bottom-3 left-3">
-										<span className="max-w-[120px] truncate text-xs text-slate-400">
-											{p.username}
+									<div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+										<span className="max-w-[90px] truncate text-xs text-slate-300">
+											{currentDisplayName}
+										</span>
+										<span className="rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+											Tú
 										</span>
 									</div>
 								</div>
-							);
-						})}
+
+								{chat.participants.map((p) => {
+									const initials = p.username
+										.split(/[\s_.-]+/)
+										.map((w) => w[0])
+										.slice(0, 2)
+										.join("")
+										.toUpperCase();
+									return (
+										<div
+											key={p.uid}
+											className="relative flex aspect-[4/3] flex-col items-center justify-center rounded-xl bg-slate-900 p-4"
+										>
+											{p.avatarUrl ? (
+												<img
+													src={p.avatarUrl}
+													alt={p.username}
+													className="h-16 w-16 rounded-full object-cover"
+												/>
+											) : (
+												<div
+													className={`flex h-16 w-16 items-center justify-center rounded-full ${avatarColor(p.uid)} text-lg font-semibold text-white`}
+												>
+													{initials}
+												</div>
+											)}
+											<p className="mt-3 max-w-full truncate text-sm font-medium text-slate-200">
+												{p.username}
+											</p>
+											<div className="absolute bottom-3 left-3">
+												<span className="max-w-[120px] truncate text-xs text-slate-400">
+													{p.username}
+												</span>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						)}
+					</div>
+
+					<div className="flex justify-center pb-2">
+						<CallControls
+							callActive={webrtc.callActive}
+							micEnabled={webrtc.micEnabled}
+							cameraEnabled={webrtc.cameraEnabled}
+							mediaError={webrtc.mediaError}
+							onStartCall={() => void webrtc.startCall(chat.participants)}
+							onEndCall={webrtc.endCall}
+							onToggleMic={webrtc.toggleMic}
+							onToggleCamera={webrtc.toggleCamera}
+						/>
 					</div>
 				</main>
 
