@@ -186,16 +186,16 @@ const CallControls = ({
 						<PhoneOffIcon />
 					</ControlButton>
 				</div>
-			) : (
+			) : mediaError ? (
 				<button
 					type="button"
 					onClick={onStartCall}
-					className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+					className="flex items-center gap-2 rounded-xl bg-slate-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900"
 				>
 					<VideoCallIcon />
-					{copy.call.startCall}
+					{copy.call.retry}
 				</button>
-			)}
+			) : null}
 		</div>
 	);
 };

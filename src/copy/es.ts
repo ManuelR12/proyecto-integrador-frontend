@@ -258,6 +258,7 @@ export const sala = {
 		endCall: "Finalizar llamada",
 		micOff: "Mic silenciado",
 		cameraOff: "Cámara apagada",
+		retry: "Reintentar videollamada",
 	},
 	participantes: (n: number) => `${n} participantes`,
 } as const;
