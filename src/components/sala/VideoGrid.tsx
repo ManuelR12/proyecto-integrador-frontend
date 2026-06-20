@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import { getVideoGridClass, getVideoTileAspectClass } from "../../lib/videoGridLayout";
+import { getVideoGridAriaLabel, getVideoGridLayout } from "../../lib/videoGridLayout";
 import type { VideoTileParticipant } from "../../types/media";
 import VideoTile from "./VideoTile";
 
@@ -9,8 +9,11 @@ interface VideoGridProps {
 
 const VideoGrid = ({ tiles }: VideoGridProps) => {
 	const tileCount = tiles.length;
-	const gridClass = useMemo(() => getVideoGridClass(tileCount), [tileCount]);
-	const aspectClass = useMemo(() => getVideoTileAspectClass(tileCount), [tileCount]);
+	const layout = useMemo(() => getVideoGridLayout(tileCount), [tileCount]);
+	const ariaLabel = useMemo(
+		() => getVideoGridAriaLabel(tileCount, layout.pattern),
+		[tileCount, layout.pattern],
+	);
 
 	if (tileCount === 0) {
 		return null;
@@ -18,13 +21,22 @@ const VideoGrid = ({ tiles }: VideoGridProps) => {
 
 	return (
 		<div
+			role="group"
+			aria-label={ariaLabel}
+			data-layout={layout.pattern}
+			data-participants={tileCount}
 			className={[
-				"grid h-full w-full max-w-5xl auto-rows-fr gap-3 overflow-hidden",
-				gridClass,
+				"grid min-h-0 min-w-0 w-full flex-1 gap-2 overflow-hidden sm:gap-3",
+				layout.containerClass,
 			].join(" ")}
 		>
-			{tiles.map((participant) => (
-				<VideoTile key={participant.uid} participant={participant} aspectClassName={aspectClass} />
+			{tiles.map((participant, index) => (
+				<VideoTile
+					key={participant.uid}
+					participant={participant}
+					layoutClassName={layout.getTileClass(index)}
+					compact={tileCount >= 4}
+				/>
 			))}
 		</div>
 	);

@@ -21,7 +21,7 @@ const RoomMediaStage = ({ roomId }: RoomMediaStageProps) => {
 	}
 
 	return (
-		<div className="flex h-full min-h-0 w-full max-w-5xl flex-1 items-center justify-center overflow-hidden">
+		<div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
 			<VideoGrid tiles={tiles} />
 		</div>
 	);
