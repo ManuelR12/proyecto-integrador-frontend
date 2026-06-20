@@ -76,7 +76,6 @@ export function createRoomSocket(
 
 			socket.on("room_joined", (payload: RoomJoinedPayload) => {
 				if (payload.roomId === roomId) {
-					console.log("[Socket] room_joined — participants:", payload.participants?.map(p => p.uid));
 					handlers.onRoomJoined(payload);
 					webrtcRef?.current?.onRoomJoined?.(payload.participants ?? []);
 				}
