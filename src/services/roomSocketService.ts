@@ -76,6 +76,7 @@ export function createRoomSocket(
 			socket.on("room_joined", (payload: RoomJoinedPayload) => {
 				if (payload.roomId === roomId) {
 					handlers.onRoomJoined(payload);
+					webrtcRef?.current?.onRoomJoined?.(payload.participants ?? []);
 				}
 			});
 
@@ -99,7 +100,6 @@ export function createRoomSocket(
 
 			socket.on("participant_joined", (p: SocketParticipant) => {
 				handlers.onParticipantJoined?.(p);
-				webrtcRef?.current?.onParticipantJoinedCall?.(p.uid);
 			});
 
 			socket.on("participant_left", (p: SocketParticipant) => {

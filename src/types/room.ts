@@ -47,12 +47,12 @@ export interface IncomingIceCandidatePayload {
 }
 
 export interface WebRTCSocketHandlers {
+	onRoomJoined?: (participants: SocketParticipant[]) => void;
 	onIncomingOffer?: (payload: IncomingOfferPayload) => void;
 	onIncomingAnswer?: (payload: IncomingAnswerPayload) => void;
 	onIncomingIceCandidate?: (payload: IncomingIceCandidatePayload) => void;
 	onCallEnded?: (payload: { fromUid: string }) => void;
 	onParticipantLeftCall?: (uid: string) => void;
-	onParticipantJoinedCall?: (uid: string) => void;
 }
 
 /** Room shape returned by GET/POST /rooms */

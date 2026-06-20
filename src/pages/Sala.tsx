@@ -74,12 +74,12 @@ const Sala = () => {
 	// Keep ref in sync with latest handlers so socket callbacks always call the current version
 	useLayoutEffect(() => {
 		webrtcRef.current = {
+			onRoomJoined: (participants) => void webrtc.startCallMuted(participants),
 			onIncomingOffer: webrtc.handleIncomingOffer,
 			onIncomingAnswer: webrtc.handleIncomingAnswer,
 			onIncomingIceCandidate: webrtc.handleIncomingIceCandidate,
 			onCallEnded: webrtc.handleCallEnded,
 			onParticipantLeftCall: webrtc.handleParticipantLeft,
-			onParticipantJoinedCall: (uid) => void webrtc.callPeer(uid),
 		};
 	});
 
@@ -214,7 +214,7 @@ const Sala = () => {
 							micEnabled={webrtc.micEnabled}
 							cameraEnabled={webrtc.cameraEnabled}
 							mediaError={webrtc.mediaError}
-							onStartCall={() => void webrtc.startCall(chat.participants)}
+							onStartCall={() => void webrtc.startCallMuted(chat.participants)}
 							onEndCall={webrtc.endCall}
 							onToggleMic={webrtc.toggleMic}
 							onToggleCamera={webrtc.toggleCamera}
