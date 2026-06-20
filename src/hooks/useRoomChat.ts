@@ -1,8 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sala as copy } from "../copy/es";
 import { subscribeRoomMessages } from "../services/roomFirestoreService";
 import { createRoomSocket, type RoomSocketController } from "../services/roomSocketService";
-import type { ChatMessage, SocketParticipant } from "../types/room";
+import type {
+	ChatMessage,
+	SocketParticipant,
+	WebRTCAnswerPayload,
+	WebRTCIceCandidatePayload,
+	WebRTCOfferPayload,
+	WebRTCSocketHandlers,
+} from "../types/room";
 
 function sortMessages(messages: ChatMessage[]): ChatMessage[] {
 	return [...messages].sort((a, b) => {
@@ -19,7 +26,10 @@ function formatConnectionError(message: string): string {
 	return message;
 }
 
-export function useRoomChat(roomId: string | undefined) {
+export function useRoomChat(
+	roomId: string | undefined,
+	webrtcRef?: { current: WebRTCSocketHandlers | null },
+) {
 	const [messagesByRoom, setMessagesByRoom] = useState<Record<string, ChatMessage[]>>({});
 	const [loadedRooms, setLoadedRooms] = useState<Record<string, true>>({});
 	const [connected, setConnected] = useState(false);
@@ -72,26 +82,30 @@ export function useRoomChat(roomId: string | undefined) {
 	useEffect(() => {
 		if (!roomId) return;
 
-		const socket = createRoomSocket(roomId, {
-			onRoomJoined: (payload) => {
-				setConnectionError(null);
-				setConnected(true);
-				setParticipants(payload.participants ?? []);
+		const socket = createRoomSocket(
+			roomId,
+			{
+				onRoomJoined: (payload) => {
+					setConnectionError(null);
+					setConnected(true);
+					setParticipants(payload.participants ?? []);
+				},
+				onDisconnect: () => {
+					setConnected(false);
+				},
+				onError: (message) => {
+					setConnectionError(formatConnectionError(message));
+					setConnected(false);
+				},
+				onParticipantJoined: (p) => {
+					setParticipants((prev) => (prev.some((x) => x.uid === p.uid) ? prev : [...prev, p]));
+				},
+				onParticipantLeft: (p) => {
+					setParticipants((prev) => prev.filter((x) => x.uid !== p.uid));
+				},
 			},
-			onDisconnect: () => {
-				setConnected(false);
-			},
-			onError: (message) => {
-				setConnectionError(formatConnectionError(message));
-				setConnected(false);
-			},
-			onParticipantJoined: (p) => {
-				setParticipants((prev) => (prev.some((x) => x.uid === p.uid) ? prev : [...prev, p]));
-			},
-			onParticipantLeft: (p) => {
-				setParticipants((prev) => prev.filter((x) => x.uid !== p.uid));
-			},
-		});
+			webrtcRef,
+		);
 
 		socketRef.current = socket;
 
@@ -100,7 +114,7 @@ export function useRoomChat(roomId: string | undefined) {
 			socketRef.current = null;
 			setConnected(false);
 		};
-	}, [roomId]);
+	}, [roomId, webrtcRef]);
 
 	const sendMessage = () => {
 		const text = draft.trim();
@@ -121,6 +135,22 @@ export function useRoomChat(roomId: string | undefined) {
 		}
 	};
 
+	const sendOffer = useCallback((p: WebRTCOfferPayload) => {
+		socketRef.current?.sendOffer(p);
+	}, []);
+
+	const sendAnswer = useCallback((p: WebRTCAnswerPayload) => {
+		socketRef.current?.sendAnswer(p);
+	}, []);
+
+	const sendIceCandidate = useCallback((p: WebRTCIceCandidatePayload) => {
+		socketRef.current?.sendIceCandidate(p);
+	}, []);
+
+	const emitEndCall = useCallback((id: string) => {
+		socketRef.current?.endCall(id);
+	}, []);
+
 	return {
 		messages,
 		loadingHistory,
@@ -132,5 +162,9 @@ export function useRoomChat(roomId: string | undefined) {
 		sendMessage,
 		handleDraftChange,
 		handleKeyDown,
+		sendOffer,
+		sendAnswer,
+		sendIceCandidate,
+		emitEndCall,
 	};
 }
