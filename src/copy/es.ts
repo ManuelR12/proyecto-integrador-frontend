@@ -259,6 +259,9 @@ export const sala = {
 		micOff: "Mic silenciado",
 		cameraOff: "Cámara apagada",
 		retry: "Reintentar videollamada",
+		micBlocked: "Micrófono bloqueado",
+		cameraBlocked: "Cámara bloqueada",
+		allowMedia: "Permitir acceso a cámara y micrófono",
 	},
 	participantes: (n: number) => `${n} participantes`,
 } as const;

@@ -5,7 +5,7 @@ interface CallControlsProps {
 	micEnabled: boolean;
 	cameraEnabled: boolean;
 	mediaError: string | null;
-	onStartCall: () => void;
+	onRetryMedia: () => void;
 	onEndCall: () => void;
 	onToggleMic: () => void;
 	onToggleCamera: () => void;
@@ -96,28 +96,12 @@ const PhoneOffIcon = () => (
 	</svg>
 );
 
-const VideoCallIcon = () => (
-	<svg
-		viewBox="0 0 24 24"
-		fill="none"
-		stroke="currentColor"
-		strokeWidth="1.5"
-		className="h-5 w-5"
-		aria-hidden="true"
-	>
-		<path
-			strokeLinecap="round"
-			strokeLinejoin="round"
-			d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9A2.25 2.25 0 004.5 18.75z"
-		/>
-	</svg>
-);
-
 interface ControlButtonProps {
 	onClick: () => void;
 	label: string;
 	active?: boolean;
 	danger?: boolean;
+	warning?: boolean;
 	children: React.ReactNode;
 }
 
@@ -126,6 +110,7 @@ const ControlButton = ({
 	label,
 	active = true,
 	danger = false,
+	warning = false,
 	children,
 }: ControlButtonProps) => (
 	<button
@@ -136,9 +121,11 @@ const ControlButton = ({
 			"flex flex-col items-center gap-1 rounded-xl px-4 py-2.5 text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900",
 			danger
 				? "bg-red-600 hover:bg-red-500 focus:ring-red-500"
-				: active
-					? "bg-slate-700 hover:bg-slate-600 focus:ring-slate-500"
-					: "bg-slate-800 text-slate-400 hover:bg-slate-700 focus:ring-slate-500",
+				: warning
+					? "bg-amber-600 hover:bg-amber-500 focus:ring-amber-500"
+					: active
+						? "bg-slate-700 hover:bg-slate-600 focus:ring-slate-500"
+						: "bg-slate-800 text-slate-400 hover:bg-slate-700 focus:ring-slate-500",
 		].join(" ")}
 	>
 		{children}
@@ -151,51 +138,57 @@ const CallControls = ({
 	micEnabled,
 	cameraEnabled,
 	mediaError,
-	onStartCall,
+	onRetryMedia,
 	onEndCall,
 	onToggleMic,
 	onToggleCamera,
 }: CallControlsProps) => {
-	return (
-		<div className="flex flex-col items-center gap-2">
-			{mediaError && (
-				<p role="alert" className="text-xs text-red-400">
-					{mediaError}
-				</p>
-			)}
+	if (!callActive) return null;
 
-			{callActive ? (
+	if (mediaError) {
+		return (
+			<div className="flex flex-col items-center gap-2">
+				<p role="alert" className="text-xs text-amber-400">
+					{copy.call.allowMedia}
+				</p>
 				<div className="flex items-center gap-3">
-					<ControlButton
-						onClick={onToggleMic}
-						label={micEnabled ? copy.controls.microfono : copy.call.micOff}
-						active={micEnabled}
-					>
-						<MicIcon off={!micEnabled} />
+					<ControlButton onClick={onRetryMedia} label={copy.call.micBlocked} warning>
+						<MicIcon off />
 					</ControlButton>
 
-					<ControlButton
-						onClick={onToggleCamera}
-						label={cameraEnabled ? copy.controls.camara : copy.call.cameraOff}
-						active={cameraEnabled}
-					>
-						<CameraIcon off={!cameraEnabled} />
+					<ControlButton onClick={onRetryMedia} label={copy.call.cameraBlocked} warning>
+						<CameraIcon off />
 					</ControlButton>
 
 					<ControlButton onClick={onEndCall} label={copy.call.endCall} danger>
 						<PhoneOffIcon />
 					</ControlButton>
 				</div>
-			) : mediaError ? (
-				<button
-					type="button"
-					onClick={onStartCall}
-					className="flex items-center gap-2 rounded-xl bg-slate-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900"
-				>
-					<VideoCallIcon />
-					{copy.call.retry}
-				</button>
-			) : null}
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex items-center gap-3">
+			<ControlButton
+				onClick={onToggleMic}
+				label={micEnabled ? copy.controls.microfono : copy.call.micOff}
+				active={micEnabled}
+			>
+				<MicIcon off={!micEnabled} />
+			</ControlButton>
+
+			<ControlButton
+				onClick={onToggleCamera}
+				label={cameraEnabled ? copy.controls.camara : copy.call.cameraOff}
+				active={cameraEnabled}
+			>
+				<CameraIcon off={!cameraEnabled} />
+			</ControlButton>
+
+			<ControlButton onClick={onEndCall} label={copy.call.endCall} danger>
+				<PhoneOffIcon />
+			</ControlButton>
 		</div>
 	);
 };

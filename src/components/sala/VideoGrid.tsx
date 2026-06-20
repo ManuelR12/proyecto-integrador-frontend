@@ -31,7 +31,7 @@ function abbrev(name: string): string {
 }
 
 interface VideoTileProps {
-	stream: MediaStream;
+	stream: MediaStream | null;
 	muteAudio: boolean;
 	showMicOff: boolean;
 	label: string;
@@ -56,13 +56,16 @@ const VideoTile = ({
 	const rafRef = useRef<number>(0);
 
 	useEffect(() => {
-		if (videoRef.current) videoRef.current.srcObject = stream;
+		const video = videoRef.current;
+		if (!video) return;
+		video.srcObject = stream;
+		if (stream) void video.play().catch(() => {});
 	}, [stream]);
 
 	// Audio level ring — updates box-shadow directly to avoid React re-renders at 60fps
 	useEffect(() => {
 		const container = containerRef.current;
-		if (!container || stream.getAudioTracks().length === 0) return;
+		if (!container || !stream || stream.getAudioTracks().length === 0) return;
 
 		let ctx: AudioContext;
 		try {
@@ -163,7 +166,7 @@ const VideoTile = ({
 };
 
 interface VideoGridProps {
-	localStream: MediaStream;
+	localStream: MediaStream | null;
 	localLabel: string;
 	localUid: string;
 	localAvatarUrl?: string | null;
@@ -205,7 +208,7 @@ const VideoGrid = ({
 				label={localLabel}
 				uid={localUid}
 				avatarUrl={localAvatarUrl}
-				showPlaceholder={!cameraEnabled}
+				showPlaceholder={!localStream || !cameraEnabled}
 				isSelf
 			/>
 
