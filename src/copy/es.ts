@@ -253,6 +253,12 @@ export const sala = {
 		compartirPantalla: "Compartir pantalla",
 		salir: "Salir",
 	},
+	call: {
+		startCall: "Iniciar videollamada",
+		endCall: "Finalizar llamada",
+		micOff: "Mic silenciado",
+		cameraOff: "Cámara apagada",
+	},
 	participantes: (n: number) => `${n} participantes`,
 } as const;
 
