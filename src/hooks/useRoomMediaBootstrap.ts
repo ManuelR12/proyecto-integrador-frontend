@@ -1,6 +1,14 @@
 import { useEffect } from "react";
 import { useRoomStore } from "../stores/useRoomStore";
 
+async function acquireLocalMedia(): Promise<MediaStream> {
+	try {
+		return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+	} catch {
+		return await navigator.mediaDevices.getUserMedia({ audio: true });
+	}
+}
+
 /** Acquires local media and writes stream state into the room store only. */
 export function useRoomMediaBootstrap(enabled: boolean) {
 	useEffect(() => {
@@ -12,8 +20,7 @@ export function useRoomMediaBootstrap(enabled: boolean) {
 		let stream: MediaStream | null = null;
 		let cancelled = false;
 
-		void navigator.mediaDevices
-			.getUserMedia({ video: true, audio: true })
+		void acquireLocalMedia()
 			.then((mediaStream) => {
 				if (cancelled) {
 					mediaStream.getTracks().forEach((track) => track.stop());

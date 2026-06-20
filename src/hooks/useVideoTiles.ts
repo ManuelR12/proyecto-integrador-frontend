@@ -6,6 +6,7 @@ import { useRoomStore } from "../stores/useRoomStore";
 function buildVideoTiles(state: {
 	currentUserId: string;
 	currentDisplayName: string;
+	currentAvatarUrl: string | null;
 	localStream: MediaStream | null;
 	localStatus: VideoTileParticipant["status"];
 	participants: Array<{ uid: string; username: string; avatarUrl?: string | null }>;
@@ -17,6 +18,7 @@ function buildVideoTiles(state: {
 		isLocal: true,
 		stream: state.localStream,
 		status: state.localStatus,
+		avatarUrl: state.currentAvatarUrl,
 	};
 
 	const remoteTiles = state.participants
@@ -41,6 +43,7 @@ export function useVideoTiles(): VideoTileParticipant[] {
 		useShallow((state) => ({
 			currentUserId: state.currentUserId,
 			currentDisplayName: state.currentDisplayName,
+			currentAvatarUrl: state.currentAvatarUrl,
 			localStream: state.localStream,
 			localStatus: state.localStatus,
 			participants: state.participants,

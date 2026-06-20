@@ -6,6 +6,7 @@ import type {
 	IncomingAnswerPayload,
 	IncomingIceCandidatePayload,
 	IncomingOfferPayload,
+	UserDisconnectedPayload,
 } from "../types/webrtc";
 
 function socketBaseUrl(): string {
@@ -25,6 +26,7 @@ export interface RoomSocketHandlers {
 	onError: (message: string) => void;
 	onParticipantJoined?: (participant: SocketParticipant) => void;
 	onParticipantLeft?: (participant: SocketParticipant) => void;
+	onUserDisconnected?: (payload: UserDisconnectedPayload) => void;
 	onIncomingOffer?: (payload: IncomingOfferPayload) => void;
 	onIncomingAnswer?: (payload: IncomingAnswerPayload) => void;
 	onIncomingIceCandidate?: (payload: IncomingIceCandidatePayload) => void;
@@ -121,6 +123,13 @@ export function createRoomSocket(
 					handlers.onParticipantLeft?.(toSocketParticipant(payload));
 				},
 			);
+
+			const relayUserDisconnected = (payload: UserDisconnectedPayload) => {
+				handlers.onUserDisconnected?.(payload);
+			};
+
+			socket.on("user-disconnected", relayUserDisconnected);
+			socket.on("user_disconnected", relayUserDisconnected);
 
 			socket.on("incoming_offer", (payload: IncomingOfferPayload) => {
 				if (payload.roomId === roomId) {
