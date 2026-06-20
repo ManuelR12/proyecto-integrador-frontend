@@ -1,5 +1,5 @@
-import { useLayoutEffect, useMemo, useRef } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import CallControls from "../components/sala/CallControls";
 import DeleteRoomModal from "../components/sala/DeleteRoomModal";
 import RoomChatPanel from "../components/sala/RoomChatPanel";
@@ -39,6 +39,7 @@ function avatarColor(seed: string): string {
 const Sala = () => {
 	const { id: rawId } = useParams<{ id: string }>();
 	const roomId = useMemo(() => (rawId ? normalizeRoomId(rawId) : undefined), [rawId]);
+	const navigate = useNavigate();
 	const { user } = useAuth();
 	const { displayName, avatarUrl } = useUserProfile();
 	const { room, loading, error, isAdmin, setRoom } = useRoom(roomId, user?.uid);
@@ -77,6 +78,17 @@ const Sala = () => {
 	);
 
 	const webrtc = useWebRTC(roomId, webrtcEmit);
+	const { endCall, clearMediaError, startCallMuted } = webrtc;
+
+	const handleEndCall = useCallback(() => {
+		endCall();
+		void navigate("/dashboard");
+	}, [endCall, navigate]);
+
+	const handleRetryMedia = useCallback(() => {
+		clearMediaError();
+		void startCallMuted(chat.participants);
+	}, [clearMediaError, startCallMuted, chat.participants]);
 
 	// Keep ref in sync with latest handlers so socket callbacks always call the current version
 	useLayoutEffect(() => {
@@ -136,7 +148,7 @@ const Sala = () => {
 			<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
 				<main className="flex flex-1 flex-col gap-4 px-6 py-6">
 					<div className="flex flex-1 items-center justify-center">
-						{webrtc.callActive && webrtc.localStream ? (
+						{webrtc.callActive ? (
 							<VideoGrid
 								localStream={webrtc.localStream}
 								localLabel={currentDisplayName}
@@ -223,8 +235,8 @@ const Sala = () => {
 							micEnabled={webrtc.micEnabled}
 							cameraEnabled={webrtc.cameraEnabled}
 							mediaError={webrtc.mediaError}
-							onStartCall={() => void webrtc.startCallMuted(chat.participants)}
-							onEndCall={webrtc.endCall}
+							onRetryMedia={handleRetryMedia}
+							onEndCall={handleEndCall}
 							onToggleMic={webrtc.toggleMic}
 							onToggleCamera={webrtc.toggleCamera}
 						/>
