@@ -1,6 +1,12 @@
 import { io, type Socket } from "socket.io-client";
 import { getIdToken } from "../lib/authToken";
 import type { ChatMessage, SocketParticipant } from "../types/room";
+import type {
+	CallEndedPayload,
+	IncomingAnswerPayload,
+	IncomingIceCandidatePayload,
+	IncomingOfferPayload,
+} from "../types/webrtc";
 
 function socketBaseUrl(): string {
 	return import.meta.env.VITE_API_BASE_URL ?? "";
@@ -19,11 +25,31 @@ export interface RoomSocketHandlers {
 	onError: (message: string) => void;
 	onParticipantJoined?: (participant: SocketParticipant) => void;
 	onParticipantLeft?: (participant: SocketParticipant) => void;
+	onIncomingOffer?: (payload: IncomingOfferPayload) => void;
+	onIncomingAnswer?: (payload: IncomingAnswerPayload) => void;
+	onIncomingIceCandidate?: (payload: IncomingIceCandidatePayload) => void;
+	onCallEnded?: (payload: CallEndedPayload) => void;
 }
 
 export interface RoomSocketController {
 	sendMessage: (text: string) => void;
+	sendWebRtcOffer: (targetUid: string, sdp: RTCSessionDescriptionInit) => void;
+	sendWebRtcAnswer: (targetUid: string, sdp: RTCSessionDescriptionInit) => void;
+	sendWebRtcIceCandidate: (targetUid: string, candidate: RTCIceCandidateInit) => void;
+	endCall: () => void;
 	disconnect: () => void;
+}
+
+function toSocketParticipant(payload: {
+	uid: string;
+	username: string;
+	avatarUrl?: string | null;
+}): SocketParticipant {
+	return {
+		uid: payload.uid,
+		username: payload.username,
+		avatarUrl: payload.avatarUrl ?? null,
+	};
 }
 
 /**
@@ -82,12 +108,38 @@ export function createRoomSocket(
 				handlers.onMessage?.(message);
 			});
 
-			socket.on("participant_joined", (p: SocketParticipant) => {
-				handlers.onParticipantJoined?.(p);
+			socket.on(
+				"participant_joined",
+				(payload: { uid: string; username: string; avatarUrl?: string | null }) => {
+					handlers.onParticipantJoined?.(toSocketParticipant(payload));
+				},
+			);
+
+			socket.on(
+				"participant_left",
+				(payload: { uid: string; username: string; avatarUrl?: string | null }) => {
+					handlers.onParticipantLeft?.(toSocketParticipant(payload));
+				},
+			);
+
+			socket.on("incoming_offer", (payload: IncomingOfferPayload) => {
+				if (payload.roomId === roomId) {
+					handlers.onIncomingOffer?.(payload);
+				}
 			});
 
-			socket.on("participant_left", (p: SocketParticipant) => {
-				handlers.onParticipantLeft?.(p);
+			socket.on("incoming_answer", (payload: IncomingAnswerPayload) => {
+				if (payload.roomId === roomId) {
+					handlers.onIncomingAnswer?.(payload);
+				}
+			});
+
+			socket.on("incoming_ice_candidate", (payload: IncomingIceCandidatePayload) => {
+				handlers.onIncomingIceCandidate?.(payload);
+			});
+
+			socket.on("call_ended", (payload: CallEndedPayload) => {
+				handlers.onCallEnded?.(payload);
 			});
 		})
 		.catch(() => {
@@ -100,6 +152,22 @@ export function createRoomSocket(
 			const trimmed = text.trim();
 			if (!trimmed || !socket?.connected) return;
 			socket.emit("send_message", { room_id: roomId, text: trimmed });
+		},
+		sendWebRtcOffer(targetUid: string, sdp: RTCSessionDescriptionInit) {
+			if (!socket?.connected) return;
+			socket.emit("webrtc_offer", { targetUid, roomId, sdp });
+		},
+		sendWebRtcAnswer(targetUid: string, sdp: RTCSessionDescriptionInit) {
+			if (!socket?.connected) return;
+			socket.emit("webrtc_answer", { targetUid, roomId, sdp });
+		},
+		sendWebRtcIceCandidate(targetUid: string, candidate: RTCIceCandidateInit) {
+			if (!socket?.connected) return;
+			socket.emit("webrtc_ice_candidate", { targetUid, roomId, candidate });
+		},
+		endCall() {
+			if (!socket?.connected) return;
+			socket.emit("end_call", { roomId });
 		},
 		disconnect() {
 			active = false;

@@ -2,6 +2,7 @@ import { memo, useEffect } from "react";
 import { useMediaPlayback } from "../../contexts/MediaPlaybackContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRoomMediaBootstrap } from "../../hooks/useRoomMediaBootstrap";
+import { useRoomWebRtc } from "../../hooks/useRoomWebRtc";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useRoomStore } from "../../stores/useRoomStore";
 import RoomMediaStage from "./RoomMediaStage";
@@ -16,6 +17,7 @@ const RoomVideoSection = ({ roomId }: RoomVideoSectionProps) => {
 	const { playbackUnlocked } = useMediaPlayback();
 
 	useRoomMediaBootstrap(playbackUnlocked);
+	useRoomWebRtc(roomId, playbackUnlocked);
 
 	useEffect(() => {
 		const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
