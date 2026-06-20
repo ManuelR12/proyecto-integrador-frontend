@@ -14,7 +14,11 @@ const ICE_SERVERS: RTCConfiguration = {
 		{ urls: "stun:stun.l.google.com:19302" },
 		{ urls: "stun:stun1.l.google.com:19302" },
 		{
-			urls: "turn:free.expressturn.com:3478",
+			urls: [
+				"turn:free.expressturn.com:3478",
+				"turn:free.expressturn.com:3478?transport=tcp",
+				"turns:free.expressturn.com:5349",
+			],
 			username: "000000002097293363",
 			credential: "UnAsPsgY1epkClZLtz5kz+fG4pw=",
 		},
@@ -34,6 +38,15 @@ export interface RemotePeerMediaState {
 	cameraEnabled: boolean;
 }
 
+function addTracksOrRecvOnly(pc: RTCPeerConnection, stream: MediaStream | null): void {
+	if (stream) {
+		stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+	} else {
+		pc.addTransceiver("audio", { direction: "recvonly" });
+		pc.addTransceiver("video", { direction: "recvonly" });
+	}
+}
+
 export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 	const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 	const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
@@ -47,13 +60,13 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 	const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
 	const dataChannels = useRef<Map<string, RTCDataChannel>>(new Map());
-	// ICE candidates that arrive before the PC exists are buffered here
 	const pendingCandidates = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
 	const localStreamRef = useRef<MediaStream | null>(null);
 	const pendingStreamRef = useRef<Promise<MediaStream | null> | null>(null);
-	// Refs mirror state so callbacks created once can read latest values
 	const micEnabledRef = useRef(false);
 	const cameraEnabledRef = useRef(false);
+	// Ref mirror so async handlers always read current call state without stale closures
+	const callActiveRef = useRef(false);
 
 	const removeRemoteStream = useCallback((uid: string) => {
 		setRemoteStreams((prev) => {
@@ -63,7 +76,6 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		});
 	}, []);
 
-	// Wire a data channel (offerer-created or answerer-received) to state updates
 	const setupDataChannel = useCallback((uid: string, dc: RTCDataChannel) => {
 		dataChannels.current.set(uid, dc);
 
@@ -122,21 +134,13 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 			closePeer(targetUid);
 
 			const pc = new RTCPeerConnection(ICE_SERVERS);
-			console.log(`[WebRTC] createPC for ${targetUid}`);
 
 			pc.onicecandidate = ({ candidate }) => {
-				if (candidate && roomId) {
-					console.log(`[WebRTC] sending ICE candidate to ${targetUid}:`, candidate.type, candidate.protocol);
-					emit.sendIceCandidate({ targetUid, roomId, candidate: candidate.toJSON() });
-				}
-			};
-
-			pc.oniceconnectionstatechange = () => {
-				console.log(`[WebRTC] ICE state with ${targetUid}:`, pc.iceConnectionState);
+				if (!candidate || !roomId) return;
+				emit.sendIceCandidate({ targetUid, roomId, candidate: candidate.toJSON() });
 			};
 
 			pc.onconnectionstatechange = () => {
-				console.log(`[WebRTC] connection state with ${targetUid}:`, pc.connectionState);
 				if (pc.connectionState === "failed" || pc.connectionState === "closed") {
 					peerConnections.current.delete(targetUid);
 					removeRemoteStream(targetUid);
@@ -144,15 +148,12 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 			};
 
 			pc.ontrack = ({ streams }) => {
-				console.log(`[WebRTC] ontrack from ${targetUid}, streams:`, streams.length, streams[0]?.getTracks().map(t => `${t.kind}(enabled=${t.enabled})`));
 				if (streams[0]) {
 					setRemoteStreams((prev) => new Map(prev).set(targetUid, streams[0]));
 				}
 			};
 
-			// Answerer receives the offerer's data channel here
 			pc.ondatachannel = ({ channel }) => {
-				console.log(`[WebRTC] data channel received from ${targetUid}`);
 				setupDataChannel(targetUid, channel);
 			};
 
@@ -213,32 +214,27 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		}
 	}, []);
 
-	// Called on room_joined. New joiner offers to everyone already present.
-	// Existing peers answer — they do NOT send back an offer — preventing glare.
 	const startCallMuted = useCallback(
 		async (participants: SocketParticipant[]) => {
-			console.log(`[WebRTC] startCallMuted — callActive=${callActive} participants:`, participants.map(p => p.uid));
-			if (!roomId || callActive) return;
+			if (!roomId || callActiveRef.current) return;
 
 			const stream = await getLocalStream();
-			if (!stream) { console.warn("[WebRTC] getLocalStream returned null"); return; }
+			if (stream) applyMutedState(stream);
 
-			applyMutedState(stream);
+			callActiveRef.current = true;
 			setCallActive(true);
 			emit.toggleMedia(false, false);
 
 			for (const { uid } of participants) {
 				const pc = createPC(uid);
-				stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+				addTracksOrRecvOnly(pc, stream);
 
-				// Data channel must be created before createOffer so it's included in the SDP
 				const dc = pc.createDataChannel("media-state", { ordered: true });
 				setupDataChannel(uid, dc);
 
 				try {
 					const offer = await pc.createOffer();
 					await pc.setLocalDescription(offer);
-					console.log(`[WebRTC] offer sent to ${uid}`);
 					emit.sendOffer({ targetUid: uid, roomId, sdp: offer });
 				} catch (e) {
 					console.error(`[WebRTC] createOffer failed for ${uid}:`, e);
@@ -246,7 +242,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				}
 			}
 		},
-		[roomId, callActive, getLocalStream, createPC, setupDataChannel, emit, closePeer],
+		[roomId, getLocalStream, createPC, setupDataChannel, emit, closePeer],
 	);
 
 	const flushCandidates = useCallback(async (uid: string, pc: RTCPeerConnection) => {
@@ -264,27 +260,24 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 	const handleIncomingOffer = useCallback(
 		async (payload: IncomingOfferPayload) => {
-			console.log(`[WebRTC] handleIncomingOffer from ${payload.fromUid}`);
 			if (!roomId) return;
 
 			let stream = localStreamRef.current;
-			if (!stream) {
+			if (!callActiveRef.current) {
 				stream = await getLocalStream();
-				if (!stream) { console.warn("[WebRTC] no local stream for answer"); return; }
-				applyMutedState(stream);
+				if (stream) applyMutedState(stream);
+				callActiveRef.current = true;
 				setCallActive(true);
 			}
 
-			// createPC wires ondatachannel — answerer receives the data channel automatically
 			const pc = createPC(payload.fromUid);
-			stream.getTracks().forEach((track) => pc.addTrack(track, stream!));
+			addTracksOrRecvOnly(pc, stream);
 
 			try {
 				await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
 				await flushCandidates(payload.fromUid, pc);
 				const answer = await pc.createAnswer();
 				await pc.setLocalDescription(answer);
-				console.log(`[WebRTC] answer sent to ${payload.fromUid}`);
 				emit.sendAnswer({ targetUid: payload.fromUid, roomId, sdp: answer });
 				emit.toggleMedia(micEnabledRef.current, cameraEnabledRef.current);
 			} catch (e) {
@@ -301,7 +294,6 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 			if (!pc) return;
 			try {
 				await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-				// Flush any ICE candidates that arrived before the answer was processed
 				await flushCandidates(payload.fromUid, pc);
 			} catch {
 				// safe to ignore
@@ -313,7 +305,6 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 	const handleIncomingIceCandidate = useCallback(async (payload: IncomingIceCandidatePayload) => {
 		const pc = peerConnections.current.get(payload.fromUid);
 		if (!pc) {
-			console.log(`[WebRTC] buffering ICE candidate from ${payload.fromUid} (no PC yet)`);
 			const buf = pendingCandidates.current.get(payload.fromUid) ?? [];
 			buf.push(payload.candidate);
 			pendingCandidates.current.set(payload.fromUid, buf);
@@ -345,7 +336,6 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 		for (const [, pc] of peerConnections.current) pc.close();
 		peerConnections.current.clear();
-
 		for (const [, dc] of dataChannels.current) {
 			try {
 				dc.close();
@@ -362,6 +352,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		localStreamRef.current?.getTracks().forEach((t) => t.stop());
 		localStreamRef.current = null;
 		setLocalStream(null);
+		callActiveRef.current = false;
 		setCallActive(false);
 		micEnabledRef.current = false;
 		cameraEnabledRef.current = false;
@@ -369,8 +360,35 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		setCameraEnabled(false);
 	}, [roomId, emit]);
 
+	// Resets all WebRTC state so startCallMuted can run again (used to retry media permissions)
+	const clearMediaError = useCallback(() => {
+		for (const [, pc] of peerConnections.current) pc.close();
+		peerConnections.current.clear();
+		for (const [, dc] of dataChannels.current) {
+			try {
+				dc.close();
+			} catch {
+				// ignore
+			}
+		}
+		dataChannels.current.clear();
+		pendingCandidates.current.clear();
+		localStreamRef.current?.getTracks().forEach((t) => t.stop());
+		localStreamRef.current = null;
+		pendingStreamRef.current = null;
+		setLocalStream(null);
+		setRemoteStreams(new Map());
+		setRemoteMediaStates(new Map());
+		callActiveRef.current = false;
+		setCallActive(false);
+		setMediaError(null);
+		micEnabledRef.current = false;
+		cameraEnabledRef.current = false;
+		setMicEnabled(false);
+		setCameraEnabled(false);
+	}, []);
+
 	const handlePeerMediaToggled = useCallback((uid: string, mic: boolean, camera: boolean) => {
-		console.log(`[WebRTC] peer_media_toggled from ${uid}: mic=${mic} camera=${camera}`);
 		setRemoteMediaStates((prev) =>
 			new Map(prev).set(uid, { micEnabled: mic, cameraEnabled: camera }),
 		);
@@ -378,7 +396,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 	const toggleMic = useCallback(() => {
 		if (!localStreamRef.current) return;
-		const next = !micEnabled;
+		const next = !micEnabledRef.current;
 		localStreamRef.current.getAudioTracks().forEach((t) => {
 			t.enabled = next;
 		});
@@ -386,11 +404,11 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		setMicEnabled(next);
 		broadcastMediaState(next, cameraEnabledRef.current);
 		emit.toggleMedia(next, cameraEnabledRef.current);
-	}, [micEnabled, broadcastMediaState, emit]);
+	}, [broadcastMediaState, emit]);
 
 	const toggleCamera = useCallback(() => {
 		if (!localStreamRef.current) return;
-		const next = !cameraEnabled;
+		const next = !cameraEnabledRef.current;
 		localStreamRef.current.getVideoTracks().forEach((t) => {
 			t.enabled = next;
 		});
@@ -398,7 +416,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		setCameraEnabled(next);
 		broadcastMediaState(micEnabledRef.current, next);
 		emit.toggleMedia(micEnabledRef.current, next);
-	}, [cameraEnabled, broadcastMediaState, emit]);
+	}, [broadcastMediaState, emit]);
 
 	useEffect(() => {
 		const pcs = peerConnections.current;
@@ -431,6 +449,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		mediaError,
 		startCallMuted,
 		endCall,
+		clearMediaError,
 		toggleMic,
 		toggleCamera,
 		handleIncomingOffer,
