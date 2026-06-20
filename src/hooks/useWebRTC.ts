@@ -28,17 +28,29 @@ export interface WebRTCEmit {
 	endCall: (roomId: string) => void;
 }
 
+export interface RemotePeerMediaState {
+	micEnabled: boolean;
+	cameraEnabled: boolean;
+}
+
 export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 	const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 	const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
+	const [remoteMediaStates, setRemoteMediaStates] = useState<Map<string, RemotePeerMediaState>>(
+		new Map(),
+	);
 	const [callActive, setCallActive] = useState(false);
 	const [micEnabled, setMicEnabled] = useState(false);
 	const [cameraEnabled, setCameraEnabled] = useState(false);
 	const [mediaError, setMediaError] = useState<string | null>(null);
 
 	const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
+	const dataChannels = useRef<Map<string, RTCDataChannel>>(new Map());
 	const localStreamRef = useRef<MediaStream | null>(null);
 	const pendingStreamRef = useRef<Promise<MediaStream | null> | null>(null);
+	// Refs mirror state so callbacks created once can read latest values
+	const micEnabledRef = useRef(false);
+	const cameraEnabledRef = useRef(false);
 
 	const removeRemoteStream = useCallback((uid: string) => {
 		setRemoteStreams((prev) => {
@@ -48,6 +60,33 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		});
 	}, []);
 
+	// Wire a data channel (offerer-created or answerer-received) to state updates
+	const setupDataChannel = useCallback((uid: string, dc: RTCDataChannel) => {
+		dataChannels.current.set(uid, dc);
+
+		dc.onopen = () => {
+			try {
+				dc.send(
+					JSON.stringify({
+						micEnabled: micEnabledRef.current,
+						cameraEnabled: cameraEnabledRef.current,
+					}),
+				);
+			} catch {
+				// channel may close before send completes
+			}
+		};
+
+		dc.onmessage = ({ data }) => {
+			try {
+				const state = JSON.parse(data as string) as RemotePeerMediaState;
+				setRemoteMediaStates((prev) => new Map(prev).set(uid, state));
+			} catch {
+				// ignore malformed message
+			}
+		};
+	}, []);
+
 	const closePeer = useCallback(
 		(uid: string) => {
 			const pc = peerConnections.current.get(uid);
@@ -55,6 +94,20 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				pc.close();
 				peerConnections.current.delete(uid);
 			}
+			const dc = dataChannels.current.get(uid);
+			if (dc) {
+				try {
+					dc.close();
+				} catch {
+					// ignore
+				}
+				dataChannels.current.delete(uid);
+			}
+			setRemoteMediaStates((prev) => {
+				const next = new Map(prev);
+				next.delete(uid);
+				return next;
+			});
 			removeRemoteStream(uid);
 		},
 		[removeRemoteStream],
@@ -85,15 +138,19 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				}
 			};
 
+			// Answerer receives the offerer's data channel here
+			pc.ondatachannel = ({ channel }) => {
+				setupDataChannel(targetUid, channel);
+			};
+
 			peerConnections.current.set(targetUid, pc);
 			return pc;
 		},
-		[closePeer, emit, removeRemoteStream, roomId],
+		[closePeer, emit, removeRemoteStream, roomId, setupDataChannel],
 	);
 
 	const getLocalStream = useCallback(async (): Promise<MediaStream | null> => {
 		if (localStreamRef.current) return localStreamRef.current;
-
 		if (pendingStreamRef.current) return pendingStreamRef.current;
 
 		pendingStreamRef.current = navigator.mediaDevices
@@ -124,13 +181,27 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		stream.getVideoTracks().forEach((t) => {
 			t.enabled = false;
 		});
+		micEnabledRef.current = false;
+		cameraEnabledRef.current = false;
 		setMicEnabled(false);
 		setCameraEnabled(false);
 	};
 
-	// Called on room_joined: new joiner calls everyone already present.
-	// Existing participants do NOT call back — they just answer the incoming offer.
-	// This prevents the glare condition (both sides offering simultaneously).
+	const broadcastMediaState = useCallback((mic: boolean, cam: boolean) => {
+		const msg = JSON.stringify({ micEnabled: mic, cameraEnabled: cam });
+		for (const [, dc] of dataChannels.current) {
+			if (dc.readyState === "open") {
+				try {
+					dc.send(msg);
+				} catch {
+					// ignore
+				}
+			}
+		}
+	}, []);
+
+	// Called on room_joined. New joiner offers to everyone already present.
+	// Existing peers answer — they do NOT send back an offer — preventing glare.
 	const startCallMuted = useCallback(
 		async (participants: SocketParticipant[]) => {
 			if (!roomId || callActive) return;
@@ -145,6 +216,10 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				const pc = createPC(uid);
 				stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
+				// Data channel must be created before createOffer so it's included in the SDP
+				const dc = pc.createDataChannel("media-state", { ordered: true });
+				setupDataChannel(uid, dc);
+
 				try {
 					const offer = await pc.createOffer();
 					await pc.setLocalDescription(offer);
@@ -154,7 +229,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				}
 			}
 		},
-		[roomId, callActive, getLocalStream, createPC, emit, closePeer],
+		[roomId, callActive, getLocalStream, createPC, setupDataChannel, emit, closePeer],
 	);
 
 	const handleIncomingOffer = useCallback(
@@ -169,6 +244,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				setCallActive(true);
 			}
 
+			// createPC wires ondatachannel — answerer receives the data channel automatically
 			const pc = createPC(payload.fromUid);
 			stream.getTracks().forEach((track) => pc.addTrack(track, stream!));
 
@@ -190,7 +266,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		try {
 			await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
 		} catch {
-			// safe to ignore - negotiation will retry if needed
+			// safe to ignore
 		}
 	}, []);
 
@@ -200,7 +276,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		try {
 			await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
 		} catch {
-			// common during signaling race conditions - safe to ignore
+			// common during signaling race conditions
 		}
 	}, []);
 
@@ -223,12 +299,25 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 		for (const [, pc] of peerConnections.current) pc.close();
 		peerConnections.current.clear();
+
+		for (const [, dc] of dataChannels.current) {
+			try {
+				dc.close();
+			} catch {
+				// ignore
+			}
+		}
+		dataChannels.current.clear();
+
 		setRemoteStreams(new Map());
+		setRemoteMediaStates(new Map());
 
 		localStreamRef.current?.getTracks().forEach((t) => t.stop());
 		localStreamRef.current = null;
 		setLocalStream(null);
 		setCallActive(false);
+		micEnabledRef.current = false;
+		cameraEnabledRef.current = false;
 		setMicEnabled(false);
 		setCameraEnabled(false);
 	}, [roomId, emit]);
@@ -239,8 +328,10 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		localStreamRef.current.getAudioTracks().forEach((t) => {
 			t.enabled = next;
 		});
+		micEnabledRef.current = next;
 		setMicEnabled(next);
-	}, [micEnabled]);
+		broadcastMediaState(next, cameraEnabledRef.current);
+	}, [micEnabled, broadcastMediaState]);
 
 	const toggleCamera = useCallback(() => {
 		if (!localStreamRef.current) return;
@@ -248,15 +339,26 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		localStreamRef.current.getVideoTracks().forEach((t) => {
 			t.enabled = next;
 		});
+		cameraEnabledRef.current = next;
 		setCameraEnabled(next);
-	}, [cameraEnabled]);
+		broadcastMediaState(micEnabledRef.current, next);
+	}, [cameraEnabled, broadcastMediaState]);
 
 	useEffect(() => {
 		const pcs = peerConnections.current;
+		const dcs = dataChannels.current;
 		const streamRef = localStreamRef;
 		return () => {
 			for (const [, pc] of pcs) pc.close();
 			pcs.clear();
+			for (const [, dc] of dcs) {
+				try {
+					dc.close();
+				} catch {
+					// ignore
+				}
+			}
+			dcs.clear();
 			streamRef.current?.getTracks().forEach((t) => t.stop());
 		};
 	}, []);
@@ -264,6 +366,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 	return {
 		localStream,
 		remoteStreams,
+		remoteMediaStates,
 		callActive,
 		micEnabled,
 		cameraEnabled,

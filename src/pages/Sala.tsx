@@ -137,6 +137,7 @@ const Sala = () => {
 								cameraEnabled={webrtc.cameraEnabled}
 								micEnabled={webrtc.micEnabled}
 								remoteStreams={webrtc.remoteStreams}
+								remoteMediaStates={webrtc.remoteMediaStates}
 								participants={chat.participants}
 							/>
 						) : (

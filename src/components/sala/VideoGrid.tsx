@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import type { RemotePeerMediaState } from "../../hooks/useWebRTC";
 import type { SocketParticipant } from "../../types/room";
 
 const AVATAR_COLORS = [
@@ -169,6 +170,7 @@ interface VideoGridProps {
 	cameraEnabled: boolean;
 	micEnabled: boolean;
 	remoteStreams: Map<string, MediaStream>;
+	remoteMediaStates: Map<string, RemotePeerMediaState>;
 	participants: SocketParticipant[];
 }
 
@@ -180,6 +182,7 @@ const VideoGrid = ({
 	cameraEnabled,
 	micEnabled,
 	remoteStreams,
+	remoteMediaStates,
 	participants,
 }: VideoGridProps) => {
 	const totalTiles = 1 + remoteStreams.size;
@@ -208,15 +211,17 @@ const VideoGrid = ({
 
 			{Array.from(remoteStreams.entries()).map(([uid, stream]) => {
 				const peer = participants.find((p) => p.uid === uid);
+				const state = remoteMediaStates.get(uid);
 				return (
 					<VideoTile
 						key={uid}
 						stream={stream}
 						muteAudio={false}
-						showMicOff={false}
+						showMicOff={state?.micEnabled === false}
 						label={peer?.username ?? uid}
 						uid={uid}
 						avatarUrl={peer?.avatarUrl}
+						showPlaceholder={state?.cameraEnabled !== true}
 					/>
 				);
 			})}
