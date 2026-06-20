@@ -46,6 +46,8 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 	const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
 	const dataChannels = useRef<Map<string, RTCDataChannel>>(new Map());
+	// ICE candidates that arrive before the PC exists are buffered here
+	const pendingCandidates = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
 	const localStreamRef = useRef<MediaStream | null>(null);
 	const pendingStreamRef = useRef<Promise<MediaStream | null> | null>(null);
 	// Refs mirror state so callbacks created once can read latest values
@@ -103,6 +105,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				}
 				dataChannels.current.delete(uid);
 			}
+			pendingCandidates.current.delete(uid);
 			setRemoteMediaStates((prev) => {
 				const next = new Map(prev);
 				next.delete(uid);
@@ -232,6 +235,19 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		[roomId, callActive, getLocalStream, createPC, setupDataChannel, emit, closePeer],
 	);
 
+	const flushCandidates = useCallback(async (uid: string, pc: RTCPeerConnection) => {
+		const buffered = pendingCandidates.current.get(uid);
+		if (!buffered?.length) return;
+		pendingCandidates.current.delete(uid);
+		for (const candidate of buffered) {
+			try {
+				await pc.addIceCandidate(new RTCIceCandidate(candidate));
+			} catch {
+				// ignore stale candidates
+			}
+		}
+	}, []);
+
 	const handleIncomingOffer = useCallback(
 		async (payload: IncomingOfferPayload) => {
 			if (!roomId) return;
@@ -250,6 +266,8 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 			try {
 				await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+				// Flush any ICE candidates that arrived before this PC was ready
+				await flushCandidates(payload.fromUid, pc);
 				const answer = await pc.createAnswer();
 				await pc.setLocalDescription(answer);
 				emit.sendAnswer({ targetUid: payload.fromUid, roomId, sdp: answer });
@@ -257,26 +275,37 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				closePeer(payload.fromUid);
 			}
 		},
-		[roomId, getLocalStream, createPC, emit, closePeer],
+		[roomId, getLocalStream, createPC, flushCandidates, emit, closePeer],
 	);
 
-	const handleIncomingAnswer = useCallback(async (payload: IncomingAnswerPayload) => {
-		const pc = peerConnections.current.get(payload.fromUid);
-		if (!pc) return;
-		try {
-			await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-		} catch {
-			// safe to ignore
-		}
-	}, []);
+	const handleIncomingAnswer = useCallback(
+		async (payload: IncomingAnswerPayload) => {
+			const pc = peerConnections.current.get(payload.fromUid);
+			if (!pc) return;
+			try {
+				await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+				// Flush any ICE candidates that arrived before the answer was processed
+				await flushCandidates(payload.fromUid, pc);
+			} catch {
+				// safe to ignore
+			}
+		},
+		[flushCandidates],
+	);
 
 	const handleIncomingIceCandidate = useCallback(async (payload: IncomingIceCandidatePayload) => {
 		const pc = peerConnections.current.get(payload.fromUid);
-		if (!pc) return;
+		if (!pc) {
+			// PC not created yet — buffer until offer/answer processing creates it
+			const buf = pendingCandidates.current.get(payload.fromUid) ?? [];
+			buf.push(payload.candidate);
+			pendingCandidates.current.set(payload.fromUid, buf);
+			return;
+		}
 		try {
 			await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
 		} catch {
-			// common during signaling race conditions
+			// ignore stale candidates during renegotiation
 		}
 	}, []);
 
@@ -308,6 +337,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 			}
 		}
 		dataChannels.current.clear();
+		pendingCandidates.current.clear();
 
 		setRemoteStreams(new Map());
 		setRemoteMediaStates(new Map());
@@ -347,6 +377,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 	useEffect(() => {
 		const pcs = peerConnections.current;
 		const dcs = dataChannels.current;
+		const pending = pendingCandidates.current;
 		const streamRef = localStreamRef;
 		return () => {
 			for (const [, pc] of pcs) pc.close();
@@ -359,6 +390,7 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				}
 			}
 			dcs.clear();
+			pending.clear();
 			streamRef.current?.getTracks().forEach((t) => t.stop());
 		};
 	}, []);
