@@ -1,6 +1,16 @@
 import { io, type Socket } from "socket.io-client";
 import { getIdToken } from "../lib/authToken";
-import type { ChatMessage, SocketParticipant } from "../types/room";
+import type {
+	ChatMessage,
+	IncomingAnswerPayload,
+	IncomingIceCandidatePayload,
+	IncomingOfferPayload,
+	SocketParticipant,
+	WebRTCAnswerPayload,
+	WebRTCIceCandidatePayload,
+	WebRTCOfferPayload,
+	WebRTCSocketHandlers,
+} from "../types/room";
 
 function socketBaseUrl(): string {
 	return import.meta.env.VITE_API_BASE_URL ?? "";
@@ -23,6 +33,10 @@ export interface RoomSocketHandlers {
 
 export interface RoomSocketController {
 	sendMessage: (text: string) => void;
+	sendOffer: (payload: WebRTCOfferPayload) => void;
+	sendAnswer: (payload: WebRTCAnswerPayload) => void;
+	sendIceCandidate: (payload: WebRTCIceCandidatePayload) => void;
+	endCall: (roomId: string) => void;
 	disconnect: () => void;
 }
 
@@ -33,6 +47,7 @@ export interface RoomSocketController {
 export function createRoomSocket(
 	roomId: string,
 	handlers: RoomSocketHandlers,
+	webrtcRef?: { current: WebRTCSocketHandlers | null },
 ): RoomSocketController {
 	let socket: Socket | null = null;
 	let active = true;
@@ -84,10 +99,28 @@ export function createRoomSocket(
 
 			socket.on("participant_joined", (p: SocketParticipant) => {
 				handlers.onParticipantJoined?.(p);
+				webrtcRef?.current?.onParticipantJoinedCall?.(p.uid);
 			});
 
 			socket.on("participant_left", (p: SocketParticipant) => {
 				handlers.onParticipantLeft?.(p);
+				webrtcRef?.current?.onParticipantLeftCall?.(p.uid);
+			});
+
+			socket.on("incoming_offer", (payload: IncomingOfferPayload) => {
+				webrtcRef?.current?.onIncomingOffer?.(payload);
+			});
+
+			socket.on("incoming_answer", (payload: IncomingAnswerPayload) => {
+				webrtcRef?.current?.onIncomingAnswer?.(payload);
+			});
+
+			socket.on("incoming_ice_candidate", (payload: IncomingIceCandidatePayload) => {
+				webrtcRef?.current?.onIncomingIceCandidate?.(payload);
+			});
+
+			socket.on("call_ended", (payload: { fromUid: string }) => {
+				webrtcRef?.current?.onCallEnded?.(payload);
 			});
 		})
 		.catch(() => {
@@ -100,6 +133,18 @@ export function createRoomSocket(
 			const trimmed = text.trim();
 			if (!trimmed || !socket?.connected) return;
 			socket.emit("send_message", { room_id: roomId, text: trimmed });
+		},
+		sendOffer(payload: WebRTCOfferPayload) {
+			socket?.emit("webrtc_offer", payload);
+		},
+		sendAnswer(payload: WebRTCAnswerPayload) {
+			socket?.emit("webrtc_answer", payload);
+		},
+		sendIceCandidate(payload: WebRTCIceCandidatePayload) {
+			socket?.emit("webrtc_ice_candidate", payload);
+		},
+		endCall(id: string) {
+			socket?.emit("end_call", { roomId: id });
 		},
 		disconnect() {
 			active = false;
