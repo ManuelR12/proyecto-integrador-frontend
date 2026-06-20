@@ -53,6 +53,7 @@ export interface WebRTCSocketHandlers {
 	onIncomingIceCandidate?: (payload: IncomingIceCandidatePayload) => void;
 	onCallEnded?: (payload: { fromUid: string }) => void;
 	onParticipantLeftCall?: (uid: string) => void;
+	onPeerMediaToggled?: (uid: string, mic: boolean, camera: boolean) => void;
 }
 
 /** Room shape returned by GET/POST /rooms */

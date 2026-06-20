@@ -37,6 +37,7 @@ export interface RoomSocketController {
 	sendAnswer: (payload: WebRTCAnswerPayload) => void;
 	sendIceCandidate: (payload: WebRTCIceCandidatePayload) => void;
 	endCall: (roomId: string) => void;
+	toggleMedia: (mic: boolean, camera: boolean) => void;
 	disconnect: () => void;
 }
 
@@ -122,6 +123,13 @@ export function createRoomSocket(
 			socket.on("call_ended", (payload: { fromUid: string }) => {
 				webrtcRef?.current?.onCallEnded?.(payload);
 			});
+
+			socket.on(
+				"peer_media_toggled",
+				({ uid, mic, camera }: { uid: string; mic: boolean; camera: boolean }) => {
+					webrtcRef?.current?.onPeerMediaToggled?.(uid, mic, camera);
+				},
+			);
 		})
 		.catch(() => {
 			handlers.onError("Authentication failed");
@@ -145,6 +153,9 @@ export function createRoomSocket(
 		},
 		endCall(id: string) {
 			socket?.emit("end_call", { roomId: id });
+		},
+		toggleMedia(mic: boolean, camera: boolean) {
+			socket?.emit("toggle_media", { mic, camera });
 		},
 		disconnect() {
 			active = false;

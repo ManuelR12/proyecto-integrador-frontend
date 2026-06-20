@@ -65,8 +65,15 @@ const Sala = () => {
 			sendAnswer: chat.sendAnswer,
 			sendIceCandidate: chat.sendIceCandidate,
 			endCall: chat.emitEndCall,
+			toggleMedia: chat.emitToggleMedia,
 		}),
-		[chat.sendOffer, chat.sendAnswer, chat.sendIceCandidate, chat.emitEndCall],
+		[
+			chat.sendOffer,
+			chat.sendAnswer,
+			chat.sendIceCandidate,
+			chat.emitEndCall,
+			chat.emitToggleMedia,
+		],
 	);
 
 	const webrtc = useWebRTC(roomId, webrtcEmit);
@@ -80,6 +87,7 @@ const Sala = () => {
 			onIncomingIceCandidate: webrtc.handleIncomingIceCandidate,
 			onCallEnded: webrtc.handleCallEnded,
 			onParticipantLeftCall: webrtc.handleParticipantLeft,
+			onPeerMediaToggled: webrtc.handlePeerMediaToggled,
 		};
 	});
 

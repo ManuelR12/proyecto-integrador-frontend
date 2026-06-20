@@ -151,6 +151,10 @@ export function useRoomChat(
 		socketRef.current?.endCall(id);
 	}, []);
 
+	const emitToggleMedia = useCallback((mic: boolean, camera: boolean) => {
+		socketRef.current?.toggleMedia(mic, camera);
+	}, []);
+
 	return {
 		messages,
 		loadingHistory,
@@ -166,5 +170,6 @@ export function useRoomChat(
 		sendAnswer,
 		sendIceCandidate,
 		emitEndCall,
+		emitToggleMedia,
 	};
 }

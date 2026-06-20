@@ -26,6 +26,7 @@ export interface WebRTCEmit {
 	sendAnswer: (payload: WebRTCAnswerPayload) => void;
 	sendIceCandidate: (payload: WebRTCIceCandidatePayload) => void;
 	endCall: (roomId: string) => void;
+	toggleMedia: (mic: boolean, camera: boolean) => void;
 }
 
 export interface RemotePeerMediaState {
@@ -214,6 +215,8 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 
 			applyMutedState(stream);
 			setCallActive(true);
+			// Announce initial muted state so others can show the correct indicator
+			emit.toggleMedia(false, false);
 
 			for (const { uid } of participants) {
 				const pc = createPC(uid);
@@ -271,6 +274,8 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 				const answer = await pc.createAnswer();
 				await pc.setLocalDescription(answer);
 				emit.sendAnswer({ targetUid: payload.fromUid, roomId, sdp: answer });
+				// Tell the new joiner our current mic/camera state
+				emit.toggleMedia(micEnabledRef.current, cameraEnabledRef.current);
 			} catch {
 				closePeer(payload.fromUid);
 			}
@@ -352,6 +357,12 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		setCameraEnabled(false);
 	}, [roomId, emit]);
 
+	const handlePeerMediaToggled = useCallback((uid: string, mic: boolean, camera: boolean) => {
+		setRemoteMediaStates((prev) =>
+			new Map(prev).set(uid, { micEnabled: mic, cameraEnabled: camera }),
+		);
+	}, []);
+
 	const toggleMic = useCallback(() => {
 		if (!localStreamRef.current) return;
 		const next = !micEnabled;
@@ -361,7 +372,8 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		micEnabledRef.current = next;
 		setMicEnabled(next);
 		broadcastMediaState(next, cameraEnabledRef.current);
-	}, [micEnabled, broadcastMediaState]);
+		emit.toggleMedia(next, cameraEnabledRef.current);
+	}, [micEnabled, broadcastMediaState, emit]);
 
 	const toggleCamera = useCallback(() => {
 		if (!localStreamRef.current) return;
@@ -372,7 +384,8 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		cameraEnabledRef.current = next;
 		setCameraEnabled(next);
 		broadcastMediaState(micEnabledRef.current, next);
-	}, [cameraEnabled, broadcastMediaState]);
+		emit.toggleMedia(micEnabledRef.current, next);
+	}, [cameraEnabled, broadcastMediaState, emit]);
 
 	useEffect(() => {
 		const pcs = peerConnections.current;
@@ -412,5 +425,6 @@ export function useWebRTC(roomId: string | undefined, emit: WebRTCEmit) {
 		handleIncomingIceCandidate,
 		handleCallEnded,
 		handleParticipantLeft,
+		handlePeerMediaToggled,
 	};
 }
