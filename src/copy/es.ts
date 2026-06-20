@@ -254,6 +254,14 @@ export const sala = {
 		salir: "Salir",
 	},
 	participantes: (n: number) => `${n} participantes`,
+	lobby: {
+		title: "Pre-sala",
+		subtitle: (roomName: string) => `Estás a punto de entrar a «${roomName}»`,
+		description:
+			"Para activar audio y video, el navegador requiere que confirmes tu entrada con un clic.",
+		enterRoom: "Entrar a sala",
+		backToDashboard: "Volver al dashboard",
+	},
 } as const;
 
 export const perfil = {
