@@ -19,7 +19,7 @@ interface RoomSessionProps {
 
 const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps) => {
 	const { user } = useAuth();
-	const { displayName, avatarUrl } = useUserProfile();
+	const { displayName } = useUserProfile();
 
 	const updateRoom = useUpdateRoom({
 		roomId,
@@ -30,12 +30,6 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 	const chat = useRoomChat(roomId);
 
 	const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
-	const currentInitials = currentDisplayName
-		.split(" ")
-		.map((word) => word[0])
-		.slice(0, 2)
-		.join("")
-		.toUpperCase();
 
 	const participantCount = chat.participants.length + 1;
 
@@ -50,13 +44,12 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 			/>
 
 			<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-				<main className="flex flex-1 flex-col items-center justify-center px-6 py-8">
+				<main className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-6 py-8">
 					<RoomMediaStage
+						roomId={roomId}
 						currentDisplayName={currentDisplayName}
-						currentInitials={currentInitials}
-						currentAvatarUrl={avatarUrl}
-						currentUserId={user?.uid}
-						participants={chat.participants}
+						currentUserId={user?.uid ?? "local"}
+						remoteParticipants={chat.participants}
 					/>
 				</main>
 
