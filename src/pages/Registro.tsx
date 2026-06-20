@@ -2,8 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { auth as copy } from "../copy/es";
 import AuthShell from "../components/layout/AuthShell";
 import AgoraBrandLink from "../components/layout/AgoraBrandLink";
-import FormField from "../components/ui/FormField";
 import AvatarPicker from "../components/ui/AvatarPicker";
+import FormField from "../components/ui/FormField";
 import SubmitButton from "../components/ui/SubmitButton";
 import GoogleButton from "../components/ui/GoogleButton";
 import { useRegisterForm } from "../hooks/useRegisterForm";
@@ -20,11 +20,6 @@ const Registro = () => {
 
 	const isLoading = loading || googleLoading;
 	const hasErrors = Object.values(fieldErrors).some(Boolean);
-
-	const handleAvatarChange = (dataUrl: string | null, validationError?: string) => {
-		setField("avatarDataUrl", dataUrl);
-		setAvatarError(validationError);
-	};
 
 	return (
 		<AuthShell>
@@ -115,11 +110,15 @@ const Registro = () => {
 							/>
 
 							<AvatarPicker
-								preview={fields.avatarDataUrl}
+								value={fields.avatarUrl}
+								label={copy.register.avatarLabel}
+								helperText={copy.register.avatarHelper}
 								error={fieldErrors.avatar}
 								disabled={isLoading}
-								required
-								onChange={handleAvatarChange}
+								onChange={(url, err) => {
+									setField("avatarUrl", url);
+									setAvatarError(err);
+								}}
 							/>
 
 							<FormField

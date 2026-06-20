@@ -5,8 +5,7 @@ export interface RegisterPayload {
 	username: string;
 	email: string;
 	password: string;
-	/** Base-64 data URL or remote URL of the chosen avatar. */
-	avatarDataUrl: string | null;
+	avatarUrl?: string | null;
 }
 
 /** Validated errors per field for the register form. */

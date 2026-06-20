@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { auth as authCopy, perfil as copy } from "../copy/es";
+import { perfil as copy } from "../copy/es";
 import DeleteAccountModal from "../components/profile/DeleteAccountModal";
 import AgoraBrandLink from "../components/layout/AgoraBrandLink";
+import AvatarPicker from "../components/ui/AvatarPicker";
 import FormField from "../components/ui/FormField";
 import SubmitButton from "../components/ui/SubmitButton";
 import { useAuth } from "../contexts/AuthContext";
@@ -37,7 +38,7 @@ const Perfil = () => {
 		handleReauthAction,
 	} = useDeleteAccount();
 
-	const headerPhoto = user?.photoURL ?? globalAvatarUrl;
+	const headerPhoto = globalAvatarUrl ?? user?.photoURL;
 	const headerInitials =
 		initials ||
 		(user?.displayName ?? "AG")
@@ -46,13 +47,6 @@ const Perfil = () => {
 			.slice(0, 2)
 			.join("")
 			.toUpperCase();
-
-	const handleAvatarChange = (dataUrl: string | null, validationError?: string) => {
-		setField("avatarUrl", dataUrl);
-		setAvatarError(validationError);
-	};
-
-	const avatarPreview = fields.avatarUrl ?? headerPhoto;
 
 	return (
 		<div id="perfil" className="flex min-h-screen w-full flex-col bg-[#f6f7f8]">
@@ -103,54 +97,17 @@ const Perfil = () => {
 							className="rounded-xl border border-slate-200 bg-white px-6 py-6 shadow-sm sm:px-8"
 						>
 							<fieldset disabled={saving} className="m-0 flex flex-col gap-5 border-0 p-0">
-								<div className="flex flex-col gap-2">
-									<span className="text-sm font-medium text-slate-700">{copy.avatarLabel}</span>
-									<div className="flex items-center gap-4">
-										{avatarPreview ? (
-											<img
-												src={avatarPreview}
-												alt="Avatar"
-												className="h-16 w-16 rounded-full object-cover ring-2 ring-slate-200"
-											/>
-										) : (
-											<div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-lg font-semibold text-white">
-												{initials}
-											</div>
-										)}
-										<div className="flex flex-col gap-1">
-											<label className="cursor-pointer text-sm font-medium text-blue-600 transition hover:text-blue-500">
-												{copy.avatarChange}
-												<input
-													type="file"
-													accept="image/jpeg,image/png"
-													className="sr-only"
-													disabled={saving}
-													onChange={(e) => {
-														const file = e.target.files?.[0];
-														if (!file) return;
-														if (
-															!["image/jpeg", "image/png"].includes(file.type) ||
-															file.size > 2 * 1024 * 1024
-														) {
-															handleAvatarChange(null, authCopy.register.errors.avatarRequired);
-															return;
-														}
-														const reader = new FileReader();
-														reader.onload = () =>
-															handleAvatarChange(reader.result as string, undefined);
-														reader.readAsDataURL(file);
-													}}
-												/>
-											</label>
-											<p className="text-xs text-slate-500">{copy.avatarHelper}</p>
-											{fieldErrors.avatar && (
-												<p role="alert" className="text-xs text-red-600">
-													{fieldErrors.avatar}
-												</p>
-											)}
-										</div>
-									</div>
-								</div>
+								<AvatarPicker
+									value={fields.avatarUrl}
+									label={copy.avatarLabel}
+									helperText={copy.avatarHelper}
+									error={fieldErrors.avatar}
+									disabled={saving}
+									onChange={(url, err) => {
+										setField("avatarUrl", url);
+										setAvatarError(err);
+									}}
+								/>
 
 								<FormField
 									id="nombres"

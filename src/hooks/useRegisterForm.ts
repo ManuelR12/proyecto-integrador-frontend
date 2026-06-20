@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth as copy } from "../copy/es";
 import { registerWithEmail } from "../services/authService";
+import { updateUserProfile } from "../services/profileService";
 import { useToast } from "../contexts/ToastContext";
 import { useUserProfile } from "./useUserProfile";
 import { getPasswordRules } from "../lib/passwordRules";
@@ -16,7 +17,7 @@ interface FormState {
 	username: string;
 	email: string;
 	password: string;
-	avatarDataUrl: string | null;
+	avatarUrl: string | null;
 }
 
 const INITIAL_FORM: FormState = {
@@ -25,7 +26,7 @@ const INITIAL_FORM: FormState = {
 	username: "",
 	email: "",
 	password: "",
-	avatarDataUrl: null,
+	avatarUrl: null,
 };
 
 export function useRegisterForm() {
@@ -78,12 +79,23 @@ export function useRegisterForm() {
 			username: fields.username.trim(),
 			email: fields.email.trim(),
 			password: fields.password,
-			avatarDataUrl: fields.avatarDataUrl,
 		};
 
 		setLoading(true);
 		try {
 			await registerWithEmail(payload);
+			if (fields.avatarUrl) {
+				try {
+					await updateUserProfile({
+						nombres: payload.nombres,
+						apellidos: payload.apellidos,
+						username: payload.username.toLowerCase(),
+						avatarUrl: fields.avatarUrl,
+					});
+				} catch {
+					// avatar update is non-fatal
+				}
+			}
 			await refetchProfile();
 			showToast("¡Cuenta creada! Bienvenido a Agora.", "success");
 			navigate("/dashboard", { replace: true });
