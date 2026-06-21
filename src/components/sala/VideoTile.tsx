@@ -5,10 +5,15 @@ import VideoTileSkeleton from "./VideoTileSkeleton";
 
 interface VideoTileProps {
 	participant: VideoTileParticipant;
-	aspectClassName?: string;
+	layoutClassName?: string;
+	compact?: boolean;
 }
 
-const VideoTile = ({ participant, aspectClassName = "aspect-video" }: VideoTileProps) => {
+const VideoTile = ({
+	participant,
+	layoutClassName = "min-h-0 min-w-0 h-full w-full",
+	compact = false,
+}: VideoTileProps) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const { displayName, isLocal, stream, status } = participant;
 	const hasVideoTrack = Boolean(
@@ -29,22 +34,22 @@ const VideoTile = ({ participant, aspectClassName = "aspect-video" }: VideoTileP
 		};
 	}, [stream]);
 
+	const shellClass = [
+		"relative overflow-hidden rounded-xl bg-slate-900",
+		isLocal ? "ring-2 ring-blue-500" : "ring-1 ring-slate-800",
+		layoutClassName,
+	].join(" ");
+
 	if (status === "connecting") {
 		return (
-			<div className={["min-h-0 w-full", aspectClassName].join(" ")}>
-				<VideoTileSkeleton displayName={displayName} />
+			<div className={shellClass}>
+				<VideoTileSkeleton displayName={displayName} compact={compact} />
 			</div>
 		);
 	}
 
 	return (
-		<div
-			className={[
-				"relative min-h-0 w-full overflow-hidden rounded-xl bg-slate-900",
-				isLocal ? "ring-2 ring-blue-500" : "ring-1 ring-slate-800",
-				aspectClassName,
-			].join(" ")}
-		>
+		<div className={shellClass}>
 			{stream && hasVideoTrack ? (
 				// Live WebRTC streams do not ship caption tracks.
 				// eslint-disable-next-line jsx-a11y/media-has-caption
@@ -61,11 +66,24 @@ const VideoTile = ({ participant, aspectClassName = "aspect-video" }: VideoTileP
 				</div>
 			)}
 
-			<div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
-				<div className="flex items-center gap-1.5">
-					<span className="max-w-full truncate text-xs font-medium text-white">{displayName}</span>
+			<div
+				className={[
+					"pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent",
+					compact ? "px-2 pb-2 pt-6" : "px-3 pb-3 pt-8",
+				].join(" ")}
+			>
+				<div className="flex min-w-0 items-center gap-1.5">
+					<span
+						className={[
+							"min-w-0 flex-1 truncate font-medium text-white drop-shadow-sm",
+							compact ? "text-[10px] leading-tight sm:text-xs" : "text-xs sm:text-sm",
+						].join(" ")}
+						title={displayName}
+					>
+						{displayName}
+					</span>
 					{isLocal && (
-						<span className="rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+						<span className="flex-shrink-0 rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
 							{copy.videoGrid.youLabel}
 						</span>
 					)}

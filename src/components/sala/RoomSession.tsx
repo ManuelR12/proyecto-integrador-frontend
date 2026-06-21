@@ -63,7 +63,7 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 			/>
 
 			<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-				<main className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-6 py-8">
+				<main className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-8">
 					<RoomVideoSection roomId={roomId} />
 				</main>
 

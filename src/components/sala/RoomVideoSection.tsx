@@ -26,7 +26,11 @@ const RoomVideoSection = ({ roomId }: RoomVideoSectionProps) => {
 		return null;
 	}
 
-	return <RoomMediaStage roomId={roomId} />;
+	return (
+		<div className="flex min-h-0 w-full flex-1 flex-col">
+			<RoomMediaStage roomId={roomId} />
+		</div>
+	);
 };
 
 export default memo(RoomVideoSection);

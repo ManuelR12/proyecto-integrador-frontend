@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import type { ChatMessage } from "../types/room";
 
+const EMPTY_MESSAGES: ChatMessage[] = [];
+
 function sortMessages(messages: ChatMessage[]): ChatMessage[] {
 	return [...messages].sort((a, b) => {
 		const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
@@ -50,7 +52,8 @@ export const useChatStore = create<ChatState>((set) => ({
 }));
 
 export function selectRoomMessages(roomId: string | undefined) {
-	return (state: ChatState) => (roomId ? (state.messagesByRoom[roomId] ?? []) : []);
+	return (state: ChatState) =>
+		roomId ? (state.messagesByRoom[roomId] ?? EMPTY_MESSAGES) : EMPTY_MESSAGES;
 }
 
 export function selectRoomHistoryLoaded(roomId: string | undefined) {

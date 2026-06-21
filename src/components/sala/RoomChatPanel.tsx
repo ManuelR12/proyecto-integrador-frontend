@@ -45,7 +45,7 @@ const RoomChatPanel = ({
 	const canSend = connected && !loadingHistory && draft.trim().length > 0;
 
 	return (
-		<aside className="flex min-h-0 w-full flex-col border-l border-slate-200 bg-white lg:w-96">
+		<aside className="flex min-h-0 w-full max-h-[50vh] flex-1 flex-col border-l border-slate-200 bg-white lg:max-h-none lg:w-96 lg:flex-none">
 			<div className="border-b border-slate-200 px-4 py-3">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2.5">
