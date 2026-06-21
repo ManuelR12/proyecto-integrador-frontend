@@ -1,4 +1,4 @@
-import { memo, useEffect } from "react";
+import { memo, useLayoutEffect } from "react";
 import { useMediaPlayback } from "../../contexts/MediaPlaybackContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRoomMediaBootstrap } from "../../hooks/useRoomMediaBootstrap";
@@ -15,14 +15,15 @@ const RoomVideoSection = ({ roomId }: RoomVideoSectionProps) => {
 	const { user } = useAuth();
 	const { displayName } = useUserProfile();
 	const { playbackUnlocked } = useMediaPlayback();
+	const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
+	const currentUserId = user?.uid ?? "local";
+
+	useLayoutEffect(() => {
+		useRoomStore.getState().setSessionIdentity(currentUserId, currentDisplayName);
+	}, [currentDisplayName, currentUserId]);
 
 	useRoomMediaBootstrap(playbackUnlocked);
 	useRoomWebRtc(roomId, playbackUnlocked);
-
-	useEffect(() => {
-		const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
-		useRoomStore.getState().setSessionIdentity(user?.uid ?? "local", currentDisplayName);
-	}, [displayName, user?.displayName, user?.email, user?.uid]);
 
 	if (!playbackUnlocked) {
 		return null;

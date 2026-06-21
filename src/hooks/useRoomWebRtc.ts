@@ -10,7 +10,6 @@ import { useRoomStore } from "../stores/useRoomStore";
  */
 export function useRoomWebRtc(roomId: string | undefined, enabled: boolean) {
 	const localStream = useRoomStore((state) => state.localStream);
-	const currentUserId = useRoomStore((state) => state.currentUserId);
 
 	useEffect(() => {
 		if (!enabled || !roomId || !localStream) return;
@@ -18,6 +17,7 @@ export function useRoomWebRtc(roomId: string | undefined, enabled: boolean) {
 		const socket = getActiveRoomSocket();
 		if (!socket) return;
 
+		const { currentUserId } = useRoomStore.getState();
 		const manager = new WebRtcPeerManager({
 			currentUserId,
 			signaling: {
@@ -38,5 +38,5 @@ export function useRoomWebRtc(roomId: string | undefined, enabled: boolean) {
 			setActivePeerManager(null);
 			manager.destroy();
 		};
-	}, [enabled, roomId, localStream, currentUserId]);
+	}, [enabled, roomId, localStream]);
 }

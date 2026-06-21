@@ -21,6 +21,7 @@ export class WebRtcPeerManager {
 	private readonly currentUserId: string;
 	private readonly signaling: WebRtcSignalingAdapter;
 	private readonly peers = new Map<string, RTCPeerConnection>();
+	private readonly pendingIceCandidates = new Map<string, RTCIceCandidateInit[]>();
 	private localStream: MediaStream | null = null;
 	private destroyed = false;
 
@@ -56,6 +57,7 @@ export class WebRtcPeerManager {
 
 		try {
 			await peer.setRemoteDescription(sdp);
+			await this.flushPendingIceCandidates(fromUid, peer);
 			const answer = await peer.createAnswer();
 			await peer.setLocalDescription(answer);
 			this.signaling.sendAnswer(fromUid, answer);
@@ -71,6 +73,7 @@ export class WebRtcPeerManager {
 
 		try {
 			await peer.setRemoteDescription(sdp);
+			await this.flushPendingIceCandidates(fromUid, peer);
 		} catch (error) {
 			console.error("[WebRTC] failed to handle answer from", fromUid, error);
 			this.removePeer(fromUid);
@@ -78,8 +81,15 @@ export class WebRtcPeerManager {
 	}
 
 	async handleIncomingIceCandidate(fromUid: string, candidate: RTCIceCandidateInit): Promise<void> {
+		if (this.destroyed || fromUid === this.currentUserId) return;
+
 		const peer = this.peers.get(fromUid);
-		if (!peer || this.destroyed) return;
+		if (!peer || !peer.remoteDescription) {
+			const queue = this.pendingIceCandidates.get(fromUid) ?? [];
+			queue.push(candidate);
+			this.pendingIceCandidates.set(fromUid, queue);
+			return;
+		}
 
 		try {
 			await peer.addIceCandidate(candidate);
@@ -94,6 +104,7 @@ export class WebRtcPeerManager {
 
 		peer.close();
 		this.peers.delete(remoteUid);
+		this.pendingIceCandidates.delete(remoteUid);
 		useRoomStore.getState().removeRemoteStream(remoteUid);
 	}
 
@@ -102,6 +113,7 @@ export class WebRtcPeerManager {
 		for (const remoteUid of this.peers.keys()) {
 			this.removePeer(remoteUid);
 		}
+		this.pendingIceCandidates.clear();
 		this.localStream = null;
 	}
 
@@ -151,6 +163,23 @@ export class WebRtcPeerManager {
 		} catch (error) {
 			console.error("[WebRTC] failed to create offer for", remoteUid, error);
 			this.removePeer(remoteUid);
+		}
+	}
+
+	private async flushPendingIceCandidates(
+		fromUid: string,
+		peer: RTCPeerConnection,
+	): Promise<void> {
+		const queue = this.pendingIceCandidates.get(fromUid);
+		if (!queue?.length) return;
+
+		this.pendingIceCandidates.delete(fromUid);
+		for (const candidate of queue) {
+			try {
+				await peer.addIceCandidate(candidate);
+			} catch (error) {
+				console.error("[WebRTC] failed to flush ICE candidate from", fromUid, error);
+			}
 		}
 	}
 

@@ -135,7 +135,9 @@ export function createRoomSocket(
 			});
 
 			socket.on("incoming_ice_candidate", (payload: IncomingIceCandidatePayload) => {
-				handlers.onIncomingIceCandidate?.(payload);
+				if (payload.roomId === undefined || payload.roomId === roomId) {
+					handlers.onIncomingIceCandidate?.(payload);
+				}
 			});
 
 			socket.on("call_ended", (payload: CallEndedPayload) => {

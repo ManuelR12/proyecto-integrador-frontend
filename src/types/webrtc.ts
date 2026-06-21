@@ -16,6 +16,7 @@ export interface IncomingAnswerPayload {
 /** Payload relayed by the server when a peer shares an ICE candidate. */
 export interface IncomingIceCandidatePayload {
 	fromUid: string;
+	roomId?: string;
 	candidate: RTCIceCandidateInit;
 }
 
