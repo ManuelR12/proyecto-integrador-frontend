@@ -1,13 +1,6 @@
 import { useEffect } from "react";
+import { acquireLocalMedia } from "../lib/localMediaStream";
 import { useRoomStore } from "../stores/useRoomStore";
-
-async function acquireLocalMedia(): Promise<MediaStream> {
-	try {
-		return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-	} catch {
-		return await navigator.mediaDevices.getUserMedia({ audio: true });
-	}
-}
 
 /** Acquires local media and writes stream state into the room store only. */
 export function useRoomMediaBootstrap(enabled: boolean) {

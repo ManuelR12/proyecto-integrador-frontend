@@ -1,5 +1,11 @@
 import { create } from "zustand";
 import {
+	applyLocalStreamUpdate,
+	attachTrackToLocalStream,
+	localMediaFlagsFromStream,
+	requestMediaTrack,
+} from "../lib/localMediaStream";
+import {
 	bindRemoteStreamVideoState,
 	unbindRemoteStreamVideoState,
 } from "../lib/remoteStreamVideoState";
@@ -49,18 +55,6 @@ const initialState = {
 	remoteStreamsByUid: {} as Record<string, MediaStream>,
 };
 
-function localMediaFlagsFromStream(stream: MediaStream | null) {
-	const videoTrack = stream?.getVideoTracks()[0];
-	const audioTrack = stream?.getAudioTracks()[0];
-
-	return {
-		hasLocalVideoTrack: Boolean(videoTrack),
-		hasLocalAudioTrack: Boolean(audioTrack),
-		localVideoEnabled: videoTrack?.enabled ?? false,
-		localAudioEnabled: audioTrack?.enabled ?? false,
-	};
-}
-
 export const useRoomStore = create<RoomState>((set, get) => ({
 	...initialState,
 	setSessionIdentity: (currentUserId, currentDisplayName, avatarUrl = null) =>
@@ -102,20 +96,38 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 	toggleLocalVideo: () => {
 		const { localStream } = get();
 		const track = localStream?.getVideoTracks()[0];
-		if (!track) return;
+		if (track) {
+			const nextEnabled = !track.enabled;
+			track.enabled = nextEnabled;
+			getActivePeerManager()?.setLocalVideoEnabled(nextEnabled);
+			set({ localVideoEnabled: nextEnabled });
+			return;
+		}
 
-		const nextEnabled = !track.enabled;
-		track.enabled = nextEnabled;
-		getActivePeerManager()?.setLocalVideoEnabled(nextEnabled);
-		set({ localVideoEnabled: nextEnabled });
+		void requestMediaTrack("video").then((videoTrack) => {
+			if (!videoTrack) return;
+
+			const nextStream = attachTrackToLocalStream(get().localStream, videoTrack);
+			set({ localStream: nextStream, ...localMediaFlagsFromStream(nextStream) });
+			applyLocalStreamUpdate(nextStream);
+		});
 	},
 	toggleLocalAudio: () => {
 		const { localStream } = get();
 		const track = localStream?.getAudioTracks()[0];
-		if (!track) return;
+		if (track) {
+			track.enabled = !track.enabled;
+			set({ localAudioEnabled: track.enabled });
+			return;
+		}
 
-		track.enabled = !track.enabled;
-		set({ localAudioEnabled: track.enabled });
+		void requestMediaTrack("audio").then((audioTrack) => {
+			if (!audioTrack) return;
+
+			const nextStream = attachTrackToLocalStream(get().localStream, audioTrack);
+			set({ localStream: nextStream, ...localMediaFlagsFromStream(nextStream) });
+			applyLocalStreamUpdate(nextStream);
+		});
 	},
 	registerRemoteStream: (uid, stream) => {
 		bindRemoteStreamVideoState(uid, stream, (videoEnabled) => {
