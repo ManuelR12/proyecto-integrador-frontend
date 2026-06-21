@@ -1,6 +1,7 @@
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useReducer, useRef } from "react";
 import { sala as copy } from "../../copy/es";
 import type { VideoTileParticipant } from "../../types/media";
+import VideoTileAvatar from "./VideoTileAvatar";
 import VideoTileSkeleton from "./VideoTileSkeleton";
 
 interface VideoTileProps {
@@ -9,25 +10,49 @@ interface VideoTileProps {
 	compact?: boolean;
 }
 
+function streamHasLiveVideo(stream: MediaStream | null): boolean {
+	return Boolean(
+		stream
+			?.getVideoTracks()
+			.some((track) => track.enabled && !track.muted && track.readyState === "live"),
+	);
+}
+
 const VideoTile = ({
 	participant,
 	layoutClassName = "min-h-0 min-w-0 h-full w-full",
 	compact = false,
 }: VideoTileProps) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
-	const { displayName, isLocal, stream, status } = participant;
-	const hasVideoTrack = Boolean(
-		stream?.getVideoTracks().some((track) => track.enabled && track.readyState === "live"),
-	);
+	const { displayName, isLocal, stream, status, avatarUrl } = participant;
+	const [, bumpTrackRevision] = useReducer((count: number) => count + 1, 0);
+	const hasVideoTrack = streamHasLiveVideo(stream);
+
+	useEffect(() => {
+		if (!stream) return;
+
+		const videoTracks = stream.getVideoTracks();
+		for (const track of videoTracks) {
+			track.addEventListener("ended", bumpTrackRevision);
+			track.addEventListener("mute", bumpTrackRevision);
+			track.addEventListener("unmute", bumpTrackRevision);
+		}
+
+		return () => {
+			for (const track of videoTracks) {
+				track.removeEventListener("ended", bumpTrackRevision);
+				track.removeEventListener("mute", bumpTrackRevision);
+				track.removeEventListener("unmute", bumpTrackRevision);
+			}
+		};
+	}, [stream]);
 
 	useEffect(() => {
 		const video = videoRef.current;
-		if (!video) return;
+		if (!video || !stream) return;
 
 		video.srcObject = stream;
-		if (stream) {
-			void video.play().catch(() => {});
-		}
+		void video.play().catch(() => {});
 
 		return () => {
 			video.srcObject = null;
@@ -48,23 +73,25 @@ const VideoTile = ({
 		);
 	}
 
+	const showAvatar = !hasVideoTrack;
+
 	return (
 		<div className={shellClass}>
-			{stream && hasVideoTrack ? (
-				// Live WebRTC streams do not ship caption tracks.
+			{stream ? (
+				// Keep the media element mounted for audio when video is off.
 				// eslint-disable-next-line jsx-a11y/media-has-caption
 				<video
 					ref={videoRef}
 					autoPlay
 					playsInline
 					muted={isLocal}
-					className="h-full w-full object-cover"
+					className={hasVideoTrack ? "h-full w-full object-cover" : "hidden"}
 				/>
-			) : (
-				<div className="flex h-full w-full items-center justify-center bg-slate-900 text-sm text-slate-500">
-					{copy.videoGrid.cameraOff}
-				</div>
-			)}
+			) : null}
+
+			{showAvatar ? (
+				<VideoTileAvatar displayName={displayName} avatarUrl={avatarUrl} compact={compact} />
+			) : null}
 
 			<div
 				className={[

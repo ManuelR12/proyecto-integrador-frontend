@@ -6,10 +6,11 @@ interface RoomState {
 	participants: SocketParticipant[];
 	currentUserId: string;
 	currentDisplayName: string;
+	currentAvatarUrl: string | null;
 	localStream: MediaStream | null;
 	localStatus: VideoTileStatus;
 	remoteStreamsByUid: Record<string, MediaStream>;
-	setSessionIdentity: (userId: string, displayName: string) => void;
+	setSessionIdentity: (userId: string, displayName: string, avatarUrl?: string | null) => void;
 	setParticipants: (participants: SocketParticipant[]) => void;
 	addParticipant: (participant: SocketParticipant) => void;
 	removeParticipant: (uid: string) => void;
@@ -24,6 +25,7 @@ const initialState = {
 	participants: [] as SocketParticipant[],
 	currentUserId: "local",
 	currentDisplayName: "Tú",
+	currentAvatarUrl: null as string | null,
 	localStream: null as MediaStream | null,
 	localStatus: "connecting" as VideoTileStatus,
 	remoteStreamsByUid: {} as Record<string, MediaStream>,
@@ -31,8 +33,8 @@ const initialState = {
 
 export const useRoomStore = create<RoomState>((set, get) => ({
 	...initialState,
-	setSessionIdentity: (currentUserId, currentDisplayName) =>
-		set({ currentUserId, currentDisplayName }),
+	setSessionIdentity: (currentUserId, currentDisplayName, avatarUrl = null) =>
+		set({ currentUserId, currentDisplayName, currentAvatarUrl: avatarUrl ?? null }),
 	setParticipants: (participants) => set({ participants }),
 	addParticipant: (participant) =>
 		set((state) =>

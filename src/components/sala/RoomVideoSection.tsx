@@ -13,14 +13,15 @@ interface RoomVideoSectionProps {
 
 const RoomVideoSection = ({ roomId }: RoomVideoSectionProps) => {
 	const { user } = useAuth();
-	const { displayName } = useUserProfile();
+	const { displayName, avatarUrl } = useUserProfile();
 	const { playbackUnlocked } = useMediaPlayback();
 	const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
+	const currentAvatarUrl = avatarUrl ?? user?.photoURL ?? null;
 	const currentUserId = user?.uid ?? "local";
 
 	useLayoutEffect(() => {
-		useRoomStore.getState().setSessionIdentity(currentUserId, currentDisplayName);
-	}, [currentDisplayName, currentUserId]);
+		useRoomStore.getState().setSessionIdentity(currentUserId, currentDisplayName, currentAvatarUrl);
+	}, [currentAvatarUrl, currentDisplayName, currentUserId]);
 
 	useRoomMediaBootstrap(playbackUnlocked);
 	useRoomWebRtc(roomId, playbackUnlocked);
