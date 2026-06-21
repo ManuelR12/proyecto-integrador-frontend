@@ -1,8 +1,7 @@
 import { memo, useLayoutEffect } from "react";
 import { useMediaPlayback } from "../../contexts/MediaPlaybackContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { useRoomMediaBootstrap } from "../../hooks/useRoomMediaBootstrap";
-import { useRoomWebRtc } from "../../hooks/useRoomWebRtc";
+import { useLiveKitRoom } from "../../hooks/useLiveKitRoom";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useRoomStore } from "../../stores/useRoomStore";
 import RoomMediaControls from "./RoomMediaControls";
@@ -24,8 +23,7 @@ const RoomVideoSection = ({ roomId }: RoomVideoSectionProps) => {
 		useRoomStore.getState().setSessionIdentity(currentUserId, currentDisplayName, currentAvatarUrl);
 	}, [currentAvatarUrl, currentDisplayName, currentUserId]);
 
-	useRoomMediaBootstrap(playbackUnlocked);
-	useRoomWebRtc(roomId, playbackUnlocked);
+	useLiveKitRoom(roomId, playbackUnlocked);
 
 	if (!playbackUnlocked) {
 		return null;
