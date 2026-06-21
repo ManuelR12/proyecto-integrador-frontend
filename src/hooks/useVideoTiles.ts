@@ -11,6 +11,7 @@ function buildVideoTiles(state: {
 	localStatus: VideoTileParticipant["status"];
 	localVideoEnabled: boolean;
 	participants: Array<{ uid: string; username: string; avatarUrl?: string | null }>;
+	remoteVideoEnabledByUid: Record<string, boolean>;
 	remoteStreamsByUid: Record<string, MediaStream>;
 }): VideoTileParticipant[] {
 	const localTile: VideoTileParticipant = {
@@ -20,6 +21,7 @@ function buildVideoTiles(state: {
 		stream: state.localStream,
 		status: state.localStatus,
 		avatarUrl: state.currentAvatarUrl,
+		videoEnabled: state.localVideoEnabled,
 	};
 
 	const remoteTiles = state.participants
@@ -33,6 +35,7 @@ function buildVideoTiles(state: {
 				stream,
 				status: stream ? ("connected" as const) : ("connecting" as const),
 				avatarUrl: participant.avatarUrl,
+				videoEnabled: state.remoteVideoEnabledByUid[participant.uid] ?? false,
 			};
 		});
 
@@ -49,6 +52,7 @@ export function useVideoTiles(): VideoTileParticipant[] {
 			localStatus: state.localStatus,
 			localVideoEnabled: state.localVideoEnabled,
 			participants: state.participants,
+			remoteVideoEnabledByUid: state.remoteVideoEnabledByUid,
 			remoteStreamsByUid: state.remoteStreamsByUid,
 		})),
 	);
