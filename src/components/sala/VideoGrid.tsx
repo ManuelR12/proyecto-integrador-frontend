@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { getVideoGridClass, getVideoTileAspectClass } from "../../lib/videoGridLayout";
 import type { VideoTileParticipant } from "../../types/media";
 import VideoTile from "./VideoTile";
@@ -30,4 +30,4 @@ const VideoGrid = ({ tiles }: VideoGridProps) => {
 	);
 };
 
-export default VideoGrid;
+export default memo(VideoGrid);

@@ -1,33 +1,20 @@
+import { memo } from "react";
 import { useMediaPlayback } from "../../contexts/MediaPlaybackContext";
-import { useRoomMediaStreams } from "../../hooks/useRoomMediaStreams";
-import type { SocketParticipant } from "../../types/room";
+import { useVideoTiles } from "../../hooks/useVideoTiles";
 import VideoGrid from "./VideoGrid";
 
 interface RoomMediaStageProps {
 	roomId: string;
-	currentDisplayName: string;
-	currentUserId: string;
-	remoteParticipants: SocketParticipant[];
 }
 
 /**
- * AV stage wrapper. Only mounts after the lobby unlocks playback so WebRTC
- * streams can autoplay without Chrome blocking them.
+ * AV stage wrapper. Reads only from the room store so chat updates never
+ * trigger re-renders here.
  */
-const RoomMediaStage = ({
-	roomId,
-	currentDisplayName,
-	currentUserId,
-	remoteParticipants,
-}: RoomMediaStageProps) => {
+const RoomMediaStage = ({ roomId }: RoomMediaStageProps) => {
+	void roomId;
 	const { playbackUnlocked } = useMediaPlayback();
-	const { tiles } = useRoomMediaStreams({
-		roomId,
-		currentUserId,
-		currentDisplayName,
-		remoteParticipants,
-		enabled: playbackUnlocked,
-	});
+	const tiles = useVideoTiles();
 
 	if (!playbackUnlocked) {
 		return null;
@@ -40,4 +27,4 @@ const RoomMediaStage = ({
 	);
 };
 
-export default RoomMediaStage;
+export default memo(RoomMediaStage);
