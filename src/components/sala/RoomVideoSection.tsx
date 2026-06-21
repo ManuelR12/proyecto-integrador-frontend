@@ -5,6 +5,7 @@ import { useRoomMediaBootstrap } from "../../hooks/useRoomMediaBootstrap";
 import { useRoomWebRtc } from "../../hooks/useRoomWebRtc";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useRoomStore } from "../../stores/useRoomStore";
+import RoomMediaControls from "./RoomMediaControls";
 import RoomMediaStage from "./RoomMediaStage";
 
 interface RoomVideoSectionProps {
@@ -33,6 +34,7 @@ const RoomVideoSection = ({ roomId }: RoomVideoSectionProps) => {
 	return (
 		<div className="flex min-h-0 w-full flex-1 flex-col">
 			<RoomMediaStage roomId={roomId} />
+			<RoomMediaControls />
 		</div>
 	);
 };

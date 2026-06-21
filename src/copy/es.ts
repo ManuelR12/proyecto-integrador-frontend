@@ -250,6 +250,12 @@ export const sala = {
 	controls: {
 		microfono: "Micrófono",
 		camara: "Cámara",
+		micOn: "Activar micrófono",
+		micOff: "Desactivar micrófono",
+		camOn: "Activar cámara",
+		camOff: "Desactivar cámara",
+		micUnavailable: "Micrófono no disponible",
+		camUnavailable: "Cámara no disponible",
 		compartirPantalla: "Compartir pantalla",
 		salir: "Salir",
 	},

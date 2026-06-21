@@ -9,6 +9,7 @@ function buildVideoTiles(state: {
 	currentAvatarUrl: string | null;
 	localStream: MediaStream | null;
 	localStatus: VideoTileParticipant["status"];
+	localVideoEnabled: boolean;
 	participants: Array<{ uid: string; username: string; avatarUrl?: string | null }>;
 	remoteStreamsByUid: Record<string, MediaStream>;
 }): VideoTileParticipant[] {
@@ -46,6 +47,7 @@ export function useVideoTiles(): VideoTileParticipant[] {
 			currentAvatarUrl: state.currentAvatarUrl,
 			localStream: state.localStream,
 			localStatus: state.localStatus,
+			localVideoEnabled: state.localVideoEnabled,
 			participants: state.participants,
 			remoteStreamsByUid: state.remoteStreamsByUid,
 		})),

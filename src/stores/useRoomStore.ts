@@ -9,6 +9,10 @@ interface RoomState {
 	currentAvatarUrl: string | null;
 	localStream: MediaStream | null;
 	localStatus: VideoTileStatus;
+	hasLocalVideoTrack: boolean;
+	hasLocalAudioTrack: boolean;
+	localVideoEnabled: boolean;
+	localAudioEnabled: boolean;
 	remoteStreamsByUid: Record<string, MediaStream>;
 	setSessionIdentity: (userId: string, displayName: string, avatarUrl?: string | null) => void;
 	setParticipants: (participants: SocketParticipant[]) => void;
@@ -16,6 +20,8 @@ interface RoomState {
 	removeParticipant: (uid: string) => void;
 	setLocalStream: (stream: MediaStream | null) => void;
 	setLocalStatus: (status: VideoTileStatus) => void;
+	toggleLocalVideo: () => void;
+	toggleLocalAudio: () => void;
 	registerRemoteStream: (uid: string, stream: MediaStream) => void;
 	removeRemoteStream: (uid: string) => void;
 	reset: () => void;
@@ -28,8 +34,24 @@ const initialState = {
 	currentAvatarUrl: null as string | null,
 	localStream: null as MediaStream | null,
 	localStatus: "connecting" as VideoTileStatus,
+	hasLocalVideoTrack: false,
+	hasLocalAudioTrack: false,
+	localVideoEnabled: false,
+	localAudioEnabled: false,
 	remoteStreamsByUid: {} as Record<string, MediaStream>,
 };
+
+function localMediaFlagsFromStream(stream: MediaStream | null) {
+	const videoTrack = stream?.getVideoTracks()[0];
+	const audioTrack = stream?.getAudioTracks()[0];
+
+	return {
+		hasLocalVideoTrack: Boolean(videoTrack),
+		hasLocalAudioTrack: Boolean(audioTrack),
+		localVideoEnabled: videoTrack?.enabled ?? false,
+		localAudioEnabled: audioTrack?.enabled ?? false,
+	};
+}
 
 export const useRoomStore = create<RoomState>((set, get) => ({
 	...initialState,
@@ -63,8 +85,24 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 				remoteStreamsByUid,
 			};
 		}),
-	setLocalStream: (localStream) => set({ localStream }),
+	setLocalStream: (localStream) => set({ localStream, ...localMediaFlagsFromStream(localStream) }),
 	setLocalStatus: (localStatus) => set({ localStatus }),
+	toggleLocalVideo: () => {
+		const { localStream } = get();
+		const track = localStream?.getVideoTracks()[0];
+		if (!track) return;
+
+		track.enabled = !track.enabled;
+		set({ localVideoEnabled: track.enabled });
+	},
+	toggleLocalAudio: () => {
+		const { localStream } = get();
+		const track = localStream?.getAudioTracks()[0];
+		if (!track) return;
+
+		track.enabled = !track.enabled;
+		set({ localAudioEnabled: track.enabled });
+	},
 	registerRemoteStream: (uid, stream) =>
 		set((state) => ({
 			remoteStreamsByUid: { ...state.remoteStreamsByUid, [uid]: stream },
