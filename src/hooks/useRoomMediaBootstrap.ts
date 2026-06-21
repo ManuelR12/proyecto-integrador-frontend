@@ -35,7 +35,8 @@ export function useRoomMediaBootstrap(enabled: boolean) {
 				if (!cancelled) {
 					const nextStore = useRoomStore.getState();
 					nextStore.setLocalStream(null);
-					nextStore.setLocalStatus("failed");
+					// Connected without media so the tile shows the avatar, not the skeleton.
+					nextStore.setLocalStatus("connected");
 				}
 			});
 
