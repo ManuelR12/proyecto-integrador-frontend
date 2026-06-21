@@ -1,4 +1,4 @@
-export type VideoGridLayoutPattern = "1x1" | "1x2" | "2x2" | "2+1" | "auto";
+export type VideoGridLayoutPattern = "1x1" | "1x2" | "2x2" | "2x1" | "auto";
 
 export interface VideoGridLayout {
 	pattern: VideoGridLayoutPattern;
@@ -39,7 +39,7 @@ export function getVideoGridLayout(tileCount: number): VideoGridLayout {
 
 	if (tileCount === 3) {
 		return {
-			pattern: "2+1",
+			pattern: "2x1",
 			containerClass: "grid-cols-2 grid-rows-2",
 			getTileClass: (index) =>
 				index === 2 ? `${TILE_FILL} col-span-2 w-1/2 justify-self-center` : TILE_FILL,
