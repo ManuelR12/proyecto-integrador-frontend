@@ -8,6 +8,11 @@ export function useRoomMediaBootstrap(enabled: boolean) {
 		if (!enabled) return;
 
 		const roomStore = useRoomStore.getState();
+		if (roomStore.localStream) {
+			roomStore.setLocalStatus("connected");
+			return;
+		}
+
 		roomStore.setLocalStatus("connecting");
 
 		let stream: MediaStream | null = null;

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import RoomLobby from "../components/sala/RoomLobby";
 import RoomSession from "../components/sala/RoomSession";
@@ -8,17 +8,30 @@ import { useAuth } from "../contexts/AuthContext";
 import { useRoom } from "../hooks/useRoom";
 import { unlockMediaPlayback } from "../lib/unlockMediaPlayback";
 import { normalizeRoomId } from "../lib/roomId";
+import { useRoomStore } from "../stores/useRoomStore";
 
 const Sala = () => {
 	const { id: rawId } = useParams<{ id: string }>();
 	const roomId = useMemo(() => (rawId ? normalizeRoomId(rawId) : undefined), [rawId]);
 	const { user } = useAuth();
 	const { room, loading, error, isAdmin, setRoom } = useRoom(roomId, user?.uid);
-	const [playbackUnlocked, setPlaybackUnlocked] = useState(false);
+	const [enteredRoomId, setEnteredRoomId] = useState<string | null>(null);
+	const playbackUnlocked = enteredRoomId !== null && enteredRoomId === roomId;
 
-	const handleEnterRoom = () => {
+	useEffect(() => {
+		useRoomStore.getState().reset();
+	}, [roomId]);
+
+	const handleEnterRoom = (previewStream: MediaStream | null) => {
+		if (!roomId) return;
+
 		unlockMediaPlayback();
-		setPlaybackUnlocked(true);
+		if (previewStream) {
+			const roomStore = useRoomStore.getState();
+			roomStore.setLocalStream(previewStream);
+			roomStore.setLocalStatus("connected");
+		}
+		setEnteredRoomId(roomId);
 	};
 
 	if (loading) {
