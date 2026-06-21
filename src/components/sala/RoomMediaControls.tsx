@@ -35,31 +35,21 @@ const CamOffIcon = () => (
 interface MediaToggleButtonProps {
 	label: string;
 	active: boolean;
-	disabled: boolean;
 	onClick: () => void;
 	children: React.ReactNode;
 }
 
-const MediaToggleButton = ({
-	label,
-	active,
-	disabled,
-	onClick,
-	children,
-}: MediaToggleButtonProps) => (
+const MediaToggleButton = ({ label, active, onClick, children }: MediaToggleButtonProps) => (
 	<button
 		type="button"
 		onClick={onClick}
-		disabled={disabled}
 		aria-label={label}
 		aria-pressed={active}
 		className={[
 			"inline-flex h-12 w-12 items-center justify-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500",
-			disabled
-				? "cursor-not-allowed bg-slate-800/60 text-slate-600"
-				: active
-					? "bg-slate-700 text-white hover:bg-slate-600"
-					: "bg-red-600/90 text-white hover:bg-red-500",
+			active
+				? "bg-slate-700 text-white hover:bg-slate-600"
+				: "bg-red-600/90 text-white hover:bg-red-500",
 		].join(" ")}
 	>
 		{children}
@@ -92,33 +82,19 @@ const RoomMediaControls = () => {
 			className="flex flex-shrink-0 items-center justify-center gap-3 py-4"
 		>
 			<MediaToggleButton
-				label={
-					!hasLocalAudioTrack
-						? copy.controls.micUnavailable
-						: localAudioEnabled
-							? copy.controls.micOff
-							: copy.controls.micOn
-				}
-				active={localAudioEnabled}
-				disabled={!hasLocalAudioTrack}
+				label={localAudioEnabled && hasLocalAudioTrack ? copy.controls.micOff : copy.controls.micOn}
+				active={localAudioEnabled && hasLocalAudioTrack}
 				onClick={toggleLocalAudio}
 			>
-				{localAudioEnabled ? <MicOnIcon /> : <MicOffIcon />}
+				{localAudioEnabled && hasLocalAudioTrack ? <MicOnIcon /> : <MicOffIcon />}
 			</MediaToggleButton>
 
 			<MediaToggleButton
-				label={
-					!hasLocalVideoTrack
-						? copy.controls.camUnavailable
-						: localVideoEnabled
-							? copy.controls.camOff
-							: copy.controls.camOn
-				}
-				active={localVideoEnabled}
-				disabled={!hasLocalVideoTrack}
+				label={localVideoEnabled && hasLocalVideoTrack ? copy.controls.camOff : copy.controls.camOn}
+				active={localVideoEnabled && hasLocalVideoTrack}
 				onClick={toggleLocalVideo}
 			>
-				{localVideoEnabled ? <CamOnIcon /> : <CamOffIcon />}
+				{localVideoEnabled && hasLocalVideoTrack ? <CamOnIcon /> : <CamOffIcon />}
 			</MediaToggleButton>
 		</div>
 	);
