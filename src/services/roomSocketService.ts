@@ -1,7 +1,14 @@
 import { io, type Socket } from "socket.io-client";
 import { getIdToken } from "../lib/authToken";
+import { logIce, summarizeIceCandidate } from "../lib/webrtcIceLogger";
 import type { ChatMessage, SocketParticipant } from "../types/room";
-import type { CallEndedPayload, UserDisconnectedPayload } from "../types/webrtc";
+import type {
+	CallEndedPayload,
+	IncomingAnswerPayload,
+	IncomingIceCandidatePayload,
+	IncomingOfferPayload,
+	UserDisconnectedPayload,
+} from "../types/webrtc";
 
 function socketBaseUrl(): string {
 	return import.meta.env.VITE_API_BASE_URL ?? "";
@@ -21,11 +28,17 @@ export interface RoomSocketHandlers {
 	onParticipantJoined?: (participant: SocketParticipant) => void;
 	onParticipantLeft?: (participant: SocketParticipant) => void;
 	onUserDisconnected?: (payload: UserDisconnectedPayload) => void;
+	onIncomingOffer?: (payload: IncomingOfferPayload) => void;
+	onIncomingAnswer?: (payload: IncomingAnswerPayload) => void;
+	onIncomingIceCandidate?: (payload: IncomingIceCandidatePayload) => void;
 	onCallEnded?: (payload: CallEndedPayload) => void;
 }
 
 export interface RoomSocketController {
 	sendMessage: (text: string) => void;
+	sendWebRtcOffer: (targetUid: string, sdp: RTCSessionDescriptionInit) => void;
+	sendWebRtcAnswer: (targetUid: string, sdp: RTCSessionDescriptionInit) => void;
+	sendWebRtcIceCandidate: (targetUid: string, candidate: RTCIceCandidateInit) => void;
 	endCall: () => void;
 	disconnect: () => void;
 }
@@ -119,6 +132,29 @@ export function createRoomSocket(
 			socket.on("user-disconnected", relayUserDisconnected);
 			socket.on("user_disconnected", relayUserDisconnected);
 
+			socket.on("incoming_offer", (payload: IncomingOfferPayload) => {
+				if (payload.roomId === roomId) {
+					handlers.onIncomingOffer?.(payload);
+				}
+			});
+
+			socket.on("incoming_answer", (payload: IncomingAnswerPayload) => {
+				if (payload.roomId === roomId) {
+					handlers.onIncomingAnswer?.(payload);
+				}
+			});
+
+			socket.on("incoming_ice_candidate", (payload: IncomingIceCandidatePayload) => {
+				if (payload.roomId === undefined || payload.roomId === roomId) {
+					logIce(
+						payload.fromUid,
+						"signaling candidate received",
+						summarizeIceCandidate(payload.candidate),
+					);
+					handlers.onIncomingIceCandidate?.(payload);
+				}
+			});
+
 			socket.on("call_ended", (payload: CallEndedPayload) => {
 				handlers.onCallEnded?.(payload);
 			});
@@ -133,6 +169,19 @@ export function createRoomSocket(
 			const trimmed = text.trim();
 			if (!trimmed || !socket?.connected) return;
 			socket.emit("send_message", { room_id: roomId, text: trimmed });
+		},
+		sendWebRtcOffer(targetUid: string, sdp: RTCSessionDescriptionInit) {
+			if (!socket?.connected) return;
+			socket.emit("webrtc_offer", { targetUid, roomId, sdp });
+		},
+		sendWebRtcAnswer(targetUid: string, sdp: RTCSessionDescriptionInit) {
+			if (!socket?.connected) return;
+			socket.emit("webrtc_answer", { targetUid, roomId, sdp });
+		},
+		sendWebRtcIceCandidate(targetUid: string, candidate: RTCIceCandidateInit) {
+			if (!socket?.connected) return;
+			logIce(targetUid, "signaling candidate sent", summarizeIceCandidate(candidate));
+			socket.emit("webrtc_ice_candidate", { targetUid, roomId, candidate });
 		},
 		endCall() {
 			if (!socket?.connected) return;
