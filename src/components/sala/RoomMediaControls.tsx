@@ -1,5 +1,6 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { useToast } from "../../contexts/ToastContext";
 import { sala as copy } from "../../copy/es";
 import { useRoomStore } from "../../stores/useRoomStore";
 
@@ -57,6 +58,7 @@ const MediaToggleButton = ({ label, active, onClick, children }: MediaToggleButt
 );
 
 const RoomMediaControls = () => {
+	const { showTimedToast } = useToast();
 	const {
 		hasLocalAudioTrack,
 		hasLocalVideoTrack,
@@ -75,6 +77,24 @@ const RoomMediaControls = () => {
 		})),
 	);
 
+	const notifyPermissionsRequired = useCallback(() => {
+		showTimedToast(copy.controls.permissionsRequired, "info");
+	}, [showTimedToast]);
+
+	const handleToggleAudio = useCallback(() => {
+		if (!hasLocalAudioTrack) {
+			notifyPermissionsRequired();
+		}
+		toggleLocalAudio();
+	}, [hasLocalAudioTrack, notifyPermissionsRequired, toggleLocalAudio]);
+
+	const handleToggleVideo = useCallback(() => {
+		if (!hasLocalVideoTrack) {
+			notifyPermissionsRequired();
+		}
+		toggleLocalVideo();
+	}, [hasLocalVideoTrack, notifyPermissionsRequired, toggleLocalVideo]);
+
 	return (
 		<div
 			role="toolbar"
@@ -84,7 +104,7 @@ const RoomMediaControls = () => {
 			<MediaToggleButton
 				label={localAudioEnabled && hasLocalAudioTrack ? copy.controls.micOff : copy.controls.micOn}
 				active={localAudioEnabled && hasLocalAudioTrack}
-				onClick={toggleLocalAudio}
+				onClick={handleToggleAudio}
 			>
 				{localAudioEnabled && hasLocalAudioTrack ? <MicOnIcon /> : <MicOffIcon />}
 			</MediaToggleButton>
@@ -92,7 +112,7 @@ const RoomMediaControls = () => {
 			<MediaToggleButton
 				label={localVideoEnabled && hasLocalVideoTrack ? copy.controls.camOff : copy.controls.camOn}
 				active={localVideoEnabled && hasLocalVideoTrack}
-				onClick={toggleLocalVideo}
+				onClick={handleToggleVideo}
 			>
 				{localVideoEnabled && hasLocalVideoTrack ? <CamOnIcon /> : <CamOffIcon />}
 			</MediaToggleButton>

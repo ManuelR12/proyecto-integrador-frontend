@@ -5,19 +5,28 @@ import type { ReactNode } from "react";
 
 type ToastType = "success" | "error" | "info";
 
+const DEFAULT_TOAST_DURATION_MS = 4500;
+const TIMED_TOAST_DURATION_MS = 2000;
+
 interface Toast {
 	id: string;
 	message: string;
 	type: ToastType;
+	durationMs: number;
+	showProgress: boolean;
 }
 
 interface ToastContextValue {
 	showToast: (message: string, type?: ToastType) => void;
+	showTimedToast: (message: string, type?: ToastType) => void;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
-const ToastContext = createContext<ToastContextValue>({ showToast: () => {} });
+const ToastContext = createContext<ToastContextValue>({
+	showToast: () => {},
+	showTimedToast: () => {},
+});
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -42,6 +51,7 @@ const EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
 	const ref = useRef<HTMLDivElement>(null);
+	const progressRef = useRef<HTMLDivElement>(null);
 	const s = TOAST_STYLES[toast.type];
 
 	// Animate in on mount using direct DOM manipulation (guaranteed, no Tailwind dependency)
@@ -62,39 +72,67 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
 		return () => cancelAnimationFrame(raf);
 	}, []);
 
+	useLayoutEffect(() => {
+		if (!toast.showProgress) return;
+
+		const progressEl = progressRef.current;
+		if (!progressEl) return;
+
+		progressEl.style.transition = "none";
+		progressEl.style.width = "100%";
+
+		const raf = requestAnimationFrame(() => {
+			progressEl.style.transition = `width ${toast.durationMs}ms linear`;
+			progressEl.style.width = "0%";
+		});
+
+		return () => cancelAnimationFrame(raf);
+	}, [toast.durationMs, toast.showProgress]);
+
 	return (
 		<div
 			ref={ref}
 			role="alert"
 			style={{ willChange: "opacity, transform" }}
 			className={[
-				"flex w-full max-w-sm items-start gap-3",
-				"rounded-xl border border-l-4 border-slate-100 bg-white px-4 py-3",
+				"relative w-full max-w-sm overflow-hidden",
+				"rounded-xl border border-l-4 border-slate-100 bg-white",
 				"shadow-lg shadow-slate-900/[0.08]",
 				s.border,
 			].join(" ")}
 		>
-			<svg
-				viewBox="0 0 20 20"
-				fill="currentColor"
-				className={`mt-0.5 h-5 w-5 flex-shrink-0 ${s.icon}`}
-				aria-hidden="true"
-			>
-				<path fillRule="evenodd" clipRule="evenodd" d={s.iconPath} />
-			</svg>
-
-			<p className="flex-1 text-sm font-medium text-slate-700">{toast.message}</p>
-
-			<button
-				type="button"
-				onClick={onDismiss}
-				aria-label="Cerrar notificación"
-				className="mt-0.5 flex-shrink-0 text-slate-400 transition-colors hover:text-slate-600"
-			>
-				<svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
-					<path d={ICON_CLOSE} />
+			<div className="flex items-start gap-3 px-4 py-3">
+				<svg
+					viewBox="0 0 20 20"
+					fill="currentColor"
+					className={`mt-0.5 h-5 w-5 flex-shrink-0 ${s.icon}`}
+					aria-hidden="true"
+				>
+					<path fillRule="evenodd" clipRule="evenodd" d={s.iconPath} />
 				</svg>
-			</button>
+
+				<p className="flex-1 text-sm font-medium text-slate-700">{toast.message}</p>
+
+				<button
+					type="button"
+					onClick={onDismiss}
+					aria-label="Cerrar notificación"
+					className="mt-0.5 flex-shrink-0 text-slate-400 transition-colors hover:text-slate-600"
+				>
+					<svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+						<path d={ICON_CLOSE} />
+					</svg>
+				</button>
+			</div>
+
+			{toast.showProgress ? (
+				<div aria-hidden="true" className="h-1 w-full bg-slate-100">
+					<div
+						ref={progressRef}
+						className={`h-full ${toast.type === "error" ? "bg-red-500" : toast.type === "success" ? "bg-emerald-500" : "bg-blue-500"}`}
+					/>
+				</div>
+			) : null}
 		</div>
 	);
 }
@@ -108,17 +146,31 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 		setToasts((prev) => prev.filter((t) => t.id !== id));
 	}, []);
 
-	const showToast = useCallback(
-		(message: string, type: ToastType = "info") => {
+	const enqueueToast = useCallback(
+		(message: string, type: ToastType, durationMs: number, showProgress: boolean) => {
 			const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-			setToasts((prev) => [{ id, message, type }, ...prev]);
-			setTimeout(() => dismiss(id), 4500);
+			setToasts((prev) => [{ id, message, type, durationMs, showProgress }, ...prev]);
+			setTimeout(() => dismiss(id), durationMs);
 		},
 		[dismiss],
 	);
 
+	const showToast = useCallback(
+		(message: string, type: ToastType = "info") => {
+			enqueueToast(message, type, DEFAULT_TOAST_DURATION_MS, false);
+		},
+		[enqueueToast],
+	);
+
+	const showTimedToast = useCallback(
+		(message: string, type: ToastType = "info") => {
+			enqueueToast(message, type, TIMED_TOAST_DURATION_MS, true);
+		},
+		[enqueueToast],
+	);
+
 	return (
-		<ToastContext.Provider value={{ showToast }}>
+		<ToastContext.Provider value={{ showToast, showTimedToast }}>
 			{children}
 			<div
 				aria-live="polite"
