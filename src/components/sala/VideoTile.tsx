@@ -1,71 +1,116 @@
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useReducer, useRef } from "react";
 import { sala as copy } from "../../copy/es";
 import type { VideoTileParticipant } from "../../types/media";
+import VideoTileAvatar from "./VideoTileAvatar";
 import VideoTileSkeleton from "./VideoTileSkeleton";
 
 interface VideoTileProps {
 	participant: VideoTileParticipant;
-	aspectClassName?: string;
+	layoutClassName?: string;
+	compact?: boolean;
 }
 
-const VideoTile = ({ participant, aspectClassName = "aspect-video" }: VideoTileProps) => {
-	const videoRef = useRef<HTMLVideoElement>(null);
-	const { displayName, isLocal, stream, status } = participant;
-	const hasVideoTrack = Boolean(
-		stream?.getVideoTracks().some((track) => track.enabled && track.readyState === "live"),
+function streamHasLiveVideo(stream: MediaStream | null): boolean {
+	return Boolean(
+		stream
+			?.getVideoTracks()
+			.some((track) => track.enabled && !track.muted && track.readyState === "live"),
 	);
+}
+
+const VideoTile = ({
+	participant,
+	layoutClassName = "min-h-0 min-w-0 h-full w-full",
+	compact = false,
+}: VideoTileProps) => {
+	const videoRef = useRef<HTMLVideoElement>(null);
+	const { displayName, isLocal, stream, status, avatarUrl } = participant;
+	const [, bumpTrackRevision] = useReducer((count: number) => count + 1, 0);
+	const hasVideoTrack = streamHasLiveVideo(stream);
+
+	useEffect(() => {
+		if (!stream) return;
+
+		const videoTracks = stream.getVideoTracks();
+		for (const track of videoTracks) {
+			track.addEventListener("ended", bumpTrackRevision);
+			track.addEventListener("mute", bumpTrackRevision);
+			track.addEventListener("unmute", bumpTrackRevision);
+		}
+
+		return () => {
+			for (const track of videoTracks) {
+				track.removeEventListener("ended", bumpTrackRevision);
+				track.removeEventListener("mute", bumpTrackRevision);
+				track.removeEventListener("unmute", bumpTrackRevision);
+			}
+		};
+	}, [stream]);
 
 	useEffect(() => {
 		const video = videoRef.current;
-		if (!video) return;
+		if (!video || !stream) return;
 
 		video.srcObject = stream;
-		if (stream) {
-			void video.play().catch(() => {});
-		}
+		void video.play().catch(() => {});
 
 		return () => {
 			video.srcObject = null;
 		};
 	}, [stream]);
 
+	const shellClass = [
+		"relative overflow-hidden rounded-xl bg-slate-900",
+		isLocal ? "ring-2 ring-blue-500" : "ring-1 ring-slate-800",
+		layoutClassName,
+	].join(" ");
+
 	if (status === "connecting") {
 		return (
-			<div className={["min-h-0 w-full", aspectClassName].join(" ")}>
-				<VideoTileSkeleton displayName={displayName} />
+			<div className={shellClass}>
+				<VideoTileSkeleton displayName={displayName} compact={compact} />
 			</div>
 		);
 	}
 
+	const showAvatar = !hasVideoTrack;
+
 	return (
-		<div
-			className={[
-				"relative min-h-0 w-full overflow-hidden rounded-xl bg-slate-900",
-				isLocal ? "ring-2 ring-blue-500" : "ring-1 ring-slate-800",
-				aspectClassName,
-			].join(" ")}
-		>
-			{stream && hasVideoTrack ? (
-				// Live WebRTC streams do not ship caption tracks.
+		<div className={shellClass}>
+			{stream ? (
+				// Keep the media element mounted for audio when video is off.
 				// eslint-disable-next-line jsx-a11y/media-has-caption
 				<video
 					ref={videoRef}
 					autoPlay
 					playsInline
 					muted={isLocal}
-					className="h-full w-full object-cover"
+					className={hasVideoTrack ? "h-full w-full object-cover" : "hidden"}
 				/>
-			) : (
-				<div className="flex h-full w-full items-center justify-center bg-slate-900 text-sm text-slate-500">
-					{copy.videoGrid.cameraOff}
-				</div>
-			)}
+			) : null}
 
-			<div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
-				<div className="flex items-center gap-1.5">
-					<span className="max-w-full truncate text-xs font-medium text-white">{displayName}</span>
+			{showAvatar ? (
+				<VideoTileAvatar displayName={displayName} avatarUrl={avatarUrl} compact={compact} />
+			) : null}
+
+			<div
+				className={[
+					"pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent",
+					compact ? "px-2 pb-2 pt-6" : "px-3 pb-3 pt-8",
+				].join(" ")}
+			>
+				<div className="flex min-w-0 items-center gap-1.5">
+					<span
+						className={[
+							"min-w-0 flex-1 truncate font-medium text-white drop-shadow-sm",
+							compact ? "text-[10px] leading-tight sm:text-xs" : "text-xs sm:text-sm",
+						].join(" ")}
+						title={displayName}
+					>
+						{displayName}
+					</span>
 					{isLocal && (
-						<span className="rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+						<span className="flex-shrink-0 rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
 							{copy.videoGrid.youLabel}
 						</span>
 					)}

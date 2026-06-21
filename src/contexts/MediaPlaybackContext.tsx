@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 
 interface MediaPlaybackContextValue {
 	/** True after the user clicked "Entrar a sala" in the lobby. */
@@ -13,11 +13,9 @@ interface MediaPlaybackProviderProps {
 }
 
 export function MediaPlaybackProvider({ playbackUnlocked, children }: MediaPlaybackProviderProps) {
-	return (
-		<MediaPlaybackContext.Provider value={{ playbackUnlocked }}>
-			{children}
-		</MediaPlaybackContext.Provider>
-	);
+	const value = useMemo(() => ({ playbackUnlocked }), [playbackUnlocked]);
+
+	return <MediaPlaybackContext.Provider value={value}>{children}</MediaPlaybackContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

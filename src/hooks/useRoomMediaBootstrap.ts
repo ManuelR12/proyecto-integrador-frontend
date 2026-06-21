@@ -1,6 +1,14 @@
 import { useEffect } from "react";
 import { useRoomStore } from "../stores/useRoomStore";
 
+async function acquireLocalMedia(): Promise<MediaStream> {
+	try {
+		return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+	} catch {
+		return await navigator.mediaDevices.getUserMedia({ audio: true });
+	}
+}
+
 /** Acquires local media and writes stream state into the room store only. */
 export function useRoomMediaBootstrap(enabled: boolean) {
 	useEffect(() => {
@@ -12,8 +20,7 @@ export function useRoomMediaBootstrap(enabled: boolean) {
 		let stream: MediaStream | null = null;
 		let cancelled = false;
 
-		void navigator.mediaDevices
-			.getUserMedia({ video: true, audio: true })
+		void acquireLocalMedia()
 			.then((mediaStream) => {
 				if (cancelled) {
 					mediaStream.getTracks().forEach((track) => track.stop());
@@ -28,7 +35,8 @@ export function useRoomMediaBootstrap(enabled: boolean) {
 				if (!cancelled) {
 					const nextStore = useRoomStore.getState();
 					nextStore.setLocalStream(null);
-					nextStore.setLocalStatus("failed");
+					// Connected without media so the tile shows the avatar, not the skeleton.
+					nextStore.setLocalStatus("connected");
 				}
 			});
 

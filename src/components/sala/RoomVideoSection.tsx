@@ -1,7 +1,8 @@
-import { memo, useEffect } from "react";
+import { memo, useLayoutEffect } from "react";
 import { useMediaPlayback } from "../../contexts/MediaPlaybackContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRoomMediaBootstrap } from "../../hooks/useRoomMediaBootstrap";
+import { useRoomWebRtc } from "../../hooks/useRoomWebRtc";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useRoomStore } from "../../stores/useRoomStore";
 import RoomMediaStage from "./RoomMediaStage";
@@ -12,21 +13,28 @@ interface RoomVideoSectionProps {
 
 const RoomVideoSection = ({ roomId }: RoomVideoSectionProps) => {
 	const { user } = useAuth();
-	const { displayName } = useUserProfile();
+	const { displayName, avatarUrl } = useUserProfile();
 	const { playbackUnlocked } = useMediaPlayback();
+	const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
+	const currentAvatarUrl = avatarUrl ?? user?.photoURL ?? null;
+	const currentUserId = user?.uid ?? "local";
+
+	useLayoutEffect(() => {
+		useRoomStore.getState().setSessionIdentity(currentUserId, currentDisplayName, currentAvatarUrl);
+	}, [currentAvatarUrl, currentDisplayName, currentUserId]);
 
 	useRoomMediaBootstrap(playbackUnlocked);
-
-	useEffect(() => {
-		const currentDisplayName = displayName ?? user?.displayName ?? user?.email ?? "Tú";
-		useRoomStore.getState().setSessionIdentity(user?.uid ?? "local", currentDisplayName);
-	}, [displayName, user?.displayName, user?.email, user?.uid]);
+	useRoomWebRtc(roomId, playbackUnlocked);
 
 	if (!playbackUnlocked) {
 		return null;
 	}
 
-	return <RoomMediaStage roomId={roomId} />;
+	return (
+		<div className="flex min-h-0 w-full flex-1 flex-col">
+			<RoomMediaStage roomId={roomId} />
+		</div>
+	);
 };
 
 export default memo(RoomVideoSection);
