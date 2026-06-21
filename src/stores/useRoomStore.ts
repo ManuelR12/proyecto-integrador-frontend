@@ -34,7 +34,17 @@ const initialState = {
 export const useRoomStore = create<RoomState>((set, get) => ({
 	...initialState,
 	setSessionIdentity: (currentUserId, currentDisplayName, avatarUrl = null) =>
-		set({ currentUserId, currentDisplayName, currentAvatarUrl: avatarUrl ?? null }),
+		set((state) => {
+			const nextAvatar = avatarUrl ?? null;
+			if (
+				state.currentUserId === currentUserId &&
+				state.currentDisplayName === currentDisplayName &&
+				state.currentAvatarUrl === nextAvatar
+			) {
+				return state;
+			}
+			return { currentUserId, currentDisplayName, currentAvatarUrl: nextAvatar };
+		}),
 	setParticipants: (participants) => set({ participants }),
 	addParticipant: (participant) =>
 		set((state) =>
