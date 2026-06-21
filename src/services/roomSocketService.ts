@@ -1,5 +1,6 @@
 import { io, type Socket } from "socket.io-client";
 import { getIdToken } from "../lib/authToken";
+import { logIce, summarizeIceCandidate } from "../lib/webrtcIceLogger";
 import type { ChatMessage, SocketParticipant } from "../types/room";
 import type {
 	CallEndedPayload,
@@ -145,6 +146,11 @@ export function createRoomSocket(
 
 			socket.on("incoming_ice_candidate", (payload: IncomingIceCandidatePayload) => {
 				if (payload.roomId === undefined || payload.roomId === roomId) {
+					logIce(
+						payload.fromUid,
+						"signaling candidate received",
+						summarizeIceCandidate(payload.candidate),
+					);
 					handlers.onIncomingIceCandidate?.(payload);
 				}
 			});
@@ -174,6 +180,7 @@ export function createRoomSocket(
 		},
 		sendWebRtcIceCandidate(targetUid: string, candidate: RTCIceCandidateInit) {
 			if (!socket?.connected) return;
+			logIce(targetUid, "signaling candidate sent", summarizeIceCandidate(candidate));
 			socket.emit("webrtc_ice_candidate", { targetUid, roomId, candidate });
 		},
 		endCall() {

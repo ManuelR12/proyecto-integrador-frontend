@@ -24,9 +24,10 @@ const VideoTile = ({
 	compact = false,
 }: VideoTileProps) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
-	const { displayName, isLocal, stream, status, avatarUrl } = participant;
+	const { displayName, isLocal, stream, status, avatarUrl, videoEnabled } = participant;
 	const [, bumpTrackRevision] = useReducer((count: number) => count + 1, 0);
-	const hasVideoTrack = streamHasLiveVideo(stream);
+	const hasLiveVideoTrack = streamHasLiveVideo(stream);
+	const showVideo = videoEnabled && hasLiveVideoTrack;
 
 	useEffect(() => {
 		if (!stream) return;
@@ -73,7 +74,7 @@ const VideoTile = ({
 		);
 	}
 
-	const showAvatar = !hasVideoTrack;
+	const showAvatar = !showVideo;
 
 	return (
 		<div className={shellClass}>
@@ -85,7 +86,7 @@ const VideoTile = ({
 					autoPlay
 					playsInline
 					muted={isLocal}
-					className={hasVideoTrack ? "h-full w-full object-cover" : "hidden"}
+					className={showVideo ? "h-full w-full object-cover" : "hidden"}
 				/>
 			) : null}
 

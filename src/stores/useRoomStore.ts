@@ -1,4 +1,9 @@
 import { create } from "zustand";
+import {
+	bindRemoteStreamVideoState,
+	unbindRemoteStreamVideoState,
+} from "../lib/remoteStreamVideoState";
+import { getActivePeerManager } from "../lib/roomWebRtcRef";
 import type { VideoTileStatus } from "../types/media";
 import type { SocketParticipant } from "../types/room";
 
@@ -13,6 +18,7 @@ interface RoomState {
 	hasLocalAudioTrack: boolean;
 	localVideoEnabled: boolean;
 	localAudioEnabled: boolean;
+	remoteVideoEnabledByUid: Record<string, boolean>;
 	remoteStreamsByUid: Record<string, MediaStream>;
 	setSessionIdentity: (userId: string, displayName: string, avatarUrl?: string | null) => void;
 	setParticipants: (participants: SocketParticipant[]) => void;
@@ -20,6 +26,7 @@ interface RoomState {
 	removeParticipant: (uid: string) => void;
 	setLocalStream: (stream: MediaStream | null) => void;
 	setLocalStatus: (status: VideoTileStatus) => void;
+	setRemoteVideoEnabled: (uid: string, videoEnabled: boolean) => void;
 	toggleLocalVideo: () => void;
 	toggleLocalAudio: () => void;
 	registerRemoteStream: (uid: string, stream: MediaStream) => void;
@@ -38,6 +45,7 @@ const initialState = {
 	hasLocalAudioTrack: false,
 	localVideoEnabled: false,
 	localAudioEnabled: false,
+	remoteVideoEnabledByUid: {} as Record<string, boolean>,
 	remoteStreamsByUid: {} as Record<string, MediaStream>,
 };
 
@@ -76,13 +84,17 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		),
 	removeParticipant: (uid) =>
 		set((state) => {
+			unbindRemoteStreamVideoState(uid);
 			const remoteStream = state.remoteStreamsByUid[uid];
 			remoteStream?.getTracks().forEach((track) => track.stop());
 			const remoteStreamsByUid = { ...state.remoteStreamsByUid };
+			const remoteVideoEnabledByUid = { ...state.remoteVideoEnabledByUid };
 			delete remoteStreamsByUid[uid];
+			delete remoteVideoEnabledByUid[uid];
 			return {
 				participants: state.participants.filter((entry) => entry.uid !== uid),
 				remoteStreamsByUid,
+				remoteVideoEnabledByUid,
 			};
 		}),
 	setLocalStream: (localStream) => set({ localStream, ...localMediaFlagsFromStream(localStream) }),
@@ -92,8 +104,10 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		const track = localStream?.getVideoTracks()[0];
 		if (!track) return;
 
-		track.enabled = !track.enabled;
-		set({ localVideoEnabled: track.enabled });
+		const nextEnabled = !track.enabled;
+		track.enabled = nextEnabled;
+		getActivePeerManager()?.setLocalVideoEnabled(nextEnabled);
+		set({ localVideoEnabled: nextEnabled });
 	},
 	toggleLocalAudio: () => {
 		const { localStream } = get();
@@ -103,23 +117,40 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		track.enabled = !track.enabled;
 		set({ localAudioEnabled: track.enabled });
 	},
-	registerRemoteStream: (uid, stream) =>
+	registerRemoteStream: (uid, stream) => {
+		bindRemoteStreamVideoState(uid, stream, (videoEnabled) => {
+			get().setRemoteVideoEnabled(uid, videoEnabled);
+		});
 		set((state) => ({
 			remoteStreamsByUid: { ...state.remoteStreamsByUid, [uid]: stream },
-		})),
+		}));
+	},
+	setRemoteVideoEnabled: (uid, videoEnabled) =>
+		set((state) => {
+			if (state.remoteVideoEnabledByUid[uid] === videoEnabled) return state;
+			return {
+				remoteVideoEnabledByUid: { ...state.remoteVideoEnabledByUid, [uid]: videoEnabled },
+			};
+		}),
 	removeRemoteStream: (uid) => {
 		const existing = get().remoteStreamsByUid[uid];
 		if (!existing) return;
+		unbindRemoteStreamVideoState(uid);
 		existing.getTracks().forEach((track) => track.stop());
 		set((state) => {
 			const next = { ...state.remoteStreamsByUid };
+			const remoteVideoEnabledByUid = { ...state.remoteVideoEnabledByUid };
 			delete next[uid];
-			return { remoteStreamsByUid: next };
+			delete remoteVideoEnabledByUid[uid];
+			return { remoteStreamsByUid: next, remoteVideoEnabledByUid };
 		});
 	},
 	reset: () => {
 		const { localStream, remoteStreamsByUid } = get();
 		localStream?.getTracks().forEach((track) => track.stop());
+		for (const uid of Object.keys(remoteStreamsByUid)) {
+			unbindRemoteStreamVideoState(uid);
+		}
 		Object.values(remoteStreamsByUid).forEach((stream) => {
 			stream.getTracks().forEach((track) => track.stop());
 		});
