@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { formatChatConnectionError } from "./useRoomChatSync";
+import { getActivePeerManager } from "../lib/roomWebRtcRef";
 import { createRoomSocket } from "../services/roomSocketService";
 import { getActiveRoomSocket, setActiveRoomSocket } from "../lib/roomSessionSocketRef";
 import { useChatStore } from "../stores/useChatStore";
@@ -24,6 +25,7 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 				chatStore.setConnectionError(null);
 				chatStore.setConnected(true);
 				roomStore.setParticipants(payload.participants ?? []);
+				getActivePeerManager()?.connectToExistingParticipants(payload.participants ?? []);
 			},
 			onDisconnect: () => {
 				chatStore.setConnected(false);
@@ -36,7 +38,20 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 				roomStore.addParticipant(participant);
 			},
 			onParticipantLeft: (participant) => {
+				getActivePeerManager()?.removePeer(participant.uid);
 				roomStore.removeParticipant(participant.uid);
+			},
+			onIncomingOffer: (payload) => {
+				void getActivePeerManager()?.handleIncomingOffer(payload.fromUid, payload.sdp);
+			},
+			onIncomingAnswer: (payload) => {
+				void getActivePeerManager()?.handleIncomingAnswer(payload.fromUid, payload.sdp);
+			},
+			onIncomingIceCandidate: (payload) => {
+				void getActivePeerManager()?.handleIncomingIceCandidate(payload.fromUid, payload.candidate);
+			},
+			onCallEnded: (payload) => {
+				getActivePeerManager()?.removePeer(payload.fromUid);
 			},
 		});
 
