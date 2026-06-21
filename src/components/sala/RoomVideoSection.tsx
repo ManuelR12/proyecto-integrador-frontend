@@ -20,9 +20,7 @@ const RoomVideoSection = ({ roomId }: RoomVideoSectionProps) => {
 	const currentUserId = user?.uid ?? "local";
 
 	useLayoutEffect(() => {
-		useRoomStore
-			.getState()
-			.setSessionIdentity(currentUserId, currentDisplayName, currentAvatarUrl);
+		useRoomStore.getState().setSessionIdentity(currentUserId, currentDisplayName, currentAvatarUrl);
 	}, [currentAvatarUrl, currentDisplayName, currentUserId]);
 
 	useRoomMediaBootstrap(playbackUnlocked);

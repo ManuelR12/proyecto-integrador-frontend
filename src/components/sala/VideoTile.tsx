@@ -12,9 +12,9 @@ interface VideoTileProps {
 
 function streamHasLiveVideo(stream: MediaStream | null): boolean {
 	return Boolean(
-		stream?.getVideoTracks().some(
-			(track) => track.enabled && !track.muted && track.readyState === "live",
-		),
+		stream
+			?.getVideoTracks()
+			.some((track) => track.enabled && !track.muted && track.readyState === "live"),
 	);
 }
 
