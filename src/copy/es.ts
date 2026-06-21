@@ -256,6 +256,7 @@ export const sala = {
 		camOff: "Desactivar cámara",
 		micUnavailable: "Micrófono no disponible",
 		camUnavailable: "Cámara no disponible",
+		permissionsRequired: "Tienes que activar los permisos de cámara y micrófono antes de usarlos.",
 		compartirPantalla: "Compartir pantalla",
 		salir: "Salir",
 	},
