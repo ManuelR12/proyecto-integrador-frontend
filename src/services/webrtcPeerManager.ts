@@ -1,4 +1,5 @@
 import { WEBRTC_ICE_SERVERS } from "../lib/webrtcConfig";
+import { logIce, summarizeIceCandidate } from "../lib/webrtcIceLogger";
 import { useRoomStore } from "../stores/useRoomStore";
 import type { SocketParticipant } from "../types/room";
 
@@ -101,19 +102,34 @@ export class WebRtcPeerManager {
 			const queue = this.pendingIceCandidates.get(fromUid) ?? [];
 			queue.push(candidate);
 			this.pendingIceCandidates.set(fromUid, queue);
+			logIce(fromUid, "remote candidate buffered", {
+				queueSize: queue.length,
+				...summarizeIceCandidate(candidate),
+			});
 			return;
 		}
 
 		try {
 			await peer.addIceCandidate(candidate);
+			logIce(fromUid, "remote candidate added", summarizeIceCandidate(candidate));
 		} catch (error) {
 			console.error("[WebRTC] failed to add ICE candidate from", fromUid, error);
+			logIce(fromUid, "remote candidate add failed", {
+				...summarizeIceCandidate(candidate),
+				error: error instanceof Error ? error.message : String(error),
+			});
 		}
 	}
 
 	removePeer(remoteUid: string): void {
 		const peer = this.peers.get(remoteUid);
 		if (!peer) return;
+
+		logIce(remoteUid, "peer removed", {
+			connectionState: peer.connectionState,
+			iceConnectionState: peer.iceConnectionState,
+			iceGatheringState: peer.iceGatheringState,
+		});
 
 		peer.close();
 		this.peers.delete(remoteUid);
@@ -139,6 +155,11 @@ export class WebRtcPeerManager {
 
 		const peer = new RTCPeerConnection(WEBRTC_ICE_SERVERS);
 
+		logIce(remoteUid, "peer connection created", {
+			initiator: options.initiator,
+			iceServers: WEBRTC_ICE_SERVERS.iceServers?.length ?? 0,
+		});
+
 		if (this.localStream) {
 			this.syncLocalTracks(peer, this.localStream);
 			this.syncVideoSender(peer);
@@ -150,11 +171,27 @@ export class WebRtcPeerManager {
 		};
 
 		peer.onicecandidate = (event) => {
-			if (!event.candidate) return;
-			this.signaling.sendIceCandidate(remoteUid, event.candidate.toJSON());
+			if (!event.candidate) {
+				logIce(remoteUid, "local gathering complete", {
+					iceGatheringState: peer.iceGatheringState,
+				});
+				return;
+			}
+			const candidate = event.candidate.toJSON();
+			logIce(remoteUid, "local candidate gathered", summarizeIceCandidate(candidate));
+			this.signaling.sendIceCandidate(remoteUid, candidate);
+		};
+
+		peer.onicegatheringstatechange = () => {
+			logIce(remoteUid, "ice gathering state", { state: peer.iceGatheringState });
+		};
+
+		peer.oniceconnectionstatechange = () => {
+			logIce(remoteUid, "ice connection state", { state: peer.iceConnectionState });
 		};
 
 		peer.onconnectionstatechange = () => {
+			logIce(remoteUid, "connection state", { state: peer.connectionState });
 			if (peer.connectionState === "failed" || peer.connectionState === "closed") {
 				this.removePeer(remoteUid);
 			}
@@ -184,12 +221,19 @@ export class WebRtcPeerManager {
 		const queue = this.pendingIceCandidates.get(fromUid);
 		if (!queue?.length) return;
 
+		logIce(fromUid, "flushing buffered remote candidates", { count: queue.length });
+
 		this.pendingIceCandidates.delete(fromUid);
 		for (const candidate of queue) {
 			try {
 				await peer.addIceCandidate(candidate);
+				logIce(fromUid, "buffered candidate added", summarizeIceCandidate(candidate));
 			} catch (error) {
 				console.error("[WebRTC] failed to flush ICE candidate from", fromUid, error);
+				logIce(fromUid, "buffered candidate add failed", {
+					...summarizeIceCandidate(candidate),
+					error: error instanceof Error ? error.message : String(error),
+				});
 			}
 		}
 	}
