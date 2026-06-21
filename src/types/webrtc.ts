@@ -23,3 +23,8 @@ export interface IncomingIceCandidatePayload {
 export interface CallEndedPayload {
 	fromUid: string;
 }
+
+/** Emitted when a peer disconnects abruptly (signaling server notification). */
+export interface UserDisconnectedPayload {
+	uid: string;
+}

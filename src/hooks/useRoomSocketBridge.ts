@@ -6,6 +6,11 @@ import { getActiveRoomSocket, setActiveRoomSocket } from "../lib/roomSessionSock
 import { useChatStore } from "../stores/useChatStore";
 import { useRoomStore } from "../stores/useRoomStore";
 
+function forceRemoveParticipant(uid: string): void {
+	getActivePeerManager()?.removePeer(uid);
+	useRoomStore.getState().removeParticipant(uid);
+}
+
 /**
  * Maintains the room socket and routes chat events to useChatStore and
  * participant/WebRTC roster events to useRoomStore.
@@ -38,8 +43,10 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 				roomStore.addParticipant(participant);
 			},
 			onParticipantLeft: (participant) => {
-				getActivePeerManager()?.removePeer(participant.uid);
-				roomStore.removeParticipant(participant.uid);
+				forceRemoveParticipant(participant.uid);
+			},
+			onUserDisconnected: (payload) => {
+				forceRemoveParticipant(payload.uid);
 			},
 			onIncomingOffer: (payload) => {
 				void getActivePeerManager()?.handleIncomingOffer(payload.fromUid, payload.sdp);
@@ -51,7 +58,7 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 				void getActivePeerManager()?.handleIncomingIceCandidate(payload.fromUid, payload.candidate);
 			},
 			onCallEnded: (payload) => {
-				getActivePeerManager()?.removePeer(payload.fromUid);
+				forceRemoveParticipant(payload.fromUid);
 			},
 		});
 

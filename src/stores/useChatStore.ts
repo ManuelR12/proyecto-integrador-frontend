@@ -11,6 +11,21 @@ function sortMessages(messages: ChatMessage[]): ChatMessage[] {
 	});
 }
 
+function messagesEqual(a: ChatMessage[], b: ChatMessage[]): boolean {
+	if (a.length !== b.length) return false;
+	for (let i = 0; i < a.length; i++) {
+		if (
+			a[i].id !== b[i].id ||
+			a[i].text !== b[i].text ||
+			a[i].timestamp !== b[i].timestamp ||
+			a[i].sender_id !== b[i].sender_id
+		) {
+			return false;
+		}
+	}
+	return true;
+}
+
 interface ChatState {
 	messagesByRoom: Record<string, ChatMessage[]>;
 	loadedRooms: Record<string, true>;
@@ -37,13 +52,17 @@ const initialState = {
 export const useChatStore = create<ChatState>((set) => ({
 	...initialState,
 	setMessages: (roomId, messages) =>
-		set((state) => ({
-			messagesByRoom: { ...state.messagesByRoom, [roomId]: sortMessages(messages) },
-		})),
+		set((state) => {
+			const sorted = sortMessages(messages);
+			const existing = state.messagesByRoom[roomId];
+			if (existing && messagesEqual(existing, sorted)) return state;
+			return { messagesByRoom: { ...state.messagesByRoom, [roomId]: sorted } };
+		}),
 	markRoomLoaded: (roomId) =>
-		set((state) => ({
-			loadedRooms: { ...state.loadedRooms, [roomId]: true },
-		})),
+		set((state) => {
+			if (state.loadedRooms[roomId]) return state;
+			return { loadedRooms: { ...state.loadedRooms, [roomId]: true } };
+		}),
 	setConnected: (connected) => set({ connected }),
 	setConnectionError: (connectionError) => set({ connectionError }),
 	setDraft: (draft) => set({ draft }),
