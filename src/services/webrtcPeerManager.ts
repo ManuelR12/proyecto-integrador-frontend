@@ -166,10 +166,7 @@ export class WebRtcPeerManager {
 		}
 	}
 
-	private async flushPendingIceCandidates(
-		fromUid: string,
-		peer: RTCPeerConnection,
-	): Promise<void> {
+	private async flushPendingIceCandidates(fromUid: string, peer: RTCPeerConnection): Promise<void> {
 		const queue = this.pendingIceCandidates.get(fromUid);
 		if (!queue?.length) return;
 
