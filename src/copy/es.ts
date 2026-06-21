@@ -262,11 +262,14 @@ export const sala = {
 	participantes: (n: number) => `${n} participantes`,
 	lobby: {
 		title: "Pre-sala",
+		permissionHeading: "Recuerda activar los permisos de micrófono y cámara",
+		permissionDescription:
+			"Permite al Agora usar tu cámara y micrófono para que puedas compartir con otros invitados.",
+		closePermissionPrompt: "Cerrar",
 		subtitle: (roomName: string) => `Estás a punto de entrar a "${roomName}"`,
-		description:
-			"Para activar audio y video, el navegador requiere que confirmes tu entrada con un clic.",
 		enterRoom: "Entrar a sala",
 		backToDashboard: "Volver al dashboard",
+		micLevelLabel: "Nivel del micrófono",
 	},
 	videoGrid: {
 		youLabel: "Tú",
