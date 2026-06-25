@@ -9,4 +9,6 @@ export interface VideoTileParticipant {
 	avatarUrl?: string | null;
 	/** When false the tile shows the avatar fallback instead of the video element. */
 	videoEnabled: boolean;
+	/** When false a muted mic indicator is shown on remote tiles. */
+	audioEnabled: boolean;
 }

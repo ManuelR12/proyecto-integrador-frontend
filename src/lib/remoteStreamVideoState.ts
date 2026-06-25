@@ -2,7 +2,7 @@
 export function remoteStreamHasActiveVideo(stream: MediaStream | null): boolean {
 	const track = stream?.getVideoTracks()[0];
 	if (!track || track.readyState !== "live") return false;
-	return !track.muted;
+	return track.enabled && !track.muted && track.readyState === "live";
 }
 
 const cleanups = new Map<string, () => void>();

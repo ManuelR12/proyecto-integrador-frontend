@@ -6,12 +6,23 @@ import {
 	requestMediaTrack,
 } from "../lib/localMediaStream";
 import {
+	bindLocalStreamTrackState,
+	unbindLocalStreamTrackState,
+} from "../lib/localStreamTrackState";
+import {
 	bindRemoteStreamVideoState,
 	unbindRemoteStreamVideoState,
 } from "../lib/remoteStreamVideoState";
-import { getActivePeerManager } from "../lib/roomWebRtcRef";
+import { getActiveRoomSocket } from "../lib/roomSessionSocketRef";
 import type { VideoTileStatus } from "../types/media";
 import type { SocketParticipant } from "../types/room";
+
+export interface RemoteMediaState {
+	mic: boolean;
+	camera: boolean;
+}
+
+const DEFAULT_REMOTE_MEDIA: RemoteMediaState = { mic: true, camera: true };
 
 interface RoomState {
 	participants: SocketParticipant[];
@@ -25,6 +36,7 @@ interface RoomState {
 	localVideoEnabled: boolean;
 	localAudioEnabled: boolean;
 	remoteVideoEnabledByUid: Record<string, boolean>;
+	remoteMediaByUid: Record<string, RemoteMediaState>;
 	remoteStreamsByUid: Record<string, MediaStream>;
 	setSessionIdentity: (userId: string, displayName: string, avatarUrl?: string | null) => void;
 	setParticipants: (participants: SocketParticipant[]) => void;
@@ -33,6 +45,7 @@ interface RoomState {
 	setLocalStream: (stream: MediaStream | null) => void;
 	setLocalStatus: (status: VideoTileStatus) => void;
 	setRemoteVideoEnabled: (uid: string, videoEnabled: boolean) => void;
+	setRemoteMediaState: (uid: string, state: Partial<RemoteMediaState>) => void;
 	toggleLocalVideo: () => void;
 	toggleLocalAudio: () => void;
 	registerRemoteStream: (uid: string, stream: MediaStream) => void;
@@ -52,8 +65,20 @@ const initialState = {
 	localVideoEnabled: false,
 	localAudioEnabled: false,
 	remoteVideoEnabledByUid: {} as Record<string, boolean>,
+	remoteMediaByUid: {} as Record<string, RemoteMediaState>,
 	remoteStreamsByUid: {} as Record<string, MediaStream>,
 };
+
+function emitLocalMediaState(mic: boolean, camera: boolean): void {
+	getActiveRoomSocket()?.sendToggleMedia(mic, camera);
+}
+
+function syncLocalMediaFlags(
+	set: (partial: Partial<RoomState>) => void,
+	stream: MediaStream | null,
+) {
+	set(localMediaFlagsFromStream(stream));
+}
 
 export const useRoomStore = create<RoomState>((set, get) => ({
 	...initialState,
@@ -83,15 +108,31 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			remoteStream?.getTracks().forEach((track) => track.stop());
 			const remoteStreamsByUid = { ...state.remoteStreamsByUid };
 			const remoteVideoEnabledByUid = { ...state.remoteVideoEnabledByUid };
+			const remoteMediaByUid = { ...state.remoteMediaByUid };
 			delete remoteStreamsByUid[uid];
 			delete remoteVideoEnabledByUid[uid];
+			delete remoteMediaByUid[uid];
 			return {
 				participants: state.participants.filter((entry) => entry.uid !== uid),
 				remoteStreamsByUid,
 				remoteVideoEnabledByUid,
+				remoteMediaByUid,
 			};
 		}),
-	setLocalStream: (localStream) => set({ localStream, ...localMediaFlagsFromStream(localStream) }),
+	setLocalStream: (localStream) => {
+		const previous = get().localStream;
+		if (previous && previous !== localStream) {
+			unbindLocalStreamTrackState(previous);
+		}
+
+		if (localStream) {
+			bindLocalStreamTrackState(localStream, () => {
+				syncLocalMediaFlags(set, localStream);
+			});
+		}
+
+		set({ localStream, ...localMediaFlagsFromStream(localStream) });
+	},
 	setLocalStatus: (localStatus) => set({ localStatus }),
 	toggleLocalVideo: () => {
 		const { localStream } = get();
@@ -99,8 +140,9 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		if (track) {
 			const nextEnabled = !track.enabled;
 			track.enabled = nextEnabled;
-			getActivePeerManager()?.setLocalVideoEnabled(nextEnabled);
-			set({ localVideoEnabled: nextEnabled });
+			const nextState = { localVideoEnabled: nextEnabled };
+			set(nextState);
+			emitLocalMediaState(get().localAudioEnabled, nextEnabled);
 			return;
 		}
 
@@ -108,16 +150,19 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			if (!videoTrack) return;
 
 			const nextStream = attachTrackToLocalStream(get().localStream, videoTrack);
-			set({ localStream: nextStream, ...localMediaFlagsFromStream(nextStream) });
+			get().setLocalStream(nextStream);
 			applyLocalStreamUpdate(nextStream);
+			emitLocalMediaState(get().localAudioEnabled, true);
 		});
 	},
 	toggleLocalAudio: () => {
 		const { localStream } = get();
 		const track = localStream?.getAudioTracks()[0];
 		if (track) {
-			track.enabled = !track.enabled;
-			set({ localAudioEnabled: track.enabled });
+			const nextEnabled = !track.enabled;
+			track.enabled = nextEnabled;
+			set({ localAudioEnabled: nextEnabled });
+			emitLocalMediaState(nextEnabled, get().localVideoEnabled);
 			return;
 		}
 
@@ -125,8 +170,9 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			if (!audioTrack) return;
 
 			const nextStream = attachTrackToLocalStream(get().localStream, audioTrack);
-			set({ localStream: nextStream, ...localMediaFlagsFromStream(nextStream) });
+			get().setLocalStream(nextStream);
 			applyLocalStreamUpdate(nextStream);
+			emitLocalMediaState(true, get().localVideoEnabled);
 		});
 	},
 	registerRemoteStream: (uid, stream) => {
@@ -144,6 +190,17 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 				remoteVideoEnabledByUid: { ...state.remoteVideoEnabledByUid, [uid]: videoEnabled },
 			};
 		}),
+	setRemoteMediaState: (uid, partial) =>
+		set((state) => {
+			const current = state.remoteMediaByUid[uid] ?? DEFAULT_REMOTE_MEDIA;
+			const next = { ...current, ...partial };
+			if (current.mic === next.mic && current.camera === next.camera) {
+				return state;
+			}
+			return {
+				remoteMediaByUid: { ...state.remoteMediaByUid, [uid]: next },
+			};
+		}),
 	removeRemoteStream: (uid) => {
 		const existing = get().remoteStreamsByUid[uid];
 		if (!existing) return;
@@ -152,13 +209,16 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		set((state) => {
 			const next = { ...state.remoteStreamsByUid };
 			const remoteVideoEnabledByUid = { ...state.remoteVideoEnabledByUid };
+			const remoteMediaByUid = { ...state.remoteMediaByUid };
 			delete next[uid];
 			delete remoteVideoEnabledByUid[uid];
-			return { remoteStreamsByUid: next, remoteVideoEnabledByUid };
+			delete remoteMediaByUid[uid];
+			return { remoteStreamsByUid: next, remoteVideoEnabledByUid, remoteMediaByUid };
 		});
 	},
 	reset: () => {
 		const { localStream, remoteStreamsByUid } = get();
+		unbindLocalStreamTrackState(localStream);
 		localStream?.getTracks().forEach((track) => track.stop());
 		for (const uid of Object.keys(remoteStreamsByUid)) {
 			unbindRemoteStreamVideoState(uid);

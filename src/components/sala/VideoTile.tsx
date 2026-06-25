@@ -1,7 +1,8 @@
-import { memo, useEffect, useReducer, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import { sala as copy } from "../../copy/es";
 import type { VideoTileParticipant } from "../../types/media";
 import VideoTileAvatar from "./VideoTileAvatar";
+import VideoTileMediaIndicators from "./VideoTileMediaIndicators";
 import VideoTileSkeleton from "./VideoTileSkeleton";
 
 interface VideoTileProps {
@@ -10,55 +11,35 @@ interface VideoTileProps {
 	compact?: boolean;
 }
 
-function streamHasLiveVideo(stream: MediaStream | null): boolean {
-	return Boolean(
-		stream
-			?.getVideoTracks()
-			.some((track) => track.enabled && !track.muted && track.readyState === "live"),
-	);
-}
-
 const VideoTile = ({
 	participant,
 	layoutClassName = "min-h-0 min-w-0 h-full w-full",
 	compact = false,
 }: VideoTileProps) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
-	const { displayName, isLocal, stream, status, avatarUrl, videoEnabled } = participant;
-	const [, bumpTrackRevision] = useReducer((count: number) => count + 1, 0);
-	const hasLiveVideoTrack = streamHasLiveVideo(stream);
-	const showVideo = videoEnabled && hasLiveVideoTrack;
-
-	useEffect(() => {
-		if (!stream) return;
-
-		const videoTracks = stream.getVideoTracks();
-		for (const track of videoTracks) {
-			track.addEventListener("ended", bumpTrackRevision);
-			track.addEventListener("mute", bumpTrackRevision);
-			track.addEventListener("unmute", bumpTrackRevision);
-		}
-
-		return () => {
-			for (const track of videoTracks) {
-				track.removeEventListener("ended", bumpTrackRevision);
-				track.removeEventListener("mute", bumpTrackRevision);
-				track.removeEventListener("unmute", bumpTrackRevision);
-			}
-		};
-	}, [stream]);
+	const { displayName, isLocal, stream, status, avatarUrl, videoEnabled, audioEnabled } =
+		participant;
+	const showVideo = videoEnabled;
 
 	useEffect(() => {
 		const video = videoRef.current;
 		if (!video || !stream) return;
 
 		video.srcObject = stream;
-		void video.play().catch(() => {});
 
 		return () => {
 			video.srcObject = null;
 		};
 	}, [stream]);
+
+	useEffect(() => {
+		if (!showVideo) return;
+
+		const video = videoRef.current;
+		if (!video) return;
+
+		void video.play().catch(() => {});
+	}, [showVideo, stream]);
 
 	const shellClass = [
 		"relative overflow-hidden rounded-xl bg-slate-900",
@@ -74,25 +55,34 @@ const VideoTile = ({
 		);
 	}
 
-	const showAvatar = !showVideo;
-
 	return (
 		<div className={shellClass}>
-			{stream ? (
-				// Keep the media element mounted for audio when video is off.
-				// eslint-disable-next-line jsx-a11y/media-has-caption
-				<video
-					ref={videoRef}
-					autoPlay
-					playsInline
-					muted={isLocal}
-					className={showVideo ? "h-full w-full object-cover" : "hidden"}
-				/>
-			) : null}
+			<div className="relative h-full w-full">
+				{stream ? (
+					// Keep the media element mounted for audio when video is off.
+					// eslint-disable-next-line jsx-a11y/media-has-caption
+					<video
+						ref={videoRef}
+						autoPlay
+						playsInline
+						muted={isLocal}
+						className={showVideo ? "absolute inset-0 h-full w-full object-cover" : "hidden"}
+					/>
+				) : null}
 
-			{showAvatar ? (
-				<VideoTileAvatar displayName={displayName} avatarUrl={avatarUrl} compact={compact} />
-			) : null}
+				{!showVideo ? (
+					<div className="absolute inset-0">
+						<VideoTileAvatar displayName={displayName} avatarUrl={avatarUrl} compact={compact} />
+					</div>
+				) : null}
+			</div>
+
+			<VideoTileMediaIndicators
+				micEnabled={audioEnabled}
+				cameraEnabled={videoEnabled}
+				isLocal={isLocal}
+				compact={compact}
+			/>
 
 			<div
 				className={[

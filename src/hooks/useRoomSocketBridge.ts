@@ -60,6 +60,12 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 			onCallEnded: (payload) => {
 				forceRemoveParticipant(payload.fromUid);
 			},
+			onPeerMediaToggled: (payload) => {
+				roomStore.setRemoteMediaState(payload.uid, {
+					mic: payload.mic,
+					camera: payload.camera,
+				});
+			},
 		});
 
 		setActiveRoomSocket(socket);

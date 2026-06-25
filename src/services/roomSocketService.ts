@@ -7,6 +7,7 @@ import type {
 	IncomingAnswerPayload,
 	IncomingIceCandidatePayload,
 	IncomingOfferPayload,
+	PeerMediaToggledPayload,
 	UserDisconnectedPayload,
 } from "../types/webrtc";
 
@@ -32,6 +33,7 @@ export interface RoomSocketHandlers {
 	onIncomingAnswer?: (payload: IncomingAnswerPayload) => void;
 	onIncomingIceCandidate?: (payload: IncomingIceCandidatePayload) => void;
 	onCallEnded?: (payload: CallEndedPayload) => void;
+	onPeerMediaToggled?: (payload: PeerMediaToggledPayload) => void;
 }
 
 export interface RoomSocketController {
@@ -39,6 +41,7 @@ export interface RoomSocketController {
 	sendWebRtcOffer: (targetUid: string, sdp: RTCSessionDescriptionInit) => void;
 	sendWebRtcAnswer: (targetUid: string, sdp: RTCSessionDescriptionInit) => void;
 	sendWebRtcIceCandidate: (targetUid: string, candidate: RTCIceCandidateInit) => void;
+	sendToggleMedia: (mic: boolean, camera: boolean) => void;
 	endCall: () => void;
 	disconnect: () => void;
 }
@@ -158,6 +161,12 @@ export function createRoomSocket(
 			socket.on("call_ended", (payload: CallEndedPayload) => {
 				handlers.onCallEnded?.(payload);
 			});
+
+			socket.on("peer_media_toggled", (payload: PeerMediaToggledPayload) => {
+				if (typeof payload.uid !== "string") return;
+				if (typeof payload.mic !== "boolean" || typeof payload.camera !== "boolean") return;
+				handlers.onPeerMediaToggled?.(payload);
+			});
 		})
 		.catch(() => {
 			handlers.onError("Authentication failed");
@@ -182,6 +191,10 @@ export function createRoomSocket(
 			if (!socket?.connected) return;
 			logIce(targetUid, "signaling candidate sent", summarizeIceCandidate(candidate));
 			socket.emit("webrtc_ice_candidate", { targetUid, roomId, candidate });
+		},
+		sendToggleMedia(mic: boolean, camera: boolean) {
+			if (!socket?.connected) return;
+			socket.emit("toggle_media", { mic, camera });
 		},
 		endCall() {
 			if (!socket?.connected) return;

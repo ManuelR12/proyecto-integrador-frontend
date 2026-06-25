@@ -24,6 +24,13 @@ export interface CallEndedPayload {
 	fromUid: string;
 }
 
+/** Broadcast when a peer toggles mic or camera. */
+export interface PeerMediaToggledPayload {
+	uid: string;
+	mic: boolean;
+	camera: boolean;
+}
+
 /** Emitted when a peer disconnects abruptly (signaling server notification). */
 export interface UserDisconnectedPayload {
 	uid: string;
