@@ -24,7 +24,7 @@ export interface CallEndedPayload {
 	fromUid: string;
 }
 
-/** Client → server when local mic/camera state changes. */
+/** Client → server: minimal mic/camera snapshot (no user object; uid comes from socket auth). */
 export interface MediaStateChangedPayload {
 	room_id: string;
 	isMuted: boolean;

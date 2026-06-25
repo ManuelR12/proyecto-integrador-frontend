@@ -9,11 +9,11 @@ import {
 	bindLocalStreamTrackState,
 	unbindLocalStreamTrackState,
 } from "../lib/localStreamTrackState";
+import { cancelMediaStateEmit, scheduleMediaStateEmit } from "../lib/debouncedMediaStateEmitter";
 import {
 	bindRemoteStreamVideoState,
 	unbindRemoteStreamVideoState,
 } from "../lib/remoteStreamVideoState";
-import { getActiveRoomSocket } from "../lib/roomSessionSocketRef";
 import type { VideoTileStatus } from "../types/media";
 import type { SocketParticipant } from "../types/room";
 
@@ -81,10 +81,6 @@ function registerParticipantSockets(participants: SocketParticipant[]): Record<s
 		}
 	}
 	return uidBySocketId;
-}
-
-function emitLocalMediaState(micEnabled: boolean, cameraEnabled: boolean): void {
-	getActiveRoomSocket()?.sendMediaStateChanged(!micEnabled, !cameraEnabled);
 }
 
 function syncLocalMediaFlags(
@@ -182,7 +178,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			track.enabled = nextEnabled;
 			const nextState = { localVideoEnabled: nextEnabled };
 			set(nextState);
-			emitLocalMediaState(get().localAudioEnabled, nextEnabled);
+			scheduleMediaStateEmit();
 			return;
 		}
 
@@ -192,7 +188,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			const nextStream = attachTrackToLocalStream(get().localStream, videoTrack);
 			get().setLocalStream(nextStream);
 			applyLocalStreamUpdate(nextStream);
-			emitLocalMediaState(get().localAudioEnabled, true);
+			scheduleMediaStateEmit();
 		});
 	},
 	toggleLocalAudio: () => {
@@ -202,7 +198,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			const nextEnabled = !track.enabled;
 			track.enabled = nextEnabled;
 			set({ localAudioEnabled: nextEnabled });
-			emitLocalMediaState(nextEnabled, get().localVideoEnabled);
+			scheduleMediaStateEmit();
 			return;
 		}
 
@@ -212,7 +208,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			const nextStream = attachTrackToLocalStream(get().localStream, audioTrack);
 			get().setLocalStream(nextStream);
 			applyLocalStreamUpdate(nextStream);
-			emitLocalMediaState(true, get().localVideoEnabled);
+			scheduleMediaStateEmit();
 		});
 	},
 	registerRemoteStream: (uid, stream) => {
@@ -257,6 +253,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		});
 	},
 	reset: () => {
+		cancelMediaStateEmit();
 		const { localStream, remoteStreamsByUid } = get();
 		unbindLocalStreamTrackState(localStream);
 		localStream?.getTracks().forEach((track) => track.stop());

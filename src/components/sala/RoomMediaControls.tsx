@@ -7,6 +7,7 @@ import { CamOffIcon, CamOnIcon, MicOffIcon, MicOnIcon } from "./mediaControlIcon
 
 const TOGGLE_COOLDOWN_MS = 400;
 
+/** Short button cooldown protects local hardware; socket emits are debounced separately in the store. */
 interface MediaToggleButtonProps {
 	label: string;
 	active: boolean;

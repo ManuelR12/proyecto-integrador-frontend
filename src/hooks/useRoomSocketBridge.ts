@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { formatChatConnectionError } from "./useRoomChatSync";
+import { flushMediaStateEmit } from "../lib/debouncedMediaStateEmitter";
 import { getActivePeerManager } from "../lib/roomWebRtcRef";
 import { createRoomSocket } from "../services/roomSocketService";
 import { getActiveRoomSocket, setActiveRoomSocket } from "../lib/roomSessionSocketRef";
@@ -78,6 +79,7 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 		setActiveRoomSocket(socket);
 
 		return () => {
+			flushMediaStateEmit();
 			if (getActiveRoomSocket() === socket) {
 				setActiveRoomSocket(null);
 			}
