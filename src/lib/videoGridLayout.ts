@@ -1,4 +1,4 @@
-export type VideoGridLayoutPattern = "1x1" | "1x2" | "2x2" | "2x1" | "auto";
+export type VideoGridLayoutPattern = "1x1" | "1x2" | "2x2" | "2x1" | "auto" | "screenShare";
 
 export interface VideoGridLayout {
 	pattern: VideoGridLayoutPattern;
@@ -74,6 +74,45 @@ export function getVideoGridLayout(tileCount: number): VideoGridLayout {
 		pattern: "auto",
 		containerClass: "grid-cols-2 auto-rows-fr md:grid-cols-3 lg:grid-cols-4",
 		getTileClass: () => TILE_FILL,
+	};
+}
+
+const SIDE_ROW_SPAN: Record<number, string> = {
+	1: "row-span-1",
+	2: "row-span-2",
+	3: "row-span-3",
+	4: "row-span-4",
+	5: "row-span-5",
+	6: "row-span-6",
+};
+
+const SIDE_GRID_ROWS: Record<number, string> = {
+	1: "grid-rows-1",
+	2: "grid-rows-2",
+	3: "grid-rows-3",
+	4: "grid-rows-4",
+	5: "grid-rows-5",
+	6: "grid-rows-6",
+};
+
+/**
+ * Asymmetric layout for screen share: featured tile spans ~75% width; others stack in a side column.
+ */
+export function getScreenShareGridLayout(
+	tileCount: number,
+	featuredIndex: number,
+): VideoGridLayout {
+	const sideCount = Math.max(tileCount - 1, 1);
+	const rowSpan = SIDE_ROW_SPAN[Math.min(sideCount, 6)] ?? "row-span-6";
+	const gridRows = SIDE_GRID_ROWS[Math.min(sideCount, 6)] ?? "grid-rows-6";
+
+	return {
+		pattern: "screenShare",
+		containerClass: `grid-cols-4 ${gridRows}`,
+		getTileClass: (index) =>
+			index === featuredIndex
+				? `${TILE_FILL} col-span-3 ${rowSpan}`
+				: `${TILE_FILL} col-span-1 row-span-1`,
 	};
 }
 

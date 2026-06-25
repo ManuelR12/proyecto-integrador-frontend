@@ -51,3 +51,22 @@ export interface PeerMediaToggledPayload {
 export interface UserDisconnectedPayload {
 	uid: string;
 }
+
+export interface ScreenShareStartedPayload {
+	room_id: string;
+}
+
+export interface ScreenShareStoppedPayload {
+	room_id: string;
+}
+
+export interface PeerScreenShareChangedPayload {
+	room_id: string;
+	uid: string;
+	isSharing: boolean;
+}
+
+export interface ScreenShareDeniedPayload {
+	room_id: string;
+	activeUid: string;
+}

@@ -9,6 +9,8 @@ import type {
 	IncomingOfferPayload,
 	PeerMediaStateChangedPayload,
 	PeerMediaToggledPayload,
+	PeerScreenShareChangedPayload,
+	ScreenShareDeniedPayload,
 	UserDisconnectedPayload,
 } from "../types/webrtc";
 
@@ -20,6 +22,7 @@ export interface RoomJoinedPayload {
 	roomId: string;
 	isAdmin: boolean;
 	participants: SocketParticipant[];
+	activeScreenShareUid?: string | null;
 }
 
 export interface RoomSocketHandlers {
@@ -37,6 +40,8 @@ export interface RoomSocketHandlers {
 	onPeerMediaStateChanged?: (payload: PeerMediaStateChangedPayload) => void;
 	/** @deprecated Fallback while older servers still emit peer_media_toggled. */
 	onPeerMediaToggled?: (payload: PeerMediaToggledPayload) => void;
+	onPeerScreenShareChanged?: (payload: PeerScreenShareChangedPayload) => void;
+	onScreenShareDenied?: (payload: ScreenShareDeniedPayload) => void;
 }
 
 export interface RoomSocketController {
@@ -45,6 +50,8 @@ export interface RoomSocketController {
 	sendWebRtcAnswer: (targetUid: string, sdp: RTCSessionDescriptionInit) => void;
 	sendWebRtcIceCandidate: (targetUid: string, candidate: RTCIceCandidateInit) => void;
 	sendMediaStateChanged: (isMuted: boolean, isVideoOff: boolean) => void;
+	sendScreenShareStarted: () => void;
+	sendScreenShareStopped: () => void;
 	endCall: () => void;
 	disconnect: () => void;
 }
@@ -195,6 +202,18 @@ export function createRoomSocket(
 				if (typeof payload.mic !== "boolean" || typeof payload.camera !== "boolean") return;
 				handlers.onPeerMediaToggled?.(payload);
 			});
+
+			socket.on("peer_screen_share_changed", (payload: PeerScreenShareChangedPayload) => {
+				if (payload.room_id === roomId) {
+					handlers.onPeerScreenShareChanged?.(payload);
+				}
+			});
+
+			socket.on("screen_share_denied", (payload: ScreenShareDeniedPayload) => {
+				if (payload.room_id === roomId) {
+					handlers.onScreenShareDenied?.(payload);
+				}
+			});
 		})
 		.catch(() => {
 			handlers.onError("Authentication failed");
@@ -223,6 +242,14 @@ export function createRoomSocket(
 		sendMediaStateChanged(isMuted: boolean, isVideoOff: boolean) {
 			if (!socket?.connected) return;
 			socket.emit("media_state_changed", { room_id: roomId, isMuted, isVideoOff });
+		},
+		sendScreenShareStarted() {
+			if (!socket?.connected) return;
+			socket.emit("screen_share_started", { room_id: roomId });
+		},
+		sendScreenShareStopped() {
+			if (!socket?.connected) return;
+			socket.emit("screen_share_stopped", { room_id: roomId });
 		},
 		endCall() {
 			if (!socket?.connected) return;

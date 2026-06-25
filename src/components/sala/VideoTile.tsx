@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useReducer, useRef } from "react";
 import { sala as copy } from "../../copy/es";
 import type { VideoTileParticipant } from "../../types/media";
 import VideoTileAvatar from "./VideoTileAvatar";
@@ -11,15 +11,53 @@ interface VideoTileProps {
 	compact?: boolean;
 }
 
+function streamHasLiveVideo(stream: MediaStream | null): boolean {
+	return Boolean(
+		stream
+			?.getVideoTracks()
+			.some((track) => track.enabled && !track.muted && track.readyState === "live"),
+	);
+}
+
 const VideoTile = ({
 	participant,
 	layoutClassName = "min-h-0 min-w-0 h-full w-full",
 	compact = false,
 }: VideoTileProps) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
-	const { displayName, isLocal, stream, status, avatarUrl, videoEnabled, audioEnabled } =
-		participant;
-	const showVideo = videoEnabled;
+	const {
+		displayName,
+		isLocal,
+		stream,
+		status,
+		avatarUrl,
+		videoEnabled,
+		audioEnabled,
+		isScreenSharing,
+		isFeatured,
+	} = participant;
+	const [, bumpTrackRevision] = useReducer((count: number) => count + 1, 0);
+	const hasLiveVideoTrack = streamHasLiveVideo(stream);
+	const showVideo = (videoEnabled || isScreenSharing) && hasLiveVideoTrack;
+
+	useEffect(() => {
+		if (!stream) return;
+
+		const videoTracks = stream.getVideoTracks();
+		for (const track of videoTracks) {
+			track.addEventListener("ended", bumpTrackRevision);
+			track.addEventListener("mute", bumpTrackRevision);
+			track.addEventListener("unmute", bumpTrackRevision);
+		}
+
+		return () => {
+			for (const track of videoTracks) {
+				track.removeEventListener("ended", bumpTrackRevision);
+				track.removeEventListener("mute", bumpTrackRevision);
+				track.removeEventListener("unmute", bumpTrackRevision);
+			}
+		};
+	}, [stream]);
 
 	useEffect(() => {
 		const video = videoRef.current;
@@ -66,7 +104,14 @@ const VideoTile = ({
 						autoPlay
 						playsInline
 						muted={isLocal}
-						className={showVideo ? "absolute inset-0 h-full w-full object-cover" : "hidden"}
+						className={
+							showVideo
+								? [
+										"absolute inset-0 h-full w-full",
+										isFeatured && isScreenSharing ? "object-contain" : "object-cover",
+									].join(" ")
+								: "hidden"
+						}
 					/>
 				) : null}
 
@@ -79,10 +124,23 @@ const VideoTile = ({
 
 			<VideoTileMediaIndicators
 				micEnabled={audioEnabled}
-				cameraEnabled={videoEnabled}
+				cameraEnabled={videoEnabled && !isScreenSharing}
 				isLocal={isLocal}
 				compact={compact}
 			/>
+
+			{isScreenSharing ? (
+				<div className="pointer-events-none absolute left-2 top-2 z-10">
+					<span
+						className={[
+							"rounded bg-emerald-600/90 font-medium text-white shadow-sm",
+							compact ? "px-1.5 py-0.5 text-[9px]" : "px-2 py-1 text-[10px] sm:text-xs",
+						].join(" ")}
+					>
+						{copy.videoGrid.screenSharing}
+					</span>
+				</div>
+			) : null}
 
 			<div
 				className={[

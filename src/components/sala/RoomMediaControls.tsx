@@ -2,8 +2,15 @@ import { memo, useCallback, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useToast } from "../../contexts/ToastContext";
 import { sala as copy } from "../../copy/es";
-import { useRoomStore } from "../../stores/useRoomStore";
-import { CamOffIcon, CamOnIcon, MicOffIcon, MicOnIcon } from "./mediaControlIcons";
+import { selectCanStartScreenShare, useRoomStore } from "../../stores/useRoomStore";
+import {
+	CamOffIcon,
+	CamOnIcon,
+	MicOffIcon,
+	MicOnIcon,
+	ScreenShareIcon,
+	ScreenShareStopIcon,
+} from "./mediaControlIcons";
 
 const TOGGLE_COOLDOWN_MS = 400;
 
@@ -31,8 +38,7 @@ const MediaToggleButton = ({
 		aria-pressed={active}
 		aria-busy={disabled}
 		className={[
-			"inline-flex h-12 w-12 items-center justify-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500",
-			disabled ? "cursor-not-allowed opacity-50" : "",
+			"inline-flex h-12 w-12 items-center justify-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-50",
 			active
 				? "bg-slate-700 text-white hover:bg-slate-600"
 				: "bg-red-600/90 text-white hover:bg-red-500",
@@ -46,24 +52,34 @@ const RoomMediaControls = () => {
 	const { showTimedToast } = useToast();
 	const [audioBusy, setAudioBusy] = useState(false);
 	const [videoBusy, setVideoBusy] = useState(false);
+	const [screenShareBusy, setScreenShareBusy] = useState(false);
 	const audioTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const videoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const screenShareTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const {
 		hasLocalAudioTrack,
 		hasLocalVideoTrack,
 		localAudioEnabled,
 		localVideoEnabled,
+		localScreenSharing,
+		canStartScreenShare,
 		toggleLocalAudio,
 		toggleLocalVideo,
+		startScreenShare,
+		stopScreenShare,
 	} = useRoomStore(
 		useShallow((state) => ({
 			hasLocalAudioTrack: state.hasLocalAudioTrack,
 			hasLocalVideoTrack: state.hasLocalVideoTrack,
 			localAudioEnabled: state.localAudioEnabled,
 			localVideoEnabled: state.localVideoEnabled,
+			localScreenSharing: state.localScreenSharing,
+			canStartScreenShare: selectCanStartScreenShare(state),
 			toggleLocalAudio: state.toggleLocalAudio,
 			toggleLocalVideo: state.toggleLocalVideo,
+			startScreenShare: state.startScreenShare,
+			stopScreenShare: state.stopScreenShare,
 		})),
 	);
 
@@ -112,6 +128,24 @@ const RoomMediaControls = () => {
 		});
 	}, [hasLocalVideoTrack, notifyPermissionsRequired, runWithCooldown, toggleLocalVideo, videoBusy]);
 
+	const handleToggleScreenShare = useCallback(() => {
+		runWithCooldown(screenShareBusy, setScreenShareBusy, screenShareTimerRef, () => {
+			if (localScreenSharing) {
+				void stopScreenShare();
+				return;
+			}
+			void startScreenShare();
+		});
+	}, [localScreenSharing, runWithCooldown, screenShareBusy, startScreenShare, stopScreenShare]);
+
+	const screenShareBlocked = !localScreenSharing && !canStartScreenShare;
+	const screenShareDisabled = screenShareBusy || screenShareBlocked;
+	const screenShareLabel = localScreenSharing
+		? copy.controls.dejarCompartirPantalla
+		: screenShareBlocked
+			? copy.controls.screenShareUnavailable
+			: copy.controls.compartirPantalla;
+
 	return (
 		<div
 			role="toolbar"
@@ -134,6 +168,15 @@ const RoomMediaControls = () => {
 				onClick={handleToggleVideo}
 			>
 				{localVideoEnabled && hasLocalVideoTrack ? <CamOnIcon /> : <CamOffIcon />}
+			</MediaToggleButton>
+
+			<MediaToggleButton
+				label={screenShareLabel}
+				active={localScreenSharing}
+				disabled={screenShareDisabled}
+				onClick={handleToggleScreenShare}
+			>
+				{localScreenSharing ? <ScreenShareStopIcon /> : <ScreenShareIcon />}
 			</MediaToggleButton>
 		</div>
 	);

@@ -2,6 +2,10 @@ import { useEffect } from "react";
 import { formatChatConnectionError } from "./useRoomChatSync";
 import { emitMediaStateNow, flushMediaStateEmit } from "../lib/debouncedMediaStateEmitter";
 import { getActivePeerManager } from "../lib/roomWebRtcRef";
+import {
+	abortPendingScreenShare,
+	stopScreenShareSession,
+} from "../lib/screenShareSession";
 import { createRoomSocket } from "../services/roomSocketService";
 import { getActiveRoomSocket, setActiveRoomSocket } from "../lib/roomSessionSocketRef";
 import { useChatStore } from "../stores/useChatStore";
@@ -31,6 +35,7 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 				chatStore.setConnectionError(null);
 				chatStore.setConnected(true);
 				roomStore.setParticipants(payload.participants ?? []);
+				roomStore.setActiveScreenShareUid(payload.activeScreenShareUid ?? null);
 				getActivePeerManager()?.connectToExistingParticipants(payload.participants ?? []);
 				emitMediaStateNow(true);
 			},
@@ -75,6 +80,16 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 					mic: payload.mic,
 					camera: payload.camera,
 				});
+			},
+			onPeerScreenShareChanged: (payload) => {
+				roomStore.setActiveScreenShareUid(payload.isSharing ? payload.uid : null);
+			},
+			onScreenShareDenied: (payload) => {
+				abortPendingScreenShare();
+				roomStore.setActiveScreenShareUid(payload.activeUid);
+				if (roomStore.localScreenSharing) {
+					void stopScreenShareSession();
+				}
 			},
 		});
 
