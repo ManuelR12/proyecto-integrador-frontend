@@ -68,6 +68,7 @@ function isPeerMediaStateChangedPayload(payload: unknown): payload is PeerMediaS
 	const entry = payload as PeerMediaStateChangedPayload;
 	return (
 		typeof entry.room_id === "string" &&
+		typeof entry.uid === "string" &&
 		typeof entry.socket_id === "string" &&
 		typeof entry.isMuted === "boolean" &&
 		typeof entry.isVideoOff === "boolean"

@@ -61,16 +61,8 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 				forceRemoveParticipant(payload.fromUid);
 			},
 			onPeerMediaStateChanged: (payload) => {
-				let uid = payload.uid;
-				if (uid && payload.socket_id) {
-					roomStore.registerParticipantSocket(uid, payload.socket_id);
-				}
-				if (!uid) {
-					uid = roomStore.resolveUidFromSocketId(payload.socket_id);
-				}
-				if (!uid) return;
-
-				roomStore.setRemoteMediaState(uid, {
+				roomStore.registerParticipantSocket(payload.uid, payload.socket_id);
+				roomStore.setRemoteMediaState(payload.uid, {
 					mic: !payload.isMuted,
 					camera: !payload.isVideoOff,
 				});

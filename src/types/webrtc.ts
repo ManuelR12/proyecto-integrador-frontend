@@ -34,8 +34,8 @@ export interface MediaStateChangedPayload {
 /** Server → client when a remote peer changes mic/camera state. */
 export interface PeerMediaStateChangedPayload {
 	room_id: string;
+	uid: string;
 	socket_id: string;
-	uid?: string;
 	isMuted: boolean;
 	isVideoOff: boolean;
 }
