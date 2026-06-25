@@ -8,6 +8,7 @@ export interface SocketParticipant {
 	uid: string;
 	username: string;
 	avatarUrl?: string | null;
+	socketId?: string | null;
 }
 
 /** Room shape returned by GET/POST /rooms */

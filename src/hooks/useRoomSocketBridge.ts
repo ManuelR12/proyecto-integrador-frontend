@@ -60,6 +60,21 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 			onCallEnded: (payload) => {
 				forceRemoveParticipant(payload.fromUid);
 			},
+			onPeerMediaStateChanged: (payload) => {
+				let uid = payload.uid;
+				if (uid && payload.socket_id) {
+					roomStore.registerParticipantSocket(uid, payload.socket_id);
+				}
+				if (!uid) {
+					uid = roomStore.resolveUidFromSocketId(payload.socket_id);
+				}
+				if (!uid) return;
+
+				roomStore.setRemoteMediaState(uid, {
+					mic: !payload.isMuted,
+					camera: !payload.isVideoOff,
+				});
+			},
 			onPeerMediaToggled: (payload) => {
 				roomStore.setRemoteMediaState(payload.uid, {
 					mic: payload.mic,

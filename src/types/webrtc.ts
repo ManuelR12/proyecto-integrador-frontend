@@ -24,7 +24,23 @@ export interface CallEndedPayload {
 	fromUid: string;
 }
 
-/** Broadcast when a peer toggles mic or camera. */
+/** Client → server when local mic/camera state changes. */
+export interface MediaStateChangedPayload {
+	room_id: string;
+	isMuted: boolean;
+	isVideoOff: boolean;
+}
+
+/** Server → client when a remote peer changes mic/camera state. */
+export interface PeerMediaStateChangedPayload {
+	room_id: string;
+	socket_id: string;
+	uid?: string;
+	isMuted: boolean;
+	isVideoOff: boolean;
+}
+
+/** @deprecated Use PeerMediaStateChangedPayload via peer_media_state_changed. */
 export interface PeerMediaToggledPayload {
 	uid: string;
 	mic: boolean;

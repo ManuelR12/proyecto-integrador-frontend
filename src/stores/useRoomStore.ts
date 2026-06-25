@@ -38,10 +38,13 @@ interface RoomState {
 	remoteVideoEnabledByUid: Record<string, boolean>;
 	remoteMediaByUid: Record<string, RemoteMediaState>;
 	remoteStreamsByUid: Record<string, MediaStream>;
+	uidBySocketId: Record<string, string>;
 	setSessionIdentity: (userId: string, displayName: string, avatarUrl?: string | null) => void;
 	setParticipants: (participants: SocketParticipant[]) => void;
 	addParticipant: (participant: SocketParticipant) => void;
 	removeParticipant: (uid: string) => void;
+	registerParticipantSocket: (uid: string, socketId: string) => void;
+	resolveUidFromSocketId: (socketId: string) => string | undefined;
 	setLocalStream: (stream: MediaStream | null) => void;
 	setLocalStatus: (status: VideoTileStatus) => void;
 	setRemoteVideoEnabled: (uid: string, videoEnabled: boolean) => void;
@@ -67,10 +70,21 @@ const initialState = {
 	remoteVideoEnabledByUid: {} as Record<string, boolean>,
 	remoteMediaByUid: {} as Record<string, RemoteMediaState>,
 	remoteStreamsByUid: {} as Record<string, MediaStream>,
+	uidBySocketId: {} as Record<string, string>,
 };
 
-function emitLocalMediaState(mic: boolean, camera: boolean): void {
-	getActiveRoomSocket()?.sendToggleMedia(mic, camera);
+function registerParticipantSockets(participants: SocketParticipant[]): Record<string, string> {
+	const uidBySocketId: Record<string, string> = {};
+	for (const participant of participants) {
+		if (participant.socketId) {
+			uidBySocketId[participant.socketId] = participant.uid;
+		}
+	}
+	return uidBySocketId;
+}
+
+function emitLocalMediaState(micEnabled: boolean, cameraEnabled: boolean): void {
+	getActiveRoomSocket()?.sendMediaStateChanged(!micEnabled, !cameraEnabled);
 }
 
 function syncLocalMediaFlags(
@@ -94,13 +108,34 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			}
 			return { currentUserId, currentDisplayName, currentAvatarUrl: nextAvatar };
 		}),
-	setParticipants: (participants) => set({ participants }),
+	setParticipants: (participants) =>
+		set((state) => ({
+			participants,
+			uidBySocketId: {
+				...state.uidBySocketId,
+				...registerParticipantSockets(participants),
+			},
+		})),
 	addParticipant: (participant) =>
-		set((state) =>
-			state.participants.some((entry) => entry.uid === participant.uid)
-				? state
-				: { participants: [...state.participants, participant] },
-		),
+		set((state) => {
+			if (state.participants.some((entry) => entry.uid === participant.uid)) {
+				return state;
+			}
+			const uidBySocketId = { ...state.uidBySocketId };
+			if (participant.socketId) {
+				uidBySocketId[participant.socketId] = participant.uid;
+			}
+			return {
+				participants: [...state.participants, participant],
+				uidBySocketId,
+			};
+		}),
+	registerParticipantSocket: (uid, socketId) =>
+		set((state) => {
+			if (state.uidBySocketId[socketId] === uid) return state;
+			return { uidBySocketId: { ...state.uidBySocketId, [socketId]: uid } };
+		}),
+	resolveUidFromSocketId: (socketId) => get().uidBySocketId[socketId],
 	removeParticipant: (uid) =>
 		set((state) => {
 			unbindRemoteStreamVideoState(uid);
@@ -109,14 +144,19 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			const remoteStreamsByUid = { ...state.remoteStreamsByUid };
 			const remoteVideoEnabledByUid = { ...state.remoteVideoEnabledByUid };
 			const remoteMediaByUid = { ...state.remoteMediaByUid };
+			const uidBySocketId = { ...state.uidBySocketId };
 			delete remoteStreamsByUid[uid];
 			delete remoteVideoEnabledByUid[uid];
 			delete remoteMediaByUid[uid];
+			for (const [socketId, mappedUid] of Object.entries(uidBySocketId)) {
+				if (mappedUid === uid) delete uidBySocketId[socketId];
+			}
 			return {
 				participants: state.participants.filter((entry) => entry.uid !== uid),
 				remoteStreamsByUid,
 				remoteVideoEnabledByUid,
 				remoteMediaByUid,
+				uidBySocketId,
 			};
 		}),
 	setLocalStream: (localStream) => {
