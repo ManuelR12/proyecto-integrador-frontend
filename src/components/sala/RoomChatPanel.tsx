@@ -15,6 +15,7 @@ interface RoomChatPanelProps {
 	onDraftChange: (value: string) => void;
 	onSend: () => void;
 	onKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+	onHide?: () => void;
 }
 
 const UsersIcon = () => (
@@ -26,6 +27,12 @@ const UsersIcon = () => (
 const SendIcon = () => (
 	<svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
 		<path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+	</svg>
+);
+
+const CloseIcon = () => (
+	<svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+		<path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
 	</svg>
 );
 
@@ -41,6 +48,7 @@ const RoomChatPanel = ({
 	onDraftChange,
 	onSend,
 	onKeyDown,
+	onHide,
 }: RoomChatPanelProps) => {
 	const canSend = connected && !loadingHistory && draft.trim().length > 0;
 
@@ -55,9 +63,21 @@ const RoomChatPanel = ({
 							<p className="text-xs text-slate-500">{roomName}</p>
 						</div>
 					</div>
-					<span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-						{messages.length} msgs
-					</span>
+					<div className="flex items-center gap-2">
+						<span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+							{messages.length} msgs
+						</span>
+						{onHide ? (
+							<button
+								type="button"
+								onClick={onHide}
+								aria-label={copy.chatHide}
+								className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+							>
+								<CloseIcon />
+							</button>
+						) : null}
+					</div>
 				</div>
 			</div>
 

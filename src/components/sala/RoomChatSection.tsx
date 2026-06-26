@@ -12,9 +12,10 @@ interface RoomChatSectionProps {
 	roomId: string;
 	roomName: string;
 	currentUserId: string | undefined;
+	onHide?: () => void;
 }
 
-const RoomChatSection = ({ roomId, roomName, currentUserId }: RoomChatSectionProps) => {
+const RoomChatSection = ({ roomId, roomName, currentUserId, onHide }: RoomChatSectionProps) => {
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	const { messages, loadingHistory, connected, connectionError, draft } = useChatStore(
@@ -74,6 +75,7 @@ const RoomChatSection = ({ roomId, roomName, currentUserId }: RoomChatSectionPro
 			onDraftChange={handleDraftChange}
 			onSend={handleSend}
 			onKeyDown={handleKeyDown}
+			onHide={onHide}
 		/>
 	);
 };
