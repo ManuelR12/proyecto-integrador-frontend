@@ -2,10 +2,7 @@ import { useEffect } from "react";
 import { formatChatConnectionError } from "./useRoomChatSync";
 import { emitMediaStateNow, flushMediaStateEmit } from "../lib/debouncedMediaStateEmitter";
 import { getActivePeerManager } from "../lib/roomWebRtcRef";
-import {
-	abortPendingScreenShare,
-	stopScreenShareSession,
-} from "../lib/screenShareSession";
+import { abortPendingScreenShare, stopScreenShareSession } from "../lib/screenShareSession";
 import { createRoomSocket } from "../services/roomSocketService";
 import { getActiveRoomSocket, setActiveRoomSocket } from "../lib/roomSessionSocketRef";
 import { useChatStore } from "../stores/useChatStore";
