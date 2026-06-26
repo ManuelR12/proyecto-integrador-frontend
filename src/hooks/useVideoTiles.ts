@@ -1,8 +1,25 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { remoteStreamHasActiveVideo } from "../lib/remoteStreamVideoState";
+import {
+	remoteStreamHasActiveAudio,
+	remoteStreamHasActiveVideo,
+} from "../lib/remoteStreamVideoState";
 import type { VideoTileParticipant } from "../types/media";
 import { useRoomStore } from "../stores/useRoomStore";
+
+/**
+ * Combines socket-reported media state with WebRTC track signals.
+ * Socket "off" is authoritative; when socket says "on" (or is unknown), track mute/unmute
+ * events still gate video so black frames fall back to the avatar if a socket event is lost.
+ */
+function resolveRemoteMediaEnabled(
+	socketEnabled: boolean | undefined,
+	trackEnabled: boolean | undefined,
+	streamFallback: boolean,
+): boolean {
+	if (socketEnabled === false) return false;
+	return trackEnabled ?? streamFallback;
+}
 
 function buildVideoTiles(state: {
 	currentUserId: string;
@@ -14,6 +31,7 @@ function buildVideoTiles(state: {
 	localAudioEnabled: boolean;
 	participants: Array<{ uid: string; username: string; avatarUrl?: string | null }>;
 	remoteVideoEnabledByUid: Record<string, boolean>;
+	remoteAudioEnabledByUid: Record<string, boolean>;
 	remoteMediaByUid: Record<string, { mic: boolean; camera: boolean }>;
 	remoteStreamsByUid: Record<string, MediaStream>;
 }): VideoTileParticipant[] {
@@ -33,9 +51,19 @@ function buildVideoTiles(state: {
 		.map((participant) => {
 			const stream = state.remoteStreamsByUid[participant.uid] ?? null;
 			const socketMedia = state.remoteMediaByUid[participant.uid];
-			const trackVideoEnabled = remoteStreamHasActiveVideo(stream);
-			const videoEnabled = socketMedia ? socketMedia.camera : trackVideoEnabled;
-			const audioEnabled = socketMedia?.mic ?? true;
+			const trackVideoEnabled = state.remoteVideoEnabledByUid[participant.uid];
+			const trackAudioEnabled = state.remoteAudioEnabledByUid[participant.uid];
+
+			const videoEnabled = resolveRemoteMediaEnabled(
+				socketMedia?.camera,
+				trackVideoEnabled,
+				remoteStreamHasActiveVideo(stream),
+			);
+			const audioEnabled = resolveRemoteMediaEnabled(
+				socketMedia?.mic,
+				trackAudioEnabled,
+				remoteStreamHasActiveAudio(stream),
+			);
 
 			return {
 				uid: participant.uid,
@@ -64,6 +92,7 @@ export function useVideoTiles(): VideoTileParticipant[] {
 			localAudioEnabled: state.localAudioEnabled,
 			participants: state.participants,
 			remoteVideoEnabledByUid: state.remoteVideoEnabledByUid,
+			remoteAudioEnabledByUid: state.remoteAudioEnabledByUid,
 			remoteMediaByUid: state.remoteMediaByUid,
 			remoteStreamsByUid: state.remoteStreamsByUid,
 		})),

@@ -11,8 +11,9 @@ import {
 } from "../lib/localStreamTrackState";
 import { cancelMediaStateEmit, scheduleMediaStateEmit } from "../lib/debouncedMediaStateEmitter";
 import {
+	bindRemoteStreamAudioState,
 	bindRemoteStreamVideoState,
-	unbindRemoteStreamVideoState,
+	unbindRemoteStreamMediaState,
 } from "../lib/remoteStreamVideoState";
 import type { VideoTileStatus } from "../types/media";
 import type { SocketParticipant } from "../types/room";
@@ -36,6 +37,7 @@ interface RoomState {
 	localVideoEnabled: boolean;
 	localAudioEnabled: boolean;
 	remoteVideoEnabledByUid: Record<string, boolean>;
+	remoteAudioEnabledByUid: Record<string, boolean>;
 	remoteMediaByUid: Record<string, RemoteMediaState>;
 	remoteStreamsByUid: Record<string, MediaStream>;
 	uidBySocketId: Record<string, string>;
@@ -48,6 +50,7 @@ interface RoomState {
 	setLocalStream: (stream: MediaStream | null) => void;
 	setLocalStatus: (status: VideoTileStatus) => void;
 	setRemoteVideoEnabled: (uid: string, videoEnabled: boolean) => void;
+	setRemoteAudioEnabled: (uid: string, audioEnabled: boolean) => void;
 	setRemoteMediaState: (uid: string, state: Partial<RemoteMediaState>) => void;
 	toggleLocalVideo: () => void;
 	toggleLocalAudio: () => void;
@@ -68,6 +71,7 @@ const initialState = {
 	localVideoEnabled: false,
 	localAudioEnabled: false,
 	remoteVideoEnabledByUid: {} as Record<string, boolean>,
+	remoteAudioEnabledByUid: {} as Record<string, boolean>,
 	remoteMediaByUid: {} as Record<string, RemoteMediaState>,
 	remoteStreamsByUid: {} as Record<string, MediaStream>,
 	uidBySocketId: {} as Record<string, string>,
@@ -134,15 +138,17 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 	resolveUidFromSocketId: (socketId) => get().uidBySocketId[socketId],
 	removeParticipant: (uid) =>
 		set((state) => {
-			unbindRemoteStreamVideoState(uid);
+			unbindRemoteStreamMediaState(uid);
 			const remoteStream = state.remoteStreamsByUid[uid];
 			remoteStream?.getTracks().forEach((track) => track.stop());
 			const remoteStreamsByUid = { ...state.remoteStreamsByUid };
 			const remoteVideoEnabledByUid = { ...state.remoteVideoEnabledByUid };
+			const remoteAudioEnabledByUid = { ...state.remoteAudioEnabledByUid };
 			const remoteMediaByUid = { ...state.remoteMediaByUid };
 			const uidBySocketId = { ...state.uidBySocketId };
 			delete remoteStreamsByUid[uid];
 			delete remoteVideoEnabledByUid[uid];
+			delete remoteAudioEnabledByUid[uid];
 			delete remoteMediaByUid[uid];
 			for (const [socketId, mappedUid] of Object.entries(uidBySocketId)) {
 				if (mappedUid === uid) delete uidBySocketId[socketId];
@@ -151,6 +157,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 				participants: state.participants.filter((entry) => entry.uid !== uid),
 				remoteStreamsByUid,
 				remoteVideoEnabledByUid,
+				remoteAudioEnabledByUid,
 				remoteMediaByUid,
 				uidBySocketId,
 			};
@@ -215,6 +222,9 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		bindRemoteStreamVideoState(uid, stream, (videoEnabled) => {
 			get().setRemoteVideoEnabled(uid, videoEnabled);
 		});
+		bindRemoteStreamAudioState(uid, stream, (audioEnabled) => {
+			get().setRemoteAudioEnabled(uid, audioEnabled);
+		});
 		set((state) => ({
 			remoteStreamsByUid: { ...state.remoteStreamsByUid, [uid]: stream },
 		}));
@@ -224,6 +234,13 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			if (state.remoteVideoEnabledByUid[uid] === videoEnabled) return state;
 			return {
 				remoteVideoEnabledByUid: { ...state.remoteVideoEnabledByUid, [uid]: videoEnabled },
+			};
+		}),
+	setRemoteAudioEnabled: (uid, audioEnabled) =>
+		set((state) => {
+			if (state.remoteAudioEnabledByUid[uid] === audioEnabled) return state;
+			return {
+				remoteAudioEnabledByUid: { ...state.remoteAudioEnabledByUid, [uid]: audioEnabled },
 			};
 		}),
 	setRemoteMediaState: (uid, partial) =>
@@ -240,16 +257,23 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 	removeRemoteStream: (uid) => {
 		const existing = get().remoteStreamsByUid[uid];
 		if (!existing) return;
-		unbindRemoteStreamVideoState(uid);
+		unbindRemoteStreamMediaState(uid);
 		existing.getTracks().forEach((track) => track.stop());
 		set((state) => {
 			const next = { ...state.remoteStreamsByUid };
 			const remoteVideoEnabledByUid = { ...state.remoteVideoEnabledByUid };
+			const remoteAudioEnabledByUid = { ...state.remoteAudioEnabledByUid };
 			const remoteMediaByUid = { ...state.remoteMediaByUid };
 			delete next[uid];
 			delete remoteVideoEnabledByUid[uid];
+			delete remoteAudioEnabledByUid[uid];
 			delete remoteMediaByUid[uid];
-			return { remoteStreamsByUid: next, remoteVideoEnabledByUid, remoteMediaByUid };
+			return {
+				remoteStreamsByUid: next,
+				remoteVideoEnabledByUid,
+				remoteAudioEnabledByUid,
+				remoteMediaByUid,
+			};
 		});
 	},
 	reset: () => {
@@ -258,7 +282,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		unbindLocalStreamTrackState(localStream);
 		localStream?.getTracks().forEach((track) => track.stop());
 		for (const uid of Object.keys(remoteStreamsByUid)) {
-			unbindRemoteStreamVideoState(uid);
+			unbindRemoteStreamMediaState(uid);
 		}
 		Object.values(remoteStreamsByUid).forEach((stream) => {
 			stream.getTracks().forEach((track) => track.stop());

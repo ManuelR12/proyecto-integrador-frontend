@@ -115,7 +115,7 @@ const RoomMediaControls = () => {
 	return (
 		<div
 			role="toolbar"
-			aria-label="Controles de audio y video"
+			aria-label={copy.controls.toolbar}
 			className="flex flex-shrink-0 items-center justify-center gap-3 py-4"
 		>
 			<MediaToggleButton

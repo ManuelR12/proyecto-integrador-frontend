@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { formatChatConnectionError } from "./useRoomChatSync";
-import { flushMediaStateEmit } from "../lib/debouncedMediaStateEmitter";
+import { emitMediaStateNow, flushMediaStateEmit } from "../lib/debouncedMediaStateEmitter";
 import { getActivePeerManager } from "../lib/roomWebRtcRef";
 import { createRoomSocket } from "../services/roomSocketService";
 import { getActiveRoomSocket, setActiveRoomSocket } from "../lib/roomSessionSocketRef";
@@ -32,6 +32,7 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 				chatStore.setConnected(true);
 				roomStore.setParticipants(payload.participants ?? []);
 				getActivePeerManager()?.connectToExistingParticipants(payload.participants ?? []);
+				emitMediaStateNow(true);
 			},
 			onDisconnect: () => {
 				chatStore.setConnected(false);
@@ -42,6 +43,7 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 			},
 			onParticipantJoined: (participant) => {
 				roomStore.addParticipant(participant);
+				emitMediaStateNow(true);
 			},
 			onParticipantLeft: (participant) => {
 				forceRemoveParticipant(participant.uid);

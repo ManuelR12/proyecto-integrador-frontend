@@ -50,6 +50,37 @@ export function flushMediaStateEmit(): void {
 	emitSnapshotNow();
 }
 
+/**
+ * Broadcasts the current local mic/camera snapshot right away.
+ * Used on room join and when a new participant arrives so peers receive initial state.
+ */
+export function emitMediaStateNow(force = false): void {
+	if (timerId !== null) {
+		clearTimeout(timerId);
+		timerId = null;
+	}
+	pending = false;
+
+	const socket = getActiveRoomSocket();
+	if (!socket) return;
+
+	const { localAudioEnabled, localVideoEnabled } = useRoomStore.getState();
+	const isMuted = !localAudioEnabled;
+	const isVideoOff = !localVideoEnabled;
+
+	if (
+		!force &&
+		lastEmitted &&
+		lastEmitted.isMuted === isMuted &&
+		lastEmitted.isVideoOff === isVideoOff
+	) {
+		return;
+	}
+
+	socket.sendMediaStateChanged(isMuted, isVideoOff);
+	lastEmitted = { isMuted, isVideoOff };
+}
+
 /** Clears any pending emit without sending (e.g. on room reset). */
 export function cancelMediaStateEmit(): void {
 	if (timerId !== null) {

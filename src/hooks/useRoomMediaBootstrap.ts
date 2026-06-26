@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { acquireLocalMedia } from "../lib/localMediaStream";
+import { emitMediaStateNow } from "../lib/debouncedMediaStateEmitter";
 import { useRoomStore } from "../stores/useRoomStore";
 
 /** Acquires local media and writes stream state into the room store only. */
@@ -28,6 +29,7 @@ export function useRoomMediaBootstrap(enabled: boolean) {
 				const nextStore = useRoomStore.getState();
 				nextStore.setLocalStream(mediaStream);
 				nextStore.setLocalStatus("connected");
+				emitMediaStateNow(true);
 			})
 			.catch(() => {
 				if (!cancelled) {
