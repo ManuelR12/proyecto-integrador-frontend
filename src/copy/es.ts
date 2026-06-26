@@ -247,6 +247,8 @@ export const sala = {
 		"Ya tienes una sesión activa en otra pestaña. Cierra la otra para usar el chat.",
 	chatLoadingHistory: "Cargando historial...",
 	chatEnterHint: "Presiona Enter para enviar. Shift+Enter para nueva línea.",
+	chatShow: "Mostrar chat",
+	chatHide: "Ocultar chat",
 	controls: {
 		toolbar: "Controles de audio y video",
 		microfono: "Micrófono",
