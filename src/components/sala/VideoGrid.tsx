@@ -11,9 +11,16 @@ interface VideoGridProps {
 	tiles: VideoTileParticipant[];
 }
 
+function resolveFeaturedIndex(tiles: VideoTileParticipant[]): number {
+	const featured = tiles.findIndex((tile) => tile.isFeatured);
+	if (featured >= 0) return featured;
+
+	return tiles.findIndex((tile) => tile.isScreenSharing);
+}
+
 const VideoGrid = ({ tiles }: VideoGridProps) => {
 	const tileCount = tiles.length;
-	const featuredIndex = tiles.findIndex((tile) => tile.isFeatured);
+	const featuredIndex = resolveFeaturedIndex(tiles);
 	const useScreenShareLayout = featuredIndex >= 0;
 
 	const layout = useMemo(
@@ -45,12 +52,14 @@ const VideoGrid = ({ tiles }: VideoGridProps) => {
 				data-participants={tileCount}
 				className="flex min-h-0 min-w-0 w-full flex-1 flex-col gap-2 overflow-hidden sm:gap-3"
 			>
-				<VideoTile
-					key={featuredTile.uid}
-					participant={featuredTile}
-					layoutClassName="min-h-0 min-w-0 h-full w-full flex-1"
-					compact={false}
-				/>
+				<div className="flex min-h-0 min-w-0 flex-1">
+					<VideoTile
+						key={featuredTile.uid}
+						participant={{ ...featuredTile, isFeatured: true }}
+						layoutClassName="min-h-0 min-w-0 h-full w-full"
+						compact={false}
+					/>
+				</div>
 
 				{participantStrip.length > 0 ? (
 					<div

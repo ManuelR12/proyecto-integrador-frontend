@@ -206,6 +206,13 @@ export function cleanupScreenShareSession(): void {
 	}
 }
 
+/** Re-broadcasts screen-share lock when a new participant joins (no-op if not sharing). */
+export function emitScreenShareStateNow(): void {
+	const store = useRoomStore.getState();
+	if (!store.localScreenSharing) return;
+	getActiveRoomSocket()?.sendScreenShareStarted();
+}
+
 export function selectCanStartScreenShare(state: {
 	activeScreenShareUid: string | null;
 	currentUserId: string;

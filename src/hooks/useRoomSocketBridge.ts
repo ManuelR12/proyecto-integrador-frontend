@@ -2,7 +2,11 @@ import { useEffect } from "react";
 import { formatChatConnectionError } from "./useRoomChatSync";
 import { emitMediaStateNow, flushMediaStateEmit } from "../lib/debouncedMediaStateEmitter";
 import { getActivePeerManager } from "../lib/roomWebRtcRef";
-import { abortPendingScreenShare, stopScreenShareSession } from "../lib/screenShareSession";
+import {
+	abortPendingScreenShare,
+	emitScreenShareStateNow,
+	stopScreenShareSession,
+} from "../lib/screenShareSession";
 import { createRoomSocket } from "../services/roomSocketService";
 import { getActiveRoomSocket, setActiveRoomSocket } from "../lib/roomSessionSocketRef";
 import { useChatStore } from "../stores/useChatStore";
@@ -46,6 +50,7 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 			onParticipantJoined: (participant) => {
 				roomStore.addParticipant(participant);
 				emitMediaStateNow(true);
+				emitScreenShareStateNow();
 			},
 			onParticipantLeft: (participant) => {
 				forceRemoveParticipant(participant.uid);
@@ -79,11 +84,11 @@ export function useRoomSocketBridge(roomId: string | undefined) {
 				});
 			},
 			onPeerScreenShareChanged: (payload) => {
-				roomStore.setActiveScreenShareUid(payload.isSharing ? payload.uid : null);
+				roomStore.setActiveScreenShareUid(payload.activeScreenShareUid);
 			},
 			onScreenShareDenied: (payload) => {
 				abortPendingScreenShare();
-				roomStore.setActiveScreenShareUid(payload.activeUid);
+				roomStore.setActiveScreenShareUid(payload.activeScreenShareUid);
 				if (roomStore.localScreenSharing) {
 					void stopScreenShareSession();
 				}

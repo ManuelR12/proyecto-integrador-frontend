@@ -82,6 +82,23 @@ function isPeerMediaStateChangedPayload(payload: unknown): payload is PeerMediaS
 	);
 }
 
+function isPeerScreenShareChangedPayload(
+	payload: unknown,
+): payload is PeerScreenShareChangedPayload {
+	if (!payload || typeof payload !== "object") return false;
+	const entry = payload as PeerScreenShareChangedPayload;
+	return (
+		typeof entry.roomId === "string" &&
+		(entry.activeScreenShareUid === null || typeof entry.activeScreenShareUid === "string")
+	);
+}
+
+function isScreenShareDeniedPayload(payload: unknown): payload is ScreenShareDeniedPayload {
+	if (!payload || typeof payload !== "object") return false;
+	const entry = payload as ScreenShareDeniedPayload;
+	return typeof entry.roomId === "string" && typeof entry.activeScreenShareUid === "string";
+}
+
 /**
  * Opens a persistent Socket.io connection for a study room.
  * Waits for the server `room_joined` ack before reporting a live connection.
@@ -203,16 +220,16 @@ export function createRoomSocket(
 				handlers.onPeerMediaToggled?.(payload);
 			});
 
-			socket.on("peer_screen_share_changed", (payload: PeerScreenShareChangedPayload) => {
-				if (payload.room_id === roomId) {
-					handlers.onPeerScreenShareChanged?.(payload);
-				}
+			socket.on("peer_screen_share_changed", (payload: unknown) => {
+				if (!isPeerScreenShareChangedPayload(payload)) return;
+				if (payload.roomId !== roomId) return;
+				handlers.onPeerScreenShareChanged?.(payload);
 			});
 
-			socket.on("screen_share_denied", (payload: ScreenShareDeniedPayload) => {
-				if (payload.room_id === roomId) {
-					handlers.onScreenShareDenied?.(payload);
-				}
+			socket.on("screen_share_denied", (payload: unknown) => {
+				if (!isScreenShareDeniedPayload(payload)) return;
+				if (payload.roomId !== roomId) return;
+				handlers.onScreenShareDenied?.(payload);
 			});
 		})
 		.catch(() => {
@@ -245,11 +262,11 @@ export function createRoomSocket(
 		},
 		sendScreenShareStarted() {
 			if (!socket?.connected) return;
-			socket.emit("screen_share_started", { room_id: roomId });
+			socket.emit("screen_share_started", { roomId });
 		},
 		sendScreenShareStopped() {
 			if (!socket?.connected) return;
-			socket.emit("screen_share_stopped", { room_id: roomId });
+			socket.emit("screen_share_ended", { roomId });
 		},
 		endCall() {
 			if (!socket?.connected) return;
