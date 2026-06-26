@@ -87,7 +87,7 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 				<main
 					className={[
 						"flex min-h-0 flex-1 flex-col overflow-hidden",
-						isScreenShareActive ? "px-3 py-3 sm:px-4 sm:py-4" : "px-6 py-8",
+						isScreenShareActive ? "px-2 py-2 sm:px-4 sm:py-4" : "px-6 py-8",
 					].join(" ")}
 				>
 					<RoomVideoSection roomId={roomId} />

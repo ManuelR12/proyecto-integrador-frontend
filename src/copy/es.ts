@@ -283,6 +283,7 @@ export const sala = {
 		cameraOff: "Cámara desactivada",
 		micMuted: "Micrófono silenciado",
 		screenSharing: "Compartiendo pantalla",
+		participantsStrip: (n: number) => `Participantes (${n})`,
 	},
 } as const;
 

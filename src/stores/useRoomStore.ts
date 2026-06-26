@@ -259,13 +259,10 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			get().setRemoteAudioEnabled(uid, audioEnabled);
 		});
 		bindRemoteScreenShareDetection(uid, stream, (sharing) => {
+			if (!sharing) return;
 			const store = get();
-			if (sharing) {
-				if (store.activeScreenShareUid === null || store.activeScreenShareUid === uid) {
-					get().setActiveScreenShareUid(uid);
-				}
-			} else if (store.activeScreenShareUid === uid) {
-				get().setActiveScreenShareUid(null);
+			if (store.activeScreenShareUid === null || store.activeScreenShareUid === uid) {
+				get().setActiveScreenShareUid(uid);
 			}
 		});
 		set((state) => ({

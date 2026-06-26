@@ -1,15 +1,21 @@
 const SCREEN_SHARE_SURFACES = new Set(["monitor", "window", "browser"]);
 
+const SCREEN_SHARE_LABEL_PATTERN = /screen|display|window|share|monitor|web-contents/i;
+
 /** Whether a video track carries display-capture (screen share) content. */
 export function isScreenShareVideoTrack(track: MediaStreamTrack | undefined): boolean {
 	if (!track || track.kind !== "video" || track.readyState !== "live") return false;
 
 	try {
 		const displaySurface = track.getSettings().displaySurface;
-		return typeof displaySurface === "string" && SCREEN_SHARE_SURFACES.has(displaySurface);
+		if (typeof displaySurface === "string" && SCREEN_SHARE_SURFACES.has(displaySurface)) {
+			return true;
+		}
 	} catch {
-		return false;
+		// Remote tracks often omit displaySurface; fall through to label heuristic.
 	}
+
+	return SCREEN_SHARE_LABEL_PATTERN.test(track.label);
 }
 
 /** Whether a remote MediaStream is currently sending screen share video. */
