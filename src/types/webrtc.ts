@@ -24,6 +24,29 @@ export interface CallEndedPayload {
 	fromUid: string;
 }
 
+/** Client → server: minimal mic/camera snapshot (no user object; uid comes from socket auth). */
+export interface MediaStateChangedPayload {
+	room_id: string;
+	isMuted: boolean;
+	isVideoOff: boolean;
+}
+
+/** Server → client when a remote peer changes mic/camera state. */
+export interface PeerMediaStateChangedPayload {
+	room_id: string;
+	uid: string;
+	socket_id: string;
+	isMuted: boolean;
+	isVideoOff: boolean;
+}
+
+/** @deprecated Use PeerMediaStateChangedPayload via peer_media_state_changed. */
+export interface PeerMediaToggledPayload {
+	uid: string;
+	mic: boolean;
+	camera: boolean;
+}
+
 /** Emitted when a peer disconnects abruptly (signaling server notification). */
 export interface UserDisconnectedPayload {
 	uid: string;

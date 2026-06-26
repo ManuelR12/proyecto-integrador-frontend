@@ -7,6 +7,8 @@ import type {
 	IncomingAnswerPayload,
 	IncomingIceCandidatePayload,
 	IncomingOfferPayload,
+	PeerMediaStateChangedPayload,
+	PeerMediaToggledPayload,
 	UserDisconnectedPayload,
 } from "../types/webrtc";
 
@@ -32,6 +34,9 @@ export interface RoomSocketHandlers {
 	onIncomingAnswer?: (payload: IncomingAnswerPayload) => void;
 	onIncomingIceCandidate?: (payload: IncomingIceCandidatePayload) => void;
 	onCallEnded?: (payload: CallEndedPayload) => void;
+	onPeerMediaStateChanged?: (payload: PeerMediaStateChangedPayload) => void;
+	/** @deprecated Fallback while older servers still emit peer_media_toggled. */
+	onPeerMediaToggled?: (payload: PeerMediaToggledPayload) => void;
 }
 
 export interface RoomSocketController {
@@ -39,6 +44,7 @@ export interface RoomSocketController {
 	sendWebRtcOffer: (targetUid: string, sdp: RTCSessionDescriptionInit) => void;
 	sendWebRtcAnswer: (targetUid: string, sdp: RTCSessionDescriptionInit) => void;
 	sendWebRtcIceCandidate: (targetUid: string, candidate: RTCIceCandidateInit) => void;
+	sendMediaStateChanged: (isMuted: boolean, isVideoOff: boolean) => void;
 	endCall: () => void;
 	disconnect: () => void;
 }
@@ -47,12 +53,26 @@ function toSocketParticipant(payload: {
 	uid: string;
 	username: string;
 	avatarUrl?: string | null;
+	socketId?: string | null;
 }): SocketParticipant {
 	return {
 		uid: payload.uid,
 		username: payload.username,
 		avatarUrl: payload.avatarUrl ?? null,
+		socketId: payload.socketId ?? null,
 	};
+}
+
+function isPeerMediaStateChangedPayload(payload: unknown): payload is PeerMediaStateChangedPayload {
+	if (!payload || typeof payload !== "object") return false;
+	const entry = payload as PeerMediaStateChangedPayload;
+	return (
+		typeof entry.room_id === "string" &&
+		typeof entry.uid === "string" &&
+		typeof entry.socket_id === "string" &&
+		typeof entry.isMuted === "boolean" &&
+		typeof entry.isVideoOff === "boolean"
+	);
 }
 
 /**
@@ -113,7 +133,12 @@ export function createRoomSocket(
 
 			socket.on(
 				"participant_joined",
-				(payload: { uid: string; username: string; avatarUrl?: string | null }) => {
+				(payload: {
+					uid: string;
+					username: string;
+					avatarUrl?: string | null;
+					socketId?: string | null;
+				}) => {
 					handlers.onParticipantJoined?.(toSocketParticipant(payload));
 				},
 			);
@@ -158,6 +183,18 @@ export function createRoomSocket(
 			socket.on("call_ended", (payload: CallEndedPayload) => {
 				handlers.onCallEnded?.(payload);
 			});
+
+			socket.on("peer_media_state_changed", (payload: unknown) => {
+				if (!isPeerMediaStateChangedPayload(payload)) return;
+				if (payload.room_id !== roomId) return;
+				handlers.onPeerMediaStateChanged?.(payload);
+			});
+
+			socket.on("peer_media_toggled", (payload: PeerMediaToggledPayload) => {
+				if (typeof payload.uid !== "string") return;
+				if (typeof payload.mic !== "boolean" || typeof payload.camera !== "boolean") return;
+				handlers.onPeerMediaToggled?.(payload);
+			});
 		})
 		.catch(() => {
 			handlers.onError("Authentication failed");
@@ -182,6 +219,10 @@ export function createRoomSocket(
 			if (!socket?.connected) return;
 			logIce(targetUid, "signaling candidate sent", summarizeIceCandidate(candidate));
 			socket.emit("webrtc_ice_candidate", { targetUid, roomId, candidate });
+		},
+		sendMediaStateChanged(isMuted: boolean, isVideoOff: boolean) {
+			if (!socket?.connected) return;
+			socket.emit("media_state_changed", { room_id: roomId, isMuted, isVideoOff });
 		},
 		endCall() {
 			if (!socket?.connected) return;

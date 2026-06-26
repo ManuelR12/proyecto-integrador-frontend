@@ -248,6 +248,7 @@ export const sala = {
 	chatLoadingHistory: "Cargando historial...",
 	chatEnterHint: "Presiona Enter para enviar. Shift+Enter para nueva línea.",
 	controls: {
+		toolbar: "Controles de audio y video",
 		microfono: "Micrófono",
 		camara: "Cámara",
 		micOn: "Activar micrófono",
@@ -276,6 +277,7 @@ export const sala = {
 		youLabel: "Tú",
 		connecting: "Conectando video…",
 		cameraOff: "Cámara desactivada",
+		micMuted: "Micrófono silenciado",
 	},
 } as const;
 

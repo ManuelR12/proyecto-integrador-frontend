@@ -24,7 +24,6 @@ export class WebRtcPeerManager {
 	private readonly peers = new Map<string, RTCPeerConnection>();
 	private readonly pendingIceCandidates = new Map<string, RTCIceCandidateInit[]>();
 	private localStream: MediaStream | null = null;
-	private localVideoEnabled = true;
 	private destroyed = false;
 
 	constructor(options: WebRtcPeerManagerOptions) {
@@ -36,20 +35,8 @@ export class WebRtcPeerManager {
 		this.localStream = stream;
 		if (!stream) return;
 
-		const { localVideoEnabled } = useRoomStore.getState();
-		this.localVideoEnabled = localVideoEnabled;
-
 		for (const peer of this.peers.values()) {
 			this.syncLocalTracks(peer, stream);
-			this.syncVideoSender(peer);
-		}
-	}
-
-	/** Propagates camera on/off to every peer via replaceTrack for reliable remote mute. */
-	setLocalVideoEnabled(enabled: boolean): void {
-		this.localVideoEnabled = enabled;
-		for (const peer of this.peers.values()) {
-			this.syncVideoSender(peer);
 		}
 	}
 
@@ -162,7 +149,6 @@ export class WebRtcPeerManager {
 
 		if (this.localStream) {
 			this.syncLocalTracks(peer, this.localStream);
-			this.syncVideoSender(peer);
 		}
 
 		peer.ontrack = (event) => {
@@ -247,19 +233,5 @@ export class WebRtcPeerManager {
 				peer.addTrack(track, stream);
 			}
 		}
-	}
-
-	private syncVideoSender(peer: RTCPeerConnection): void {
-		const videoTrack = this.localStream?.getVideoTracks()[0] ?? null;
-		let sender = peer.getSenders().find((entry) => entry.track?.kind === "video");
-
-		if (!sender && videoTrack) {
-			peer.addTrack(videoTrack, this.localStream!);
-			sender = peer.getSenders().find((entry) => entry.track?.kind === "video");
-		}
-
-		if (!sender) return;
-
-		void sender.replaceTrack(this.localVideoEnabled ? videoTrack : null);
 	}
 }
