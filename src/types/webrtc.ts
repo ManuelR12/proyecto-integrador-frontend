@@ -52,21 +52,24 @@ export interface UserDisconnectedPayload {
 	uid: string;
 }
 
+/** Client → server when requesting exclusive screen share in a room. */
 export interface ScreenShareStartedPayload {
-	room_id: string;
+	roomId: string;
 }
 
-export interface ScreenShareStoppedPayload {
-	room_id: string;
+/** Client → server when releasing the room screen-share lock. */
+export interface ScreenShareEndedPayload {
+	roomId: string;
 }
 
+/** Server → client when a participant starts or stops sharing. */
 export interface PeerScreenShareChangedPayload {
-	room_id: string;
-	uid: string;
-	isSharing: boolean;
+	roomId: string;
+	activeScreenShareUid: string | null;
 }
 
+/** Server → client when screen share is rejected (another peer is sharing). */
 export interface ScreenShareDeniedPayload {
-	room_id: string;
-	activeUid: string;
+	roomId: string;
+	activeScreenShareUid: string;
 }

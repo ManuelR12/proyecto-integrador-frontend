@@ -91,11 +91,8 @@ function buildVideoTiles(state: {
 	}
 
 	const featuredIndex = tiles.findIndex((tile) => tile.uid === state.activeScreenShareUid);
-	if (featuredIndex <= 0) {
-		return tiles.map((tile, index) => ({
-			...tile,
-			isFeatured: index === featuredIndex && featuredIndex >= 0,
-		}));
+	if (featuredIndex < 0) {
+		return tiles;
 	}
 
 	const featured = tiles[featuredIndex];

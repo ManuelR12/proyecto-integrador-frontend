@@ -16,6 +16,10 @@ import {
 	unbindRemoteStreamMediaState,
 } from "../lib/remoteStreamVideoState";
 import {
+	bindRemoteScreenShareDetection,
+	unbindRemoteScreenShareDetection,
+} from "../lib/remoteScreenShareDetection";
+import {
 	cleanupScreenShareSession,
 	selectCanStartScreenShare,
 	startScreenShareSession,
@@ -152,6 +156,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 	removeParticipant: (uid) =>
 		set((state) => {
 			unbindRemoteStreamMediaState(uid);
+			unbindRemoteScreenShareDetection(uid);
 			const remoteStream = state.remoteStreamsByUid[uid];
 			remoteStream?.getTracks().forEach((track) => track.stop());
 			const remoteStreamsByUid = { ...state.remoteStreamsByUid };
@@ -166,6 +171,8 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			for (const [socketId, mappedUid] of Object.entries(uidBySocketId)) {
 				if (mappedUid === uid) delete uidBySocketId[socketId];
 			}
+			const activeScreenShareUid =
+				state.activeScreenShareUid === uid ? null : state.activeScreenShareUid;
 			return {
 				participants: state.participants.filter((entry) => entry.uid !== uid),
 				remoteStreamsByUid,
@@ -173,6 +180,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 				remoteAudioEnabledByUid,
 				remoteMediaByUid,
 				uidBySocketId,
+				activeScreenShareUid,
 			};
 		}),
 	setLocalStream: (localStream) => {
@@ -250,6 +258,16 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		bindRemoteStreamAudioState(uid, stream, (audioEnabled) => {
 			get().setRemoteAudioEnabled(uid, audioEnabled);
 		});
+		bindRemoteScreenShareDetection(uid, stream, (sharing) => {
+			const store = get();
+			if (sharing) {
+				if (store.activeScreenShareUid === null || store.activeScreenShareUid === uid) {
+					get().setActiveScreenShareUid(uid);
+				}
+			} else if (store.activeScreenShareUid === uid) {
+				get().setActiveScreenShareUid(null);
+			}
+		});
 		set((state) => ({
 			remoteStreamsByUid: { ...state.remoteStreamsByUid, [uid]: stream },
 		}));
@@ -283,6 +301,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		const existing = get().remoteStreamsByUid[uid];
 		if (!existing) return;
 		unbindRemoteStreamMediaState(uid);
+		unbindRemoteScreenShareDetection(uid);
 		existing.getTracks().forEach((track) => track.stop());
 		set((state) => {
 			const next = { ...state.remoteStreamsByUid };
@@ -309,6 +328,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 		localStream?.getTracks().forEach((track) => track.stop());
 		for (const uid of Object.keys(remoteStreamsByUid)) {
 			unbindRemoteStreamMediaState(uid);
+			unbindRemoteScreenShareDetection(uid);
 		}
 		Object.values(remoteStreamsByUid).forEach((stream) => {
 			stream.getTracks().forEach((track) => track.stop());
