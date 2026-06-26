@@ -15,6 +15,12 @@ import {
 	bindRemoteStreamVideoState,
 	unbindRemoteStreamMediaState,
 } from "../lib/remoteStreamVideoState";
+import {
+	cleanupScreenShareSession,
+	selectCanStartScreenShare,
+	startScreenShareSession,
+	stopScreenShareSession,
+} from "../lib/screenShareSession";
 import type { VideoTileStatus } from "../types/media";
 import type { SocketParticipant } from "../types/room";
 
@@ -36,6 +42,8 @@ interface RoomState {
 	hasLocalAudioTrack: boolean;
 	localVideoEnabled: boolean;
 	localAudioEnabled: boolean;
+	localScreenSharing: boolean;
+	activeScreenShareUid: string | null;
 	remoteVideoEnabledByUid: Record<string, boolean>;
 	remoteAudioEnabledByUid: Record<string, boolean>;
 	remoteMediaByUid: Record<string, RemoteMediaState>;
@@ -54,6 +62,9 @@ interface RoomState {
 	setRemoteMediaState: (uid: string, state: Partial<RemoteMediaState>) => void;
 	toggleLocalVideo: () => void;
 	toggleLocalAudio: () => void;
+	startScreenShare: () => Promise<void>;
+	stopScreenShare: () => Promise<void>;
+	setActiveScreenShareUid: (uid: string | null) => void;
 	registerRemoteStream: (uid: string, stream: MediaStream) => void;
 	removeRemoteStream: (uid: string) => void;
 	reset: () => void;
@@ -70,6 +81,8 @@ const initialState = {
 	hasLocalAudioTrack: false,
 	localVideoEnabled: false,
 	localAudioEnabled: false,
+	localScreenSharing: false,
+	activeScreenShareUid: null as string | null,
 	remoteVideoEnabledByUid: {} as Record<string, boolean>,
 	remoteAudioEnabledByUid: {} as Record<string, boolean>,
 	remoteMediaByUid: {} as Record<string, RemoteMediaState>,
@@ -178,6 +191,8 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 	},
 	setLocalStatus: (localStatus) => set({ localStatus }),
 	toggleLocalVideo: () => {
+		if (get().localScreenSharing) return;
+
 		const { localStream } = get();
 		const track = localStream?.getVideoTracks()[0];
 		if (track) {
@@ -218,6 +233,16 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 			scheduleMediaStateEmit();
 		});
 	},
+	startScreenShare: async () => {
+		await startScreenShareSession();
+	},
+	stopScreenShare: async () => {
+		await stopScreenShareSession();
+	},
+	setActiveScreenShareUid: (activeScreenShareUid) =>
+		set((state) =>
+			state.activeScreenShareUid === activeScreenShareUid ? state : { activeScreenShareUid },
+		),
 	registerRemoteStream: (uid, stream) => {
 		bindRemoteStreamVideoState(uid, stream, (videoEnabled) => {
 			get().setRemoteVideoEnabled(uid, videoEnabled);
@@ -278,6 +303,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 	},
 	reset: () => {
 		cancelMediaStateEmit();
+		cleanupScreenShareSession();
 		const { localStream, remoteStreamsByUid } = get();
 		unbindLocalStreamTrackState(localStream);
 		localStream?.getTracks().forEach((track) => track.stop());
@@ -294,3 +320,5 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 export function selectParticipantCount(state: RoomState) {
 	return state.participants.length + 1;
 }
+
+export { selectCanStartScreenShare };

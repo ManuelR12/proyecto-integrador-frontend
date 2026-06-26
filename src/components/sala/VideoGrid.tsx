@@ -1,5 +1,9 @@
 import { memo, useMemo } from "react";
-import { getVideoGridAriaLabel, getVideoGridLayout } from "../../lib/videoGridLayout";
+import {
+	getScreenShareGridLayout,
+	getVideoGridAriaLabel,
+	getVideoGridLayout,
+} from "../../lib/videoGridLayout";
 import type { VideoTileParticipant } from "../../types/media";
 import VideoTile from "./VideoTile";
 
@@ -9,7 +13,17 @@ interface VideoGridProps {
 
 const VideoGrid = ({ tiles }: VideoGridProps) => {
 	const tileCount = tiles.length;
-	const layout = useMemo(() => getVideoGridLayout(tileCount), [tileCount]);
+	const featuredIndex = tiles.findIndex((tile) => tile.isFeatured);
+	const useScreenShareLayout = featuredIndex >= 0;
+
+	const layout = useMemo(
+		() =>
+			useScreenShareLayout
+				? getScreenShareGridLayout(tileCount, featuredIndex)
+				: getVideoGridLayout(tileCount),
+		[tileCount, featuredIndex, useScreenShareLayout],
+	);
+
 	const ariaLabel = useMemo(
 		() => getVideoGridAriaLabel(tileCount, layout.pattern),
 		[tileCount, layout.pattern],
@@ -35,7 +49,7 @@ const VideoGrid = ({ tiles }: VideoGridProps) => {
 					key={participant.uid}
 					participant={participant}
 					layoutClassName={layout.getTileClass(index)}
-					compact={tileCount >= 4}
+					compact={!participant.isFeatured && tileCount >= 4}
 				/>
 			))}
 		</div>

@@ -40,6 +40,20 @@ export class WebRtcPeerManager {
 		}
 	}
 
+	/** Swaps the outbound video track on every peer without renegotiating SDP. */
+	async replaceOutboundVideoTrack(track: MediaStreamTrack | null): Promise<void> {
+		await Promise.all(
+			[...this.peers.values()].map((peer) => this.replaceOutboundTrack(peer, "video", track)),
+		);
+	}
+
+	/** Swaps the outbound audio track on every peer without renegotiating SDP. */
+	async replaceOutboundAudioTrack(track: MediaStreamTrack | null): Promise<void> {
+		await Promise.all(
+			[...this.peers.values()].map((peer) => this.replaceOutboundTrack(peer, "audio", track)),
+		);
+	}
+
 	/** Called after room_joined: newcomer offers to every peer already in the room. */
 	connectToExistingParticipants(participants: SocketParticipant[]): void {
 		for (const participant of participants) {
@@ -232,6 +246,23 @@ export class WebRtcPeerManager {
 			} else {
 				peer.addTrack(track, stream);
 			}
+		}
+	}
+
+	private async replaceOutboundTrack(
+		peer: RTCPeerConnection,
+		kind: "audio" | "video",
+		track: MediaStreamTrack | null,
+	): Promise<void> {
+		let sender = peer.getSenders().find((entry) => entry.track?.kind === kind);
+
+		if (!sender && track && this.localStream) {
+			peer.addTrack(track, this.localStream);
+			sender = peer.getSenders().find((entry) => entry.track?.kind === kind);
+		}
+
+		if (sender) {
+			await sender.replaceTrack(track);
 		}
 	}
 }

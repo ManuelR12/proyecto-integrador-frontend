@@ -14,10 +14,7 @@ export function remoteStreamHasActiveAudio(stream: MediaStream | null): boolean 
 
 const cleanups = new Map<string, () => void>();
 
-function bindTrackList(
-	tracks: MediaStreamTrack[],
-	sync: () => void,
-): () => void {
+function bindTrackList(tracks: MediaStreamTrack[], sync: () => void): () => void {
 	for (const track of tracks) {
 		track.addEventListener("mute", sync);
 		track.addEventListener("unmute", sync);

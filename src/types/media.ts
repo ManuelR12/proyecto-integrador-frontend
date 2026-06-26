@@ -11,4 +11,8 @@ export interface VideoTileParticipant {
 	videoEnabled: boolean;
 	/** When false a muted mic indicator is shown on remote tiles. */
 	audioEnabled: boolean;
+	/** True when this tile is showing a screen-share track. */
+	isScreenSharing?: boolean;
+	/** True when this tile is the large featured tile in screen-share layout. */
+	isFeatured?: boolean;
 }

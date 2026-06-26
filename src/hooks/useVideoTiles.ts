@@ -29,6 +29,8 @@ function buildVideoTiles(state: {
 	localStatus: VideoTileParticipant["status"];
 	localVideoEnabled: boolean;
 	localAudioEnabled: boolean;
+	localScreenSharing: boolean;
+	activeScreenShareUid: string | null;
 	participants: Array<{ uid: string; username: string; avatarUrl?: string | null }>;
 	remoteVideoEnabledByUid: Record<string, boolean>;
 	remoteAudioEnabledByUid: Record<string, boolean>;
@@ -42,23 +44,27 @@ function buildVideoTiles(state: {
 		stream: state.localStream,
 		status: state.localStatus,
 		avatarUrl: state.currentAvatarUrl,
-		videoEnabled: state.localVideoEnabled,
+		videoEnabled: state.localVideoEnabled || state.localScreenSharing,
 		audioEnabled: state.localAudioEnabled,
+		isScreenSharing: state.localScreenSharing,
 	};
 
 	const remoteTiles = state.participants
 		.filter((participant) => participant.uid !== state.currentUserId)
 		.map((participant) => {
 			const stream = state.remoteStreamsByUid[participant.uid] ?? null;
+			const isScreenSharing = state.activeScreenShareUid === participant.uid;
 			const socketMedia = state.remoteMediaByUid[participant.uid];
 			const trackVideoEnabled = state.remoteVideoEnabledByUid[participant.uid];
 			const trackAudioEnabled = state.remoteAudioEnabledByUid[participant.uid];
 
-			const videoEnabled = resolveRemoteMediaEnabled(
-				socketMedia?.camera,
-				trackVideoEnabled,
-				remoteStreamHasActiveVideo(stream),
-			);
+			const videoEnabled = isScreenSharing
+				? true
+				: resolveRemoteMediaEnabled(
+						socketMedia?.camera,
+						trackVideoEnabled,
+						remoteStreamHasActiveVideo(stream),
+					);
 			const audioEnabled = resolveRemoteMediaEnabled(
 				socketMedia?.mic,
 				trackAudioEnabled,
@@ -74,10 +80,31 @@ function buildVideoTiles(state: {
 				avatarUrl: participant.avatarUrl,
 				videoEnabled,
 				audioEnabled,
+				isScreenSharing,
 			};
 		});
 
-	return [localTile, ...remoteTiles];
+	const tiles = [localTile, ...remoteTiles];
+
+	if (!state.activeScreenShareUid) {
+		return tiles;
+	}
+
+	const featuredIndex = tiles.findIndex((tile) => tile.uid === state.activeScreenShareUid);
+	if (featuredIndex <= 0) {
+		return tiles.map((tile, index) => ({
+			...tile,
+			isFeatured: index === featuredIndex && featuredIndex >= 0,
+		}));
+	}
+
+	const featured = tiles[featuredIndex];
+	const reordered = [featured, ...tiles.slice(0, featuredIndex), ...tiles.slice(featuredIndex + 1)];
+
+	return reordered.map((tile, index) => ({
+		...tile,
+		isFeatured: index === 0,
+	}));
 }
 
 export function useVideoTiles(): VideoTileParticipant[] {
@@ -90,6 +117,8 @@ export function useVideoTiles(): VideoTileParticipant[] {
 			localStatus: state.localStatus,
 			localVideoEnabled: state.localVideoEnabled,
 			localAudioEnabled: state.localAudioEnabled,
+			localScreenSharing: state.localScreenSharing,
+			activeScreenShareUid: state.activeScreenShareUid,
 			participants: state.participants,
 			remoteVideoEnabledByUid: state.remoteVideoEnabledByUid,
 			remoteAudioEnabledByUid: state.remoteAudioEnabledByUid,

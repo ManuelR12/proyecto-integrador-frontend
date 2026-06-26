@@ -259,6 +259,8 @@ export const sala = {
 		camUnavailable: "Cámara no disponible",
 		permissionsRequired: "Tienes que activar los permisos de cámara y micrófono antes de usarlos.",
 		compartirPantalla: "Compartir pantalla",
+		dejarCompartirPantalla: "Dejar de compartir pantalla",
+		screenShareUnavailable: "Otro participante ya está compartiendo pantalla",
 		salir: "Salir",
 	},
 	participantes: (n: number) => `${n} participantes`,
@@ -278,6 +280,7 @@ export const sala = {
 		connecting: "Conectando video…",
 		cameraOff: "Cámara desactivada",
 		micMuted: "Micrófono silenciado",
+		screenSharing: "Compartiendo pantalla",
 	},
 } as const;
 
