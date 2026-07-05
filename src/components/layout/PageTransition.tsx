@@ -44,6 +44,8 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 			isInitialMount.current = false;
 			el.style.opacity = "1";
 			el.style.transform = "none";
+			// Clear will-change after initial render to avoid compositing cost
+			el.style.willChange = "auto";
 			return;
 		}
 
@@ -57,6 +59,9 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 			return;
 		}
 
+		// Re-enable will-change for animation
+		el.style.willChange = "opacity, transform";
+
 		// Snap to initial hidden state (no transition, before browser paints)
 		el.style.transition = "none";
 		el.style.opacity = "0";
@@ -67,16 +72,17 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 			el.style.transition = `opacity ${DURATION} ${EASING}, transform ${DURATION} ${EASING}`;
 			el.style.opacity = "1";
 			el.style.transform = "translateX(0) scale(1)";
+
+			// Clear will-change after transition completes
+			setTimeout(() => {
+				if (el) el.style.willChange = "auto";
+			}, 450); // Match DURATION
 		});
 
 		return () => cancelAnimationFrame(raf);
 	}, [pathname]);
 
-	return (
-		<div ref={ref} style={{ willChange: "opacity, transform" }}>
-			{children}
-		</div>
-	);
+	return <div ref={ref}>{children}</div>;
 };
 
 export default PageTransition;
