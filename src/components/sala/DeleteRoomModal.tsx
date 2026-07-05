@@ -78,9 +78,11 @@ const DeleteRoomModal = ({
 
 					<div className="mt-5">
 						<label htmlFor="delete-room-confirm-input" className="text-sm text-slate-600">
-							{modalCopy.confirmPrompt}{" "}
-							<strong className="font-semibold text-slate-900">{CONFIRM_WORD}</strong> en el campo
-							de abajo:
+							<span id="delete-room-confirm-hint">
+								{modalCopy.confirmPrompt}{" "}
+								<strong className="font-semibold text-slate-900">{CONFIRM_WORD}</strong> en el campo
+								de abajo:
+							</span>
 						</label>
 						<input
 							id="delete-room-confirm-input"
@@ -88,8 +90,10 @@ const DeleteRoomModal = ({
 							value={confirmText}
 							placeholder={modalCopy.confirmPlaceholder}
 							autoComplete="off"
+							aria-required="true"
+							aria-describedby="delete-room-confirm-hint"
 							onChange={(e) => onConfirmTextChange(e.target.value)}
-							className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300"
+							className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
 						/>
 					</div>
 
@@ -104,14 +108,15 @@ const DeleteRoomModal = ({
 							type="button"
 							disabled={!canConfirm}
 							onClick={onConfirm}
-							className="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+							aria-label={`${modalCopy.confirm}. Confirma escribiendo ${CONFIRM_WORD}`}
+							className="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{modalCopy.confirm}
 						</button>
 						<button
 							type="button"
 							onClick={onCancel}
-							className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+							className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 						>
 							{modalCopy.cancel}
 						</button>

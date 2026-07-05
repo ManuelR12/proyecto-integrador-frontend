@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import ConnectionStatus from "./ConnectionStatus";
 import DeleteRoomModal from "./DeleteRoomModal";
 import RoomChatSection from "./RoomChatSection";
 import RoomConfigModal from "./RoomConfigModal";
@@ -10,6 +11,7 @@ import { sala as copy } from "../../copy/es";
 import { useDeleteRoom } from "../../hooks/useDeleteRoom";
 import { useUpdateRoom } from "../../hooks/useUpdateRoom";
 import { selectParticipantCount, useRoomStore } from "../../stores/useRoomStore";
+import { useChatStore } from "../../stores/useChatStore";
 import type { Room } from "../../types/room";
 
 interface RoomSessionProps {
@@ -55,6 +57,7 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 	const [chatOpen, setChatOpen] = useState(true);
 	const activeScreenShareUid = useRoomStore((state) => state.activeScreenShareUid);
 	const hadScreenShareRef = useRef(false);
+	const chatConnected = useChatStore((state) => state.connected);
 
 	const updateRoom = useUpdateRoom({
 		roomId,
@@ -70,10 +73,16 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 		hadScreenShareRef.current = Boolean(activeScreenShareUid);
 	}, [activeScreenShareUid]);
 
+	const handleReconnect = useCallback(() => {
+		// Reload the page to re-establish all connections
+		window.location.reload();
+	}, []);
+
 	const isScreenShareActive = Boolean(activeScreenShareUid);
 
 	return (
 		<div className="flex h-screen w-full flex-col overflow-hidden bg-[#0d0d12]">
+			<ConnectionStatus connected={chatConnected} onReconnect={handleReconnect} />
 			<RoomSocketCoordinator roomId={roomId} />
 
 			<RoomSessionHeader
@@ -106,7 +115,7 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 						onClick={() => setChatOpen(true)}
 						aria-label={copy.chatShow}
 						className={[
-							"fixed bottom-24 right-4 z-20 inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition hover:bg-blue-500",
+							"fixed bottom-24 right-4 z-20 inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500",
 							"lg:absolute lg:bottom-auto lg:right-0 lg:top-1/2 lg:-translate-y-1/2 lg:rounded-l-full lg:rounded-r-none lg:px-3 lg:py-4 lg:[writing-mode:vertical-rl]",
 						].join(" ")}
 					>

@@ -18,13 +18,16 @@ const Login = () => {
 		<AuthShell>
 			<div className="w-full max-w-[400px]">
 				<div className="rounded-2xl border border-slate-200 bg-white px-8 py-8 shadow-sm">
-					<Link to="/" className="text-xs text-slate-500 transition-colors hover:text-slate-700">
+					<Link
+						to="/"
+						className="text-xs text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+					>
 						{copy.back}
 					</Link>
 
 					<AgoraBrandLink className="mt-3 block text-base font-bold tracking-tight text-blue-600" />
 					<h1 className="mt-1 text-2xl font-semibold text-slate-900">{copy.login.title}</h1>
-					<p className="mt-1 text-sm text-slate-500">{copy.login.subtitle}</p>
+					<p className="mt-1 text-sm text-slate-600">{copy.login.subtitle}</p>
 
 					<GoogleButton
 						id="btn-google-login"
@@ -45,7 +48,7 @@ const Login = () => {
 
 					<div className="relative my-5 flex items-center">
 						<div className="flex-1 border-t border-slate-200" />
-						<span className="mx-3 text-xs text-slate-400">{copy.google.divider}</span>
+						<span className="mx-3 text-xs text-slate-600">{copy.google.divider}</span>
 						<div className="flex-1 border-t border-slate-200" />
 					</div>
 
@@ -101,9 +104,12 @@ const Login = () => {
 					</form>
 				</div>
 
-				<p className="mt-4 text-center text-xs text-slate-500">
+				<p className="mt-4 text-center text-xs text-slate-600">
 					{copy.login.footerPrompt}{" "}
-					<Link to="/registro" className="text-blue-600 transition-colors hover:text-blue-500">
+					<Link
+						to="/registro"
+						className="text-blue-600 underline decoration-1 underline-offset-2 transition-colors hover:text-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+					>
 						{copy.login.footerLink}
 					</Link>
 				</p>

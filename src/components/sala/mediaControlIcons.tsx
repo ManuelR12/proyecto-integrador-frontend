@@ -27,15 +27,15 @@ export const CamOffIcon = ({ className = "h-5 w-5" }: { className?: string }) =>
 	</svg>
 );
 
-export const ScreenShareIcon = () => (
-	<svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5" aria-hidden="true">
+export const ScreenShareIcon = ({ className = "h-6 w-6" }: { className?: string }) => (
+	<svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
 		<path d="M3.75 4.5A2.25 2.25 0 016 4.5h12A2.25 2.25 0 0120.25 6.75v7.5A2.25 2.25 0 0118 16.5H6A2.25 2.25 0 013.75 14.25v-7.5z" />
 		<path d="M8.25 18.75h7.5l1.5 3h-10.5l1.5-3z" />
 	</svg>
 );
 
-export const ScreenShareStopIcon = () => (
-	<svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5" aria-hidden="true">
+export const ScreenShareStopIcon = ({ className = "h-6 w-6" }: { className?: string }) => (
+	<svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
 		<path d="M3.75 4.5A2.25 2.25 0 016 4.5h12A2.25 2.25 0 0120.25 6.75v7.5A2.25 2.25 0 0118 16.5H6A2.25 2.25 0 013.75 14.25v-7.5z" />
 		<path d="M8.25 18.75h7.5l1.5 3h-10.5l1.5-3z" />
 		<path d="M14.78 9.22a.75.75 0 010 1.06l-5.5 5.5a.75.75 0 11-1.06-1.06l5.5-5.5a.75.75 0 011.06 0z" />

@@ -36,7 +36,7 @@ const CreateRoomModal = ({
 		>
 			<div className="pt-1">
 				<h2 className="text-lg font-semibold text-slate-900">{modalCopy.title}</h2>
-				<p className="mt-1 text-sm text-slate-500">{modalCopy.idHelper}</p>
+				<p className="mt-1 text-sm text-slate-600">{modalCopy.idHelper}</p>
 
 				<form onSubmit={onSubmit} className="mt-5 space-y-5">
 					<div className="flex flex-col gap-1">
@@ -47,7 +47,7 @@ const CreateRoomModal = ({
 									*
 								</span>
 							</label>
-							<span className="text-xs text-slate-400">
+							<span className="text-xs text-slate-600">
 								{title.length}/{maxTitleLength}
 							</span>
 						</div>
@@ -60,13 +60,14 @@ const CreateRoomModal = ({
 							maxLength={maxTitleLength}
 							aria-invalid={Boolean(error)}
 							aria-describedby={error ? "room-name-error" : undefined}
+							aria-required="true"
 							disabled={creating}
 							className={[
 								"w-full rounded-lg border px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400",
-								"focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50",
+								"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
 								error
-									? "border-red-500 bg-red-50 focus:ring-red-300"
-									: "border-slate-300 bg-white focus:ring-blue-300",
+									? "border-red-500 bg-red-50 focus-visible:outline-red-500"
+									: "border-slate-300 bg-white focus-visible:outline-purple-500",
 							].join(" ")}
 						/>
 						{error && (
@@ -81,7 +82,7 @@ const CreateRoomModal = ({
 							type="button"
 							onClick={onClose}
 							disabled={creating}
-							className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+							className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{modalCopy.cancel}
 						</button>

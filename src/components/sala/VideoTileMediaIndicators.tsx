@@ -37,7 +37,7 @@ const VideoTileMediaIndicators = ({
 			<span className="sr-only">{statusLabel}</span>
 			{!micEnabled ? (
 				<span
-					className="rounded-full bg-black/60 p-1 text-red-500"
+					className="rounded-full bg-black/75 p-1.5 text-red-400 shadow-lg"
 					aria-hidden="true"
 					title={copy.videoGrid.micMuted}
 				>
@@ -46,7 +46,7 @@ const VideoTileMediaIndicators = ({
 			) : null}
 			{!cameraEnabled ? (
 				<span
-					className="rounded-full bg-black/60 p-1 text-red-500"
+					className="rounded-full bg-black/75 p-1.5 text-red-400 shadow-lg"
 					aria-hidden="true"
 					title={copy.videoGrid.cameraOff}
 				>

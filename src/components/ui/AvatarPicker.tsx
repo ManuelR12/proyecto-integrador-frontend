@@ -111,7 +111,13 @@ const AvatarPicker = ({
 				<div className="relative mt-1">
 					{value ? (
 						<>
-							<img src={value} alt="" className="h-20 w-20 rounded-full object-cover shadow-sm" />
+							<img
+								src={value}
+								alt=""
+								width="80"
+								height="80"
+								className="h-20 w-20 rounded-full object-cover shadow-sm"
+							/>
 							<div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 transition hover:bg-black/30">
 								<svg
 									viewBox="0 0 24 24"
@@ -197,7 +203,7 @@ const AvatarPicker = ({
 									? "Haz clic o arrastra para cambiar"
 									: "Haz clic o arrastra tu foto aquí"}
 					</p>
-					<p className="mt-0.5 text-xs text-slate-400">
+					<p className="mt-0.5 text-xs text-slate-600">
 						{helperText ?? "PNG, JPG, WEBP · Máx 5 MB"}
 					</p>
 				</div>

@@ -42,11 +42,12 @@ const DashboardEmptyState = ({ onCreateRoom }: DashboardEmptyStateProps) => {
 			<h2 id="dashboard-empty-title" className="mt-6 text-lg font-semibold text-slate-900">
 				{copy.emptyState.title}
 			</h2>
-			<p className="mt-2 max-w-md text-sm text-slate-500">{copy.emptyState.body}</p>
+			<p className="mt-2 max-w-md text-sm text-slate-600">{copy.emptyState.body}</p>
 			<button
 				type="button"
 				onClick={onCreateRoom}
-				className="mt-6 inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500"
+				aria-label={copy.emptyState.cta}
+				className="mt-6 inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 			>
 				{copy.emptyState.cta}
 			</button>

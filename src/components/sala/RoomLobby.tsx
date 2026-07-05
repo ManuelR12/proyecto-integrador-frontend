@@ -113,7 +113,7 @@ const RoomLobby = ({ room, onEnter }: RoomLobbyProps) => {
 
 				<Link
 					to="/dashboard"
-					className="mt-5 text-center text-sm text-slate-500 transition hover:text-slate-300 lg:text-left"
+					className="mt-5 text-center text-sm text-slate-300 underline decoration-1 underline-offset-2 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 lg:text-left"
 				>
 					{copy.lobby.backToDashboard}
 				</Link>

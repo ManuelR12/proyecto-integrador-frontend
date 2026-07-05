@@ -51,6 +51,9 @@ const RoomChatPanel = ({
 	onHide,
 }: RoomChatPanelProps) => {
 	const canSend = connected && !loadingHistory && draft.trim().length > 0;
+	const lastMessage = messages[messages.length - 1];
+	const lastMessageText =
+		lastMessage && lastMessage.sender_id !== currentUserId ? `Nuevo mensaje recibido` : undefined;
 
 	return (
 		<aside className="flex min-h-0 w-full max-h-[50vh] flex-1 flex-col border-l border-slate-200 bg-white lg:max-h-none lg:w-96 lg:flex-none">
@@ -60,7 +63,7 @@ const RoomChatPanel = ({
 						<UsersIcon />
 						<div>
 							<h2 className="text-sm font-semibold text-slate-900">{copy.chatTitle}</h2>
-							<p className="text-xs text-slate-500">{roomName}</p>
+							<p className="text-xs text-slate-600">{roomName}</p>
 						</div>
 					</div>
 					<div className="flex items-center gap-2">
@@ -72,7 +75,7 @@ const RoomChatPanel = ({
 								type="button"
 								onClick={onHide}
 								aria-label={copy.chatHide}
-								className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+								className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 							>
 								<CloseIcon />
 							</button>
@@ -82,7 +85,17 @@ const RoomChatPanel = ({
 			</div>
 
 			<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-				<div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+				{/* Aria-live region for new message announcements */}
+				<div aria-live="polite" aria-atomic="true" className="sr-only">
+					{lastMessageText}
+				</div>
+
+				<div
+					className="flex-1 space-y-4 overflow-y-auto px-4 py-4"
+					role="log"
+					aria-label="Historial de mensajes del chat"
+					aria-live="off"
+				>
 					{loadingHistory ? (
 						<>
 							<p className="sr-only">{copy.chatLoadingHistory}</p>
@@ -114,26 +127,33 @@ const RoomChatPanel = ({
 						)
 					)}
 					<div className="flex items-center gap-2">
+						<label htmlFor="chat-message-input" className="sr-only">
+							{copy.chatPlaceholder}
+						</label>
 						<textarea
+							id="chat-message-input"
 							value={draft}
 							onChange={(event) => onDraftChange(event.target.value)}
 							onKeyDown={onKeyDown}
 							placeholder={copy.chatPlaceholder}
 							disabled={!connected || loadingHistory}
+							aria-describedby="chat-input-hint"
 							rows={2}
-							className="min-h-[44px] flex-1 resize-none rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
+							className="min-h-[44px] flex-1 resize-none rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
 						/>
 						<button
 							type="button"
 							onClick={onSend}
 							disabled={!canSend}
 							aria-label={copy.chatSend}
-							className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+							className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							<SendIcon />
 						</button>
 					</div>
-					<p className="mt-2 text-[10px] text-slate-400">{copy.chatEnterHint}</p>
+					<p id="chat-input-hint" className="mt-2 text-[10px] text-slate-400">
+						{copy.chatEnterHint}
+					</p>
 				</div>
 			</div>
 		</aside>

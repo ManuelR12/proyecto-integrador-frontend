@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -12,10 +12,41 @@ const DURATION = "0.45s";
 const PageTransition = ({ children }: PageTransitionProps) => {
 	const { pathname } = useLocation();
 	const ref = useRef<HTMLDivElement>(null);
+	const prevPathnameRef = useRef(pathname);
+
+	// Focus management for SPA navigation
+	useEffect(() => {
+		if (prevPathnameRef.current !== pathname) {
+			prevPathnameRef.current = pathname;
+
+			// Focus on main h1 after route change
+			const timer = setTimeout(() => {
+				const mainHeading = document.querySelector("#main-content h1") as HTMLElement;
+				if (mainHeading) {
+					mainHeading.setAttribute("tabIndex", "-1");
+					mainHeading.focus();
+					// Remove tabIndex after focus for cleaner DOM
+					setTimeout(() => mainHeading.removeAttribute("tabIndex"), 100);
+				}
+			}, 100);
+
+			return () => clearTimeout(timer);
+		}
+	}, [pathname]);
 
 	useLayoutEffect(() => {
 		const el = ref.current;
 		if (!el) return;
+
+		// Check for reduced motion preference
+		const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+		if (prefersReducedMotion) {
+			// Skip animation for users who prefer reduced motion
+			el.style.opacity = "1";
+			el.style.transform = "none";
+			return;
+		}
 
 		// Snap to initial hidden state (no transition, before browser paints)
 		el.style.transition = "none";

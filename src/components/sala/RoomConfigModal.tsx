@@ -43,7 +43,7 @@ const RoomConfigModal = ({
 								*
 							</span>
 						</label>
-						<span className="text-xs text-slate-400">
+						<span className="text-xs text-slate-600">
 							{name.length}/{maxNameLength}
 						</span>
 					</div>
@@ -57,12 +57,13 @@ const RoomConfigModal = ({
 						disabled={saving}
 						aria-invalid={Boolean(error)}
 						aria-describedby={error ? "room-config-name-error" : undefined}
+						aria-required="true"
 						className={[
 							"w-full rounded-lg border px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400",
-							"focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50",
+							"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
 							error
-								? "border-red-500 bg-red-50 focus:ring-red-300"
-								: "border-slate-300 bg-white focus:ring-blue-300",
+								? "border-red-500 bg-red-50 focus-visible:outline-red-500"
+								: "border-slate-300 bg-white focus-visible:outline-purple-500",
 						].join(" ")}
 					/>
 					{error && (
@@ -77,7 +78,7 @@ const RoomConfigModal = ({
 						type="button"
 						onClick={onClose}
 						disabled={saving}
-						className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+						className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{modalCopy.cancel}
 					</button>

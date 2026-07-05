@@ -57,6 +57,8 @@ const Perfil = () => {
 						<img
 							src={headerPhoto}
 							alt="Avatar"
+							width="32"
+							height="32"
 							className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200"
 						/>
 					) : (
@@ -70,12 +72,12 @@ const Perfil = () => {
 			<main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 py-8 sm:px-6">
 				<div className="mb-6 text-center">
 					<h1 className="text-2xl font-semibold text-slate-900">{copy.title}</h1>
-					<p className="mt-1 text-sm text-slate-500">{copy.subtitle}</p>
+					<p className="mt-1 text-sm text-slate-600">{copy.subtitle}</p>
 				</div>
 
 				{profileLoading ? (
 					<div className="rounded-xl border border-slate-200 bg-white px-6 py-12 text-center shadow-sm">
-						<p className="text-sm text-slate-500">{copy.loading}</p>
+						<p className="text-sm text-slate-600">{copy.loading}</p>
 					</div>
 				) : profileMissing ? (
 					<div className="rounded-xl border border-amber-200 bg-amber-50 px-6 py-8 text-center shadow-sm">
@@ -173,7 +175,7 @@ const Perfil = () => {
 											{fieldErrors.username}
 										</p>
 									) : (
-										<p id="username-helper" className="text-xs text-slate-500">
+										<p id="username-helper" className="text-xs text-slate-600">
 											{copy.usernameHelper}
 										</p>
 									)}
@@ -209,7 +211,7 @@ const Perfil = () => {
 							<h2 id="danger-zone-title" className="text-sm font-semibold text-red-600">
 								{copy.dangerZone.title}
 							</h2>
-							<p className="mt-2 text-xs text-slate-500">{copy.dangerZone.body}</p>
+							<p className="mt-2 text-xs text-slate-600">{copy.dangerZone.body}</p>
 							<button
 								type="button"
 								onClick={openDeleteModal}
@@ -237,7 +239,10 @@ const Perfil = () => {
 				)}
 
 				<p className="mt-6 text-center">
-					<Link to="/dashboard" className="text-xs text-slate-500 transition hover:text-slate-700">
+					<Link
+						to="/dashboard"
+						className="text-xs text-slate-600 underline decoration-1 underline-offset-2 transition hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+					>
 						← Volver al dashboard
 					</Link>
 				</p>

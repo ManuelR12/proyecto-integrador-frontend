@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import RoomLobby from "../components/sala/RoomLobby";
 import RoomSession from "../components/sala/RoomSession";
+import LoadingState from "../components/ui/LoadingState";
 import { sala as copy } from "../copy/es";
 import { MediaPlaybackProvider } from "../contexts/MediaPlaybackContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useRoom } from "../hooks/useRoom";
+import { useServerWakeup } from "../hooks/useServerWakeup";
 import { unlockMediaPlayback } from "../lib/unlockMediaPlayback";
 import { normalizeRoomId } from "../lib/roomId";
 import { useRoomStore } from "../stores/useRoomStore";
@@ -17,6 +19,7 @@ const Sala = () => {
 	const { room, loading, error, isAdmin, setRoom } = useRoom(roomId, user?.uid);
 	const [enteredRoomId, setEnteredRoomId] = useState<string | null>(null);
 	const playbackUnlocked = enteredRoomId !== null && enteredRoomId === roomId;
+	const { wakingUpMessage } = useServerWakeup(loading);
 
 	useEffect(() => {
 		useRoomStore.getState().reset();
@@ -36,8 +39,13 @@ const Sala = () => {
 
 	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-[#0d0d12] text-sm text-slate-400">
-				{copy.loadingRoom}
+			<div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#0d0d12] text-sm text-slate-400">
+				<LoadingState text={wakingUpMessage || copy.loadingRoom} size="lg" />
+				{wakingUpMessage && (
+					<p className="max-w-md text-center text-xs text-slate-600">
+						El servidor gratuito de Render puede tardar unos segundos en iniciar.
+					</p>
+				)}
 			</div>
 		);
 	}

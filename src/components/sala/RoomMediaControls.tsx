@@ -37,11 +37,12 @@ const MediaToggleButton = ({
 		aria-label={label}
 		aria-pressed={active}
 		aria-busy={disabled}
+		title={label}
 		className={[
-			"inline-flex h-12 w-12 items-center justify-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-50",
+			"group relative inline-flex h-12 w-12 items-center justify-center rounded-full transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:cursor-not-allowed disabled:opacity-50",
 			active
-				? "bg-slate-700 text-white hover:bg-slate-600"
-				: "bg-red-600/90 text-white hover:bg-red-500",
+				? "bg-slate-700 text-white hover:bg-slate-600 hover:scale-105"
+				: "bg-red-600/90 text-white hover:bg-red-500 hover:scale-105",
 		].join(" ")}
 	>
 		{children}
@@ -146,6 +147,23 @@ const RoomMediaControls = () => {
 			? copy.controls.screenShareUnavailable
 			: copy.controls.compartirPantalla;
 
+	// Dynamic ARIA labels that describe the current state and action
+	const micLabel =
+		localAudioEnabled && hasLocalAudioTrack
+			? `${copy.controls.microfono}: activado. ${copy.controls.micOff}`
+			: `${copy.controls.microfono}: desactivado. ${copy.controls.micOn}`;
+
+	const cameraLabel =
+		localVideoEnabled && hasLocalVideoTrack
+			? `${copy.controls.camara}: activada. ${copy.controls.camOff}`
+			: `${copy.controls.camara}: desactivada. ${copy.controls.camOn}`;
+
+	const screenShareFullLabel = localScreenSharing
+		? `Compartir pantalla: activo. ${screenShareLabel}`
+		: screenShareBlocked
+			? `Compartir pantalla: no disponible. ${screenShareLabel}`
+			: `Compartir pantalla: inactivo. ${screenShareLabel}`;
+
 	return (
 		<div
 			role="toolbar"
@@ -153,30 +171,42 @@ const RoomMediaControls = () => {
 			className="flex flex-shrink-0 items-center justify-center gap-3 py-4"
 		>
 			<MediaToggleButton
-				label={localAudioEnabled && hasLocalAudioTrack ? copy.controls.micOff : copy.controls.micOn}
+				label={micLabel}
 				active={localAudioEnabled && hasLocalAudioTrack}
 				disabled={audioBusy}
 				onClick={handleToggleAudio}
 			>
-				{localAudioEnabled && hasLocalAudioTrack ? <MicOnIcon /> : <MicOffIcon />}
+				{localAudioEnabled && hasLocalAudioTrack ? (
+					<MicOnIcon className="h-6 w-6" />
+				) : (
+					<MicOffIcon className="h-6 w-6" />
+				)}
 			</MediaToggleButton>
 
 			<MediaToggleButton
-				label={localVideoEnabled && hasLocalVideoTrack ? copy.controls.camOff : copy.controls.camOn}
+				label={cameraLabel}
 				active={localVideoEnabled && hasLocalVideoTrack}
 				disabled={videoBusy}
 				onClick={handleToggleVideo}
 			>
-				{localVideoEnabled && hasLocalVideoTrack ? <CamOnIcon /> : <CamOffIcon />}
+				{localVideoEnabled && hasLocalVideoTrack ? (
+					<CamOnIcon className="h-6 w-6" />
+				) : (
+					<CamOffIcon className="h-6 w-6" />
+				)}
 			</MediaToggleButton>
 
 			<MediaToggleButton
-				label={screenShareLabel}
+				label={screenShareFullLabel}
 				active={localScreenSharing}
 				disabled={screenShareDisabled}
 				onClick={handleToggleScreenShare}
 			>
-				{localScreenSharing ? <ScreenShareStopIcon /> : <ScreenShareIcon />}
+				{localScreenSharing ? (
+					<ScreenShareStopIcon className="h-6 w-6" />
+				) : (
+					<ScreenShareIcon className="h-6 w-6" />
+				)}
 			</MediaToggleButton>
 		</div>
 	);

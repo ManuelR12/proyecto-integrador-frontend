@@ -49,6 +49,9 @@ const JoinRoomSection = ({
 			<form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start">
 				<div className="flex-1">
 					<div className="relative">
+						<label htmlFor="join-room-id" className="sr-only">
+							{copy.joinSection.placeholder}
+						</label>
 						<input
 							id="join-room-id"
 							type="text"
@@ -60,10 +63,10 @@ const JoinRoomSection = ({
 							aria-describedby={hasError ? "join-room-error" : "join-room-hint"}
 							className={[
 								"w-full rounded-xl border px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400",
-								"focus:outline-none focus:ring-2",
+								"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
 								hasError
-									? "border-red-500 bg-red-50 pr-10 focus:ring-red-300"
-									: "border-slate-300 bg-white focus:ring-blue-300",
+									? "border-red-500 bg-red-50 pr-10 focus-visible:outline-red-500"
+									: "border-slate-300 bg-white focus-visible:outline-purple-500",
 							].join(" ")}
 						/>
 						{hasError && (
@@ -83,7 +86,7 @@ const JoinRoomSection = ({
 							{error}
 						</p>
 					) : (
-						<p id="join-room-hint" className="mt-2 text-xs text-slate-500">
+						<p id="join-room-hint" className="mt-2 text-xs text-slate-600">
 							{copy.joinSection.hint}
 						</p>
 					)}
@@ -93,7 +96,8 @@ const JoinRoomSection = ({
 					type="submit"
 					disabled={joining}
 					aria-busy={joining}
-					className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-65 sm:min-w-[120px]"
+					aria-label={copy.joinSection.submit}
+					className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:cursor-not-allowed disabled:opacity-65 sm:min-w-[120px]"
 				>
 					{joining ? (
 						<svg
