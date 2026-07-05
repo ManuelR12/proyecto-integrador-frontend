@@ -13,6 +13,7 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 	const { pathname } = useLocation();
 	const ref = useRef<HTMLDivElement>(null);
 	const prevPathnameRef = useRef(pathname);
+	const isInitialMount = useRef(true);
 
 	// Focus management for SPA navigation
 	useEffect(() => {
@@ -37,6 +38,14 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 	useLayoutEffect(() => {
 		const el = ref.current;
 		if (!el) return;
+
+		// Skip animation on initial mount for FCP performance
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			el.style.opacity = "1";
+			el.style.transform = "none";
+			return;
+		}
 
 		// Check for reduced motion preference
 		const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
