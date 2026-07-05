@@ -1,0 +1,8 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /sala/
+Disallow: /dashboard
+Disallow: /perfil
+
+Sitemap: https://proyecto-integrador-frontend-psi.vercel.app/sitemap.xml

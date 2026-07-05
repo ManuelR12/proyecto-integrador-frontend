@@ -96,6 +96,8 @@ const Dashboard = () => {
 							<img
 								src={photoURL}
 								alt={displayName}
+								width="32"
+								height="32"
 								className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200"
 							/>
 						) : (
@@ -107,14 +109,14 @@ const Dashboard = () => {
 					<div className="hidden flex-col leading-tight sm:flex">
 						<span className="text-xs font-medium text-slate-800">{displayName}</span>
 						{user?.email && user.displayName && (
-							<span className="text-[11px] text-slate-400">{user.email}</span>
+							<span className="text-[11px] text-slate-600">{user.email}</span>
 						)}
 					</div>
 					<button
 						id="btn-sign-out"
 						type="button"
 						onClick={handleSignOut}
-						className="text-xs text-slate-500 transition hover:text-red-600"
+						className="text-xs text-slate-600 transition hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 					>
 						{common.cerrarSesion}
 					</button>
@@ -125,7 +127,7 @@ const Dashboard = () => {
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 					<div>
 						<h1 className="text-2xl font-semibold text-slate-900">{copy.title}</h1>
-						<p className="mt-1 text-sm text-slate-500">{copy.subtitle}</p>
+						<p className="mt-1 text-sm text-slate-600">{copy.subtitle}</p>
 					</div>
 					<button
 						type="button"
