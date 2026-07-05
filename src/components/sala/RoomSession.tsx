@@ -2,14 +2,12 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import ConnectionStatus from "./ConnectionStatus";
 import DeleteRoomModal from "./DeleteRoomModal";
 import RoomChatSection from "./RoomChatSection";
-import RoomConfigModal from "./RoomConfigModal";
 import RoomHeader from "./RoomHeader";
 import RoomSocketCoordinator from "./RoomSocketCoordinator";
 import RoomVideoSection from "./RoomVideoSection";
 import { useAuth } from "../../contexts/AuthContext";
 import { sala as copy } from "../../copy/es";
 import { useDeleteRoom } from "../../hooks/useDeleteRoom";
-import { useUpdateRoom } from "../../hooks/useUpdateRoom";
 import { selectParticipantCount, useRoomStore } from "../../stores/useRoomStore";
 import { useChatStore } from "../../stores/useChatStore";
 import type { Room } from "../../types/room";
@@ -18,7 +16,6 @@ interface RoomSessionProps {
 	room: Room;
 	roomId: string;
 	isAdmin: boolean;
-	onRoomUpdated: (name: string) => void;
 }
 
 const ChatIcon = () => (
@@ -31,12 +28,10 @@ const ChatIcon = () => (
 const RoomSessionHeader = ({
 	room,
 	isAdmin,
-	onEdit,
 	onDelete,
 }: {
 	room: Room;
 	isAdmin: boolean;
-	onEdit: () => void;
 	onDelete: () => void;
 }) => {
 	const participantCount = useRoomStore(selectParticipantCount);
@@ -46,23 +41,17 @@ const RoomSessionHeader = ({
 			room={room}
 			isAdmin={isAdmin}
 			participantCount={participantCount}
-			onEdit={onEdit}
 			onDelete={onDelete}
 		/>
 	);
 };
 
-const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps) => {
+const RoomSession = ({ room, roomId, isAdmin }: RoomSessionProps) => {
 	const { user } = useAuth();
 	const [chatOpen, setChatOpen] = useState(true);
 	const activeScreenShareUid = useRoomStore((state) => state.activeScreenShareUid);
 	const hadScreenShareRef = useRef(false);
 	const chatConnected = useChatStore((state) => state.connected);
-
-	const updateRoom = useUpdateRoom({
-		roomId,
-		onSuccess: onRoomUpdated,
-	});
 
 	const deleteRoomAction = useDeleteRoom({ roomId });
 
@@ -85,12 +74,7 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 			<ConnectionStatus connected={chatConnected} onReconnect={handleReconnect} />
 			<RoomSocketCoordinator roomId={roomId} />
 
-			<RoomSessionHeader
-				room={room}
-				isAdmin={isAdmin}
-				onEdit={() => updateRoom.openModal(room.title)}
-				onDelete={deleteRoomAction.openModal}
-			/>
+			<RoomSessionHeader room={room} isAdmin={isAdmin} onDelete={deleteRoomAction.openModal} />
 
 			<div className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
 				<main
@@ -126,17 +110,6 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 					</button>
 				)}
 			</div>
-
-			<RoomConfigModal
-				open={updateRoom.open}
-				name={updateRoom.name}
-				saving={updateRoom.saving}
-				error={updateRoom.error}
-				maxNameLength={updateRoom.maxNameLength}
-				onClose={updateRoom.closeModal}
-				onNameChange={updateRoom.handleNameChange}
-				onSubmit={updateRoom.handleSubmit}
-			/>
 
 			<DeleteRoomModal
 				open={deleteRoomAction.open}

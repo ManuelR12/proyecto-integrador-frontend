@@ -16,7 +16,7 @@ const Sala = () => {
 	const { id: rawId } = useParams<{ id: string }>();
 	const roomId = useMemo(() => (rawId ? normalizeRoomId(rawId) : undefined), [rawId]);
 	const { user } = useAuth();
-	const { room, loading, error, isAdmin, setRoom } = useRoom(roomId, user?.uid);
+	const { room, loading, error, isAdmin } = useRoom(roomId, user?.uid);
 	const [enteredRoomId, setEnteredRoomId] = useState<string | null>(null);
 	const playbackUnlocked = enteredRoomId !== null && enteredRoomId === roomId;
 	const { wakingUpMessage } = useServerWakeup(loading);
@@ -70,14 +70,7 @@ const Sala = () => {
 
 	return (
 		<MediaPlaybackProvider playbackUnlocked>
-			<RoomSession
-				room={room}
-				roomId={roomId}
-				isAdmin={isAdmin}
-				onRoomUpdated={(name) => {
-					setRoom((prev) => (prev ? { ...prev, title: name } : prev));
-				}}
-			/>
+			<RoomSession room={room} roomId={roomId} isAdmin={isAdmin} />
 		</MediaPlaybackProvider>
 	);
 };
