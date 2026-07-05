@@ -90,12 +90,12 @@ const UsernameSetup = () => {
 					)}
 					<div>
 						<p className="font-semibold text-slate-900">{user.displayName}</p>
-						<p className="text-sm text-slate-500">{user.email}</p>
+						<p className="text-sm text-slate-600">{user.email}</p>
 					</div>
 				</div>
 
 				<h1 className="text-2xl font-semibold text-slate-900">{setup.title}</h1>
-				<p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+				<p className="mt-1 text-sm text-slate-600">{subtitle}</p>
 				{loading && serverStatus && <p className="mt-1 text-xs text-blue-600">{serverStatus}</p>}
 
 				<form onSubmit={handleSubmit} noValidate className="mt-5">
@@ -124,7 +124,7 @@ const UsernameSetup = () => {
 					</SubmitButton>
 				</form>
 
-				<p className="mt-4 text-center text-xs text-slate-500">{setup.footnote}</p>
+				<p className="mt-4 text-center text-xs text-slate-600">{setup.footnote}</p>
 			</div>
 		</div>
 	);

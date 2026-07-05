@@ -43,7 +43,7 @@ const RoomConfigModal = ({
 								*
 							</span>
 						</label>
-						<span className="text-xs text-slate-400">
+						<span className="text-xs text-slate-600">
 							{name.length}/{maxNameLength}
 						</span>
 					</div>

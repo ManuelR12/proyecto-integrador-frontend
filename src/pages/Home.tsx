@@ -136,7 +136,7 @@ function FeatureCard({ iconPath, label, description }: FeatureItem) {
 				</svg>
 			</div>
 			<h3 className="mb-2 text-base font-semibold text-slate-900">{label}</h3>
-			<p className="text-sm leading-relaxed text-slate-500">{description}</p>
+			<p className="text-sm leading-relaxed text-slate-600">{description}</p>
 		</div>
 	);
 }
@@ -454,7 +454,7 @@ const Home = () => {
 							</Link>
 							<Link
 								to="/login"
-								className="text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+								className="text-sm font-medium text-slate-600 underline decoration-1 underline-offset-2 transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 							>
 								Ya tengo cuenta →
 							</Link>
@@ -469,23 +469,26 @@ const Home = () => {
 					<div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
 						<AgoraBrandLink className="text-sm font-bold text-blue-600" />
 						<div className="flex items-center gap-6">
-							<Link to="/" className="text-xs text-slate-500 transition-colors hover:text-blue-600">
+							<Link
+								to="/"
+								className="text-xs text-slate-600 underline decoration-1 underline-offset-2 transition-colors hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+							>
 								Inicio
 							</Link>
 							<Link
 								to="/login"
-								className="text-xs text-slate-500 transition-colors hover:text-blue-600"
+								className="text-xs text-slate-600 underline decoration-1 underline-offset-2 transition-colors hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 							>
 								Iniciar sesión
 							</Link>
 							<Link
 								to="/registro"
-								className="text-xs text-slate-500 transition-colors hover:text-blue-600"
+								className="text-xs text-slate-600 underline decoration-1 underline-offset-2 transition-colors hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 							>
 								Crear cuenta
 							</Link>
 						</div>
-						<p className="text-xs text-slate-400">© 2026 {product.name}</p>
+						<p className="text-xs text-slate-600">© 2026 {product.name}</p>
 					</div>
 				</div>
 			</footer>

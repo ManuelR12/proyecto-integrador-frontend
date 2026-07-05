@@ -70,7 +70,7 @@ const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 					</div>
 					<div className="min-w-0">
 						<h3 className="truncate text-base font-semibold text-slate-900">{room.title}</h3>
-						<div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+						<div className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
 							<span>
 								{copy.roomCard.idPrefix} {room.id}
 							</span>
@@ -78,7 +78,7 @@ const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 								type="button"
 								onClick={handleCopyId}
 								aria-label={`Copiar ID ${room.id}`}
-								className="rounded p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+								className="rounded p-0.5 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 							>
 								<CopyIcon />
 							</button>
@@ -92,7 +92,7 @@ const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 						{sala.enVivo}
 					</span>
 				) : (
-					<span className="flex-shrink-0 text-xs text-slate-400">{copy.roomCard.inactive}</span>
+					<span className="flex-shrink-0 text-xs text-slate-600">{copy.roomCard.inactive}</span>
 				)}
 			</div>
 
@@ -113,7 +113,7 @@ const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 						)}
 					</div>
 				)}
-				<span className="text-xs text-slate-500">
+				<span className="text-xs text-slate-600">
 					{copy.roomCard.participants(participantCount)}
 				</span>
 			</div>

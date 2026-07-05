@@ -239,7 +239,10 @@ const Perfil = () => {
 				)}
 
 				<p className="mt-6 text-center">
-					<Link to="/dashboard" className="text-xs text-slate-500 transition hover:text-slate-700">
+					<Link
+						to="/dashboard"
+						className="text-xs text-slate-600 underline decoration-1 underline-offset-2 transition hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+					>
 						← Volver al dashboard
 					</Link>
 				</p>

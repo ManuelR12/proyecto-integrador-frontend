@@ -84,7 +84,7 @@ const FormField = ({
 						onClick={() => setPasswordVisible((prev) => !prev)}
 						disabled={inputProps.disabled}
 						aria-label={passwordVisible ? hidePasswordLabel : showPasswordLabel}
-						className="absolute inset-y-0 right-2 flex items-center rounded-md p-1 text-slate-500 transition hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+						className="absolute inset-y-0 right-2 flex items-center rounded-md p-1 text-slate-600 transition hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{passwordVisible ? <EyeSlashIcon /> : <EyeIcon />}
 					</button>

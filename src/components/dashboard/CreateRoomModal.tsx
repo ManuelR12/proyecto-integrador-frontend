@@ -36,7 +36,7 @@ const CreateRoomModal = ({
 		>
 			<div className="pt-1">
 				<h2 className="text-lg font-semibold text-slate-900">{modalCopy.title}</h2>
-				<p className="mt-1 text-sm text-slate-500">{modalCopy.idHelper}</p>
+				<p className="mt-1 text-sm text-slate-600">{modalCopy.idHelper}</p>
 
 				<form onSubmit={onSubmit} className="mt-5 space-y-5">
 					<div className="flex flex-col gap-1">
@@ -47,7 +47,7 @@ const CreateRoomModal = ({
 									*
 								</span>
 							</label>
-							<span className="text-xs text-slate-400">
+							<span className="text-xs text-slate-600">
 								{title.length}/{maxTitleLength}
 							</span>
 						</div>

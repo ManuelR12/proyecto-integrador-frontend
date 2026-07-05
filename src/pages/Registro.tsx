@@ -177,7 +177,10 @@ const Registro = () => {
 
 				<p className="mt-4 text-center text-xs text-slate-600">
 					{copy.register.footerPrompt}{" "}
-					<Link to="/login" className="text-blue-600 transition-colors hover:text-blue-500">
+					<Link
+						to="/login"
+						className="text-blue-600 underline decoration-1 underline-offset-2 transition-colors hover:text-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+					>
 						{copy.register.footerLink}
 					</Link>
 				</p>

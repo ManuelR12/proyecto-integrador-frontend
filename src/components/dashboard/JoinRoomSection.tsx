@@ -86,7 +86,7 @@ const JoinRoomSection = ({
 							{error}
 						</p>
 					) : (
-						<p id="join-room-hint" className="mt-2 text-xs text-slate-500">
+						<p id="join-room-hint" className="mt-2 text-xs text-slate-600">
 							{copy.joinSection.hint}
 						</p>
 					)}

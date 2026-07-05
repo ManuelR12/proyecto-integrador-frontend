@@ -42,7 +42,7 @@ const DashboardEmptyState = ({ onCreateRoom }: DashboardEmptyStateProps) => {
 			<h2 id="dashboard-empty-title" className="mt-6 text-lg font-semibold text-slate-900">
 				{copy.emptyState.title}
 			</h2>
-			<p className="mt-2 max-w-md text-sm text-slate-500">{copy.emptyState.body}</p>
+			<p className="mt-2 max-w-md text-sm text-slate-600">{copy.emptyState.body}</p>
 			<button
 				type="button"
 				onClick={onCreateRoom}

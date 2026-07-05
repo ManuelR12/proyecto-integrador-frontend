@@ -63,7 +63,7 @@ const RoomChatPanel = ({
 						<UsersIcon />
 						<div>
 							<h2 className="text-sm font-semibold text-slate-900">{copy.chatTitle}</h2>
-							<p className="text-xs text-slate-500">{roomName}</p>
+							<p className="text-xs text-slate-600">{roomName}</p>
 						</div>
 					</div>
 					<div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ const RoomChatPanel = ({
 								type="button"
 								onClick={onHide}
 								aria-label={copy.chatHide}
-								className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+								className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 							>
 								<CloseIcon />
 							</button>

@@ -62,7 +62,7 @@ const RoomHeader = ({ room, isAdmin, participantCount, onEdit, onDelete }: RoomH
 			<div className="flex min-w-0 items-start gap-3">
 				<Link
 					to="/dashboard"
-					className="mt-1 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+					className="mt-1 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 					aria-label={copy.backToDashboard}
 				>
 					<BackIcon />
@@ -70,7 +70,7 @@ const RoomHeader = ({ room, isAdmin, participantCount, onEdit, onDelete }: RoomH
 
 				<div className="min-w-0">
 					<h1 className="truncate text-lg font-semibold text-slate-900">{room.title}</h1>
-					<div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+					<div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
 						<span className="inline-flex items-center gap-1">
 							{dashboardCopy.roomCard.idPrefix} {room.id}
 							<button

@@ -42,7 +42,7 @@ const Sala = () => {
 			<div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#0d0d12] text-sm text-slate-400">
 				<LoadingState text={wakingUpMessage || copy.loadingRoom} size="lg" />
 				{wakingUpMessage && (
-					<p className="max-w-md text-center text-xs text-slate-500">
+					<p className="max-w-md text-center text-xs text-slate-600">
 						El servidor gratuito de Render puede tardar unos segundos en iniciar.
 					</p>
 				)}
