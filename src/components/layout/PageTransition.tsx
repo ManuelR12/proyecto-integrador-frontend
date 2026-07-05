@@ -14,6 +14,7 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 	const ref = useRef<HTMLDivElement>(null);
 	const prevPathnameRef = useRef(pathname);
 	const isInitialMount = useRef(true);
+	const willChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	// Focus management for SPA navigation
 	useEffect(() => {
@@ -38,6 +39,12 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 	useLayoutEffect(() => {
 		const el = ref.current;
 		if (!el) return;
+
+		// Clear any pending will-change timer from previous transition
+		if (willChangeTimerRef.current) {
+			clearTimeout(willChangeTimerRef.current);
+			willChangeTimerRef.current = null;
+		}
 
 		// Skip animation on initial mount for FCP performance
 		if (isInitialMount.current) {
@@ -74,12 +81,19 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 			el.style.transform = "translateX(0) scale(1)";
 
 			// Clear will-change after transition completes
-			setTimeout(() => {
+			willChangeTimerRef.current = setTimeout(() => {
 				if (el) el.style.willChange = "auto";
+				willChangeTimerRef.current = null;
 			}, 450); // Match DURATION
 		});
 
-		return () => cancelAnimationFrame(raf);
+		return () => {
+			cancelAnimationFrame(raf);
+			if (willChangeTimerRef.current) {
+				clearTimeout(willChangeTimerRef.current);
+				willChangeTimerRef.current = null;
+			}
+		};
 	}, [pathname]);
 
 	return <div ref={ref}>{children}</div>;
