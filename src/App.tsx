@@ -20,8 +20,8 @@ function App() {
 				<ToastProvider>
 					<BrowserRouter>
 						<SkipLink />
-						<PageTransition>
-							<main id="main-content">
+						<main id="main-content">
+							<PageTransition>
 								<Routes>
 									<Route path="/" element={<Home />} />
 									<Route path="/login" element={<Login />} />
@@ -52,8 +52,8 @@ function App() {
 										}
 									/>
 								</Routes>
-							</main>
-						</PageTransition>
+							</PageTransition>
+						</main>
 					</BrowserRouter>
 				</ToastProvider>
 			</UserProfileProvider>

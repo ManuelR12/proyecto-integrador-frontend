@@ -13,6 +13,8 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 	const { pathname } = useLocation();
 	const ref = useRef<HTMLDivElement>(null);
 	const prevPathnameRef = useRef(pathname);
+	const isInitialMount = useRef(true);
+	const willChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	// Focus management for SPA navigation
 	useEffect(() => {
@@ -38,6 +40,22 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 		const el = ref.current;
 		if (!el) return;
 
+		// Clear any pending will-change timer from previous transition
+		if (willChangeTimerRef.current) {
+			clearTimeout(willChangeTimerRef.current);
+			willChangeTimerRef.current = null;
+		}
+
+		// Skip animation on initial mount for FCP performance
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			el.style.opacity = "1";
+			el.style.transform = "none";
+			// Clear will-change after initial render to avoid compositing cost
+			el.style.willChange = "auto";
+			return;
+		}
+
 		// Check for reduced motion preference
 		const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -47,6 +65,9 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 			el.style.transform = "none";
 			return;
 		}
+
+		// Re-enable will-change for animation
+		el.style.willChange = "opacity, transform";
 
 		// Snap to initial hidden state (no transition, before browser paints)
 		el.style.transition = "none";
@@ -58,16 +79,24 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 			el.style.transition = `opacity ${DURATION} ${EASING}, transform ${DURATION} ${EASING}`;
 			el.style.opacity = "1";
 			el.style.transform = "translateX(0) scale(1)";
+
+			// Clear will-change after transition completes
+			willChangeTimerRef.current = setTimeout(() => {
+				if (el) el.style.willChange = "auto";
+				willChangeTimerRef.current = null;
+			}, 450); // Match DURATION
 		});
 
-		return () => cancelAnimationFrame(raf);
+		return () => {
+			cancelAnimationFrame(raf);
+			if (willChangeTimerRef.current) {
+				clearTimeout(willChangeTimerRef.current);
+				willChangeTimerRef.current = null;
+			}
+		};
 	}, [pathname]);
 
-	return (
-		<div ref={ref} style={{ willChange: "opacity, transform" }}>
-			{children}
-		</div>
-	);
+	return <div ref={ref}>{children}</div>;
 };
 
 export default PageTransition;
