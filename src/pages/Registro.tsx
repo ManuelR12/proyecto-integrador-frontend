@@ -24,7 +24,7 @@ const Registro = () => {
 	return (
 		<AuthShell>
 			<div className="w-full max-w-[540px]">
-				<div className="rounded-2xl border border-slate-200 bg-white px-8 py-8 shadow-sm">
+				<div className="rounded-2xl border border-slate-200 bg-white px-8 py-8 shadow-sm relative">
 					<Link
 						to="/"
 						className="text-xs text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
