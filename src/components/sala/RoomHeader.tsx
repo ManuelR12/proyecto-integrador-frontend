@@ -62,7 +62,7 @@ const RoomHeader = ({ room, isAdmin, participantCount, onEdit, onDelete }: RoomH
 			<div className="flex min-w-0 items-start gap-3">
 				<Link
 					to="/dashboard"
-					className="mt-1 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+					className="mt-1 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 					aria-label={copy.backToDashboard}
 				>
 					<BackIcon />
@@ -76,10 +76,11 @@ const RoomHeader = ({ room, isAdmin, participantCount, onEdit, onDelete }: RoomH
 							<button
 								type="button"
 								onClick={() => void handleCopyId()}
-								className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-blue-600 transition hover:bg-blue-50"
+								aria-label={`${copy.copyId} ID de sala: ${room.id}`}
+								className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-blue-600 transition hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 							>
 								<CopyIcon />
-								{copy.copyId}
+								<span aria-hidden="true">{copy.copyId}</span>
 							</button>
 						</span>
 						<span>{copy.participantes(participantCount)}</span>
@@ -96,7 +97,8 @@ const RoomHeader = ({ room, isAdmin, participantCount, onEdit, onDelete }: RoomH
 					<button
 						type="button"
 						onClick={onEdit}
-						className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+						aria-label={`${copy.editRoom}: ${room.title}`}
+						className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 					>
 						<EditIcon />
 						{copy.editRoom}
@@ -104,7 +106,8 @@ const RoomHeader = ({ room, isAdmin, participantCount, onEdit, onDelete }: RoomH
 					<button
 						type="button"
 						onClick={onDelete}
-						className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
+						aria-label={`${copy.deleteRoom}: ${room.title}`}
+						className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
 					>
 						<TrashIcon />
 						{copy.deleteRoom}

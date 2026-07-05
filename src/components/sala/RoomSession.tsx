@@ -106,7 +106,7 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 						onClick={() => setChatOpen(true)}
 						aria-label={copy.chatShow}
 						className={[
-							"fixed bottom-24 right-4 z-20 inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition hover:bg-blue-500",
+							"fixed bottom-24 right-4 z-20 inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500",
 							"lg:absolute lg:bottom-auto lg:right-0 lg:top-1/2 lg:-translate-y-1/2 lg:rounded-l-full lg:rounded-r-none lg:px-3 lg:py-4 lg:[writing-mode:vertical-rl]",
 						].join(" ")}
 					>

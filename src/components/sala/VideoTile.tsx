@@ -104,6 +104,10 @@ const VideoTile = ({
 						autoPlay
 						playsInline
 						muted={isLocal}
+						tabIndex={-1}
+						aria-label={
+							isScreenSharing ? `Pantalla compartida de ${displayName}` : `Video de ${displayName}`
+						}
 						className={
 							showVideo
 								? [
@@ -133,7 +137,7 @@ const VideoTile = ({
 				<div className="pointer-events-none absolute left-2 top-2 z-10">
 					<span
 						className={[
-							"rounded bg-emerald-600/90 font-medium text-white shadow-sm",
+							"rounded bg-emerald-600 font-medium text-white shadow-md",
 							compact ? "px-1.5 py-0.5 text-[9px]" : "px-2 py-1 text-[10px] sm:text-xs",
 						].join(" ")}
 					>

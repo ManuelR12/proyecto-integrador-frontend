@@ -146,6 +146,23 @@ const RoomMediaControls = () => {
 			? copy.controls.screenShareUnavailable
 			: copy.controls.compartirPantalla;
 
+	// Dynamic ARIA labels that describe the current state and action
+	const micLabel =
+		localAudioEnabled && hasLocalAudioTrack
+			? `${copy.controls.microfono}: activado. ${copy.controls.micOff}`
+			: `${copy.controls.microfono}: desactivado. ${copy.controls.micOn}`;
+
+	const cameraLabel =
+		localVideoEnabled && hasLocalVideoTrack
+			? `${copy.controls.camara}: activada. ${copy.controls.camOff}`
+			: `${copy.controls.camara}: desactivada. ${copy.controls.camOn}`;
+
+	const screenShareFullLabel = localScreenSharing
+		? `Compartir pantalla: activo. ${screenShareLabel}`
+		: screenShareBlocked
+			? `Compartir pantalla: no disponible. ${screenShareLabel}`
+			: `Compartir pantalla: inactivo. ${screenShareLabel}`;
+
 	return (
 		<div
 			role="toolbar"
@@ -153,7 +170,7 @@ const RoomMediaControls = () => {
 			className="flex flex-shrink-0 items-center justify-center gap-3 py-4"
 		>
 			<MediaToggleButton
-				label={localAudioEnabled && hasLocalAudioTrack ? copy.controls.micOff : copy.controls.micOn}
+				label={micLabel}
 				active={localAudioEnabled && hasLocalAudioTrack}
 				disabled={audioBusy}
 				onClick={handleToggleAudio}
@@ -162,7 +179,7 @@ const RoomMediaControls = () => {
 			</MediaToggleButton>
 
 			<MediaToggleButton
-				label={localVideoEnabled && hasLocalVideoTrack ? copy.controls.camOff : copy.controls.camOn}
+				label={cameraLabel}
 				active={localVideoEnabled && hasLocalVideoTrack}
 				disabled={videoBusy}
 				onClick={handleToggleVideo}
@@ -171,7 +188,7 @@ const RoomMediaControls = () => {
 			</MediaToggleButton>
 
 			<MediaToggleButton
-				label={screenShareLabel}
+				label={screenShareFullLabel}
 				active={localScreenSharing}
 				disabled={screenShareDisabled}
 				onClick={handleToggleScreenShare}

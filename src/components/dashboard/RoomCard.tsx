@@ -78,7 +78,7 @@ const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 								type="button"
 								onClick={handleCopyId}
 								aria-label={`Copiar ID ${room.id}`}
-								className="rounded p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+								className="rounded p-0.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 							>
 								<CopyIcon />
 							</button>
@@ -121,7 +121,8 @@ const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 			<div className="mt-5 flex gap-3">
 				<Link
 					to={`/sala/${room.id}`}
-					className="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
+					aria-label={`${copy.roomCard.enter}: ${room.title}`}
+					className="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 				>
 					{copy.roomCard.enter}
 				</Link>
@@ -129,7 +130,8 @@ const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 					<button
 						type="button"
 						onClick={handleSettings}
-						className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+						aria-label={`${copy.roomCard.settings}: ${room.title}`}
+						className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
 					>
 						<GearIcon />
 						{copy.roomCard.settings}

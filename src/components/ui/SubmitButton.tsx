@@ -24,6 +24,7 @@ const SubmitButton = ({
 				"flex w-full items-center justify-center gap-2 rounded-lg px-5 py-2.5",
 				"text-sm font-medium text-white transition-colors",
 				"bg-blue-600 hover:bg-blue-500",
+				"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500",
 				"disabled:cursor-not-allowed disabled:opacity-65",
 				className,
 			].join(" ")}
