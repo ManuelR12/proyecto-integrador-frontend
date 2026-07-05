@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import ConnectionStatus from "./ConnectionStatus";
 import DeleteRoomModal from "./DeleteRoomModal";
 import RoomChatSection from "./RoomChatSection";
 import RoomConfigModal from "./RoomConfigModal";
@@ -10,6 +11,7 @@ import { sala as copy } from "../../copy/es";
 import { useDeleteRoom } from "../../hooks/useDeleteRoom";
 import { useUpdateRoom } from "../../hooks/useUpdateRoom";
 import { selectParticipantCount, useRoomStore } from "../../stores/useRoomStore";
+import { useChatStore } from "../../stores/useChatStore";
 import type { Room } from "../../types/room";
 
 interface RoomSessionProps {
@@ -55,6 +57,7 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 	const [chatOpen, setChatOpen] = useState(true);
 	const activeScreenShareUid = useRoomStore((state) => state.activeScreenShareUid);
 	const hadScreenShareRef = useRef(false);
+	const chatConnected = useChatStore((state) => state.connected);
 
 	const updateRoom = useUpdateRoom({
 		roomId,
@@ -70,10 +73,16 @@ const RoomSession = ({ room, roomId, isAdmin, onRoomUpdated }: RoomSessionProps)
 		hadScreenShareRef.current = Boolean(activeScreenShareUid);
 	}, [activeScreenShareUid]);
 
+	const handleReconnect = useCallback(() => {
+		// Reload the page to re-establish all connections
+		window.location.reload();
+	}, []);
+
 	const isScreenShareActive = Boolean(activeScreenShareUid);
 
 	return (
 		<div className="flex h-screen w-full flex-col overflow-hidden bg-[#0d0d12]">
+			<ConnectionStatus connected={chatConnected} onReconnect={handleReconnect} />
 			<RoomSocketCoordinator roomId={roomId} />
 
 			<RoomSessionHeader

@@ -34,6 +34,8 @@ const RoomChatSection = ({ roomId, roomName, currentUserId, onHide }: RoomChatSe
 	useEffect(() => {
 		if (loadingHistory) return;
 		requestAnimationFrame(() => {
+			// Always use instant scroll - smooth scrolling disabled for accessibility
+			// and reduced motion preference
 			messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
 		});
 	}, [loadingHistory, messages]);
