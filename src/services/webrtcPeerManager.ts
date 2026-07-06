@@ -263,6 +263,27 @@ export class WebRtcPeerManager {
 
 		if (sender) {
 			await sender.replaceTrack(track);
+			if (kind === "video" && track) {
+				await this.boostVideoSenderBitrate(sender);
+			}
+		}
+	}
+
+	/**
+	 * The default WebRTC video bitrate cap (~500kbps) is tuned for camera feeds and causes
+	 * choppy/blurry screen shares. Raise the max bitrate on the sender so screen-share content
+	 * (text, cursors, fast scrolling) stays legible and fluid.
+	 */
+	private async boostVideoSenderBitrate(sender: RTCRtpSender): Promise<void> {
+		try {
+			const params = sender.getParameters();
+			if (!params.encodings || params.encodings.length === 0) {
+				params.encodings = [{}];
+			}
+			params.encodings[0].maxBitrate = 2_500_000;
+			await sender.setParameters(params);
+		} catch {
+			// Not fatal: some browsers restrict setParameters before the first negotiation.
 		}
 	}
 }

@@ -10,6 +10,7 @@ import AgoraBrandLink from "../components/layout/AgoraBrandLink";
 import { common, dashboard as copy } from "../copy/es";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { useCreateRoom } from "../hooks/useCreateRoom";
 import { useJoinRoom } from "../hooks/useJoinRoom";
 import { useRooms } from "../hooks/useRooms";
@@ -21,6 +22,7 @@ const Dashboard = () => {
 	const location = useLocation();
 	const { showToast } = useToast();
 	const { user } = useAuth();
+	const { theme, toggleTheme } = useTheme();
 	const { avatarUrl, displayName: profileDisplayName } = useUserProfile();
 	const photoURL = avatarUrl ?? user?.photoURL;
 
@@ -87,10 +89,34 @@ const Dashboard = () => {
 	};
 
 	return (
-		<div id="dashboard" className="flex min-h-screen w-full flex-col bg-[#f6f7f8]">
-			<header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 sm:px-8">
+		<div
+			id="dashboard"
+			className="flex min-h-screen w-full flex-col bg-[#f6f7f8] dark:bg-slate-950"
+		>
+			<header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 dark:border-slate-800 dark:bg-slate-900 sm:px-8">
 				<AgoraBrandLink className="text-sm font-bold text-blue-600" />
 				<div className="flex items-center gap-3">
+					<button
+						type="button"
+						onClick={toggleTheme}
+						aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+						title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+						className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 dark:text-slate-300 dark:hover:bg-slate-800"
+					>
+						{theme === "dark" ? (
+							<svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+								<path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM10 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 15zM18 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0118 10zM5 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 015 10zM14.657 14.657a.75.75 0 011.06 0l1.061 1.06a.75.75 0 11-1.06 1.061l-1.06-1.06a.75.75 0 010-1.061zM4.222 4.222a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.06-1.06a.75.75 0 010-1.061zM15.717 4.222a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 01-1.061-1.06l1.06-1.06a.75.75 0 011.061 0zM5.283 14.657a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.06a.75.75 0 011.061 0zM10 6a4 4 0 100 8 4 4 0 000-8z" />
+							</svg>
+						) : (
+							<svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+								<path
+									fillRule="evenodd"
+									d="M7.455 2.004a.75.75 0 01.26.77 7 7 0 009.958 7.967.75.75 0 011.067.853A8.5 8.5 0 116.647 1.921a.75.75 0 01.808.083z"
+									clipRule="evenodd"
+								/>
+							</svg>
+						)}
+					</button>
 					<Link to="/perfil" aria-label="Ir a mi perfil" className="transition hover:opacity-80">
 						{photoURL ? (
 							<img
@@ -107,16 +133,18 @@ const Dashboard = () => {
 						)}
 					</Link>
 					<div className="hidden flex-col leading-tight sm:flex">
-						<span className="text-xs font-medium text-slate-800">{displayName}</span>
+						<span className="text-xs font-medium text-slate-800 dark:text-slate-200">
+							{displayName}
+						</span>
 						{user?.email && user.displayName && (
-							<span className="text-[11px] text-slate-600">{user.email}</span>
+							<span className="text-[11px] text-slate-600 dark:text-slate-400">{user.email}</span>
 						)}
 					</div>
 					<button
 						id="btn-sign-out"
 						type="button"
 						onClick={handleSignOut}
-						className="text-xs text-slate-600 transition hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+						className="text-xs text-slate-600 transition hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 dark:text-slate-300"
 					>
 						{common.cerrarSesion}
 					</button>
@@ -126,8 +154,10 @@ const Dashboard = () => {
 			<main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8 sm:px-6">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 					<div>
-						<h1 className="text-2xl font-semibold text-slate-900">{copy.title}</h1>
-						<p className="mt-1 text-sm text-slate-600">{copy.subtitle}</p>
+						<h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+							{copy.title}
+						</h1>
+						<p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{copy.subtitle}</p>
 					</div>
 					<button
 						type="button"

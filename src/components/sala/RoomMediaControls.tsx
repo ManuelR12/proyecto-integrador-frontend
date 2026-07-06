@@ -17,6 +17,7 @@ const TOGGLE_COOLDOWN_MS = 400;
 /** Short button cooldown protects local hardware; socket emits are debounced separately in the store. */
 interface MediaToggleButtonProps {
 	label: string;
+	caption: string;
 	active: boolean;
 	disabled?: boolean;
 	onClick: () => void;
@@ -25,28 +26,34 @@ interface MediaToggleButtonProps {
 
 const MediaToggleButton = ({
 	label,
+	caption,
 	active,
 	disabled = false,
 	onClick,
 	children,
 }: MediaToggleButtonProps) => (
-	<button
-		type="button"
-		onClick={onClick}
-		disabled={disabled}
-		aria-label={label}
-		aria-pressed={active}
-		aria-busy={disabled}
-		title={label}
-		className={[
-			"group relative inline-flex h-12 w-12 items-center justify-center rounded-full transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:cursor-not-allowed disabled:opacity-50",
-			active
-				? "bg-slate-700 text-white hover:bg-slate-600 hover:scale-105"
-				: "bg-red-600/90 text-white hover:bg-red-500 hover:scale-105",
-		].join(" ")}
-	>
-		{children}
-	</button>
+	<div className="flex flex-col items-center gap-1">
+		<button
+			type="button"
+			onClick={onClick}
+			disabled={disabled}
+			aria-label={label}
+			aria-pressed={active}
+			aria-busy={disabled}
+			title={label}
+			className={[
+				"group relative inline-flex h-12 w-12 items-center justify-center rounded-full transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:cursor-not-allowed disabled:opacity-50",
+				active
+					? "bg-slate-700 text-white hover:bg-slate-600 hover:scale-105"
+					: "bg-red-600/90 text-white hover:bg-red-500 hover:scale-105",
+			].join(" ")}
+		>
+			{children}
+		</button>
+		<span aria-hidden="true" className="text-[11px] font-medium text-slate-200">
+			{caption}
+		</span>
+	</div>
 );
 
 const RoomMediaControls = () => {
@@ -172,6 +179,7 @@ const RoomMediaControls = () => {
 		>
 			<MediaToggleButton
 				label={micLabel}
+				caption={copy.controls.microfono}
 				active={localAudioEnabled && hasLocalAudioTrack}
 				disabled={audioBusy}
 				onClick={handleToggleAudio}
@@ -185,6 +193,7 @@ const RoomMediaControls = () => {
 
 			<MediaToggleButton
 				label={cameraLabel}
+				caption={copy.controls.camara}
 				active={localVideoEnabled && hasLocalVideoTrack}
 				disabled={videoBusy}
 				onClick={handleToggleVideo}
@@ -198,6 +207,7 @@ const RoomMediaControls = () => {
 
 			<MediaToggleButton
 				label={screenShareFullLabel}
+				caption={copy.controls.compartirPantalla}
 				active={localScreenSharing}
 				disabled={screenShareDisabled}
 				onClick={handleToggleScreenShare}
