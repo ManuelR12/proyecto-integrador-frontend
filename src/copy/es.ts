@@ -45,7 +45,8 @@ export const auth = {
 			statusLoading: "Verificando en la base de datos...",
 			usernameLabel: "Nombre de usuario",
 			usernamePlaceholder: "ej. ana_garcia",
-			usernameHelper: "Entre 3 y 20 caracteres: letras, números o guión bajo.",
+			usernameHelper:
+				"Es tu identificador único en Agora (así te verán otros en las salas). Entre 3 y 20 caracteres: letras, números o guión bajo.",
 			submit: "Continuar al dashboard",
 			submitLoading: "Verificando...",
 			footnote: "No podrás cambiar tu nombre de usuario más adelante.",
@@ -93,9 +94,10 @@ export const auth = {
 		apellidosPlaceholder: "Ej. García López",
 		usernameLabel: "Nombre de usuario",
 		usernamePlaceholder: "ej. ana_garcia",
-		usernameHelper: "Entre 3 y 20 caracteres: letras, números o guión bajo.",
-		avatarLabel: "Foto de perfil",
-		avatarHelper: "PNG, JPG, WEBP · Máx 5 MB",
+		usernameHelper:
+			"Es tu identificador único en Agora (así te verán otros en las salas). Entre 3 y 20 caracteres: letras, números o guión bajo.",
+		avatarLabel: "Foto de perfil (opcional)",
+		avatarHelper: "Puedes agregarla más tarde desde tu perfil. PNG, JPG, WEBP · Máx 5 MB.",
 		emailLabel: "Correo",
 		emailPlaceholder: "tu@correo.edu",
 		passwordLabel: "Contraseña",
@@ -107,6 +109,7 @@ export const auth = {
 		submitLoading: "Creando cuenta...",
 		footerPrompt: "¿Ya tienes cuenta?",
 		footerLink: "Iniciar sesión",
+		consentLabel: "Acepto el uso de mis datos según la política de privacidad de Agora.",
 		errors: {
 			nombresRequired: "Escribe tu nombre.",
 			apellidosRequired: "Escribe tu apellido.",
@@ -117,6 +120,7 @@ export const auth = {
 			emailTaken: "Este correo ya está registrado. Inicia sesión o usa otro correo.",
 			passwordWeak: "La contraseña debe tener al menos 8 caracteres.",
 			avatarRequired: "Selecciona una imagen para tu avatar.",
+			consentRequired: "Debes aceptar el uso de tus datos para continuar.",
 		},
 	},
 	home: {
@@ -236,6 +240,7 @@ export const sala = {
 	copyIdSuccess: "ID copiado al portapapeles",
 	editRoom: "Editar sala",
 	deleteRoom: "Eliminar sala",
+	leaveRoom: "Salir de la sala",
 	enVivo: "En vivo",
 	stagePlaceholder: "Pantalla compartida / video principal",
 	chatTitle: "Chat",

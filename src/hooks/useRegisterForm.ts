@@ -18,6 +18,7 @@ interface FormState {
 	email: string;
 	password: string;
 	avatarUrl: string | null;
+	consent: boolean;
 }
 
 const INITIAL_FORM: FormState = {
@@ -27,6 +28,7 @@ const INITIAL_FORM: FormState = {
 	email: "",
 	password: "",
 	avatarUrl: null,
+	consent: false,
 };
 
 export function useRegisterForm() {
@@ -38,7 +40,7 @@ export function useRegisterForm() {
 	const [serverError, setServerError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 
-	const setField = (name: keyof FormState, value: string | null) => {
+	const setField = <K extends keyof FormState>(name: K, value: FormState[K]) => {
 		setFields((prev) => ({ ...prev, [name]: value }));
 		setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
 		setServerError(null);
@@ -60,6 +62,7 @@ export function useRegisterForm() {
 		}
 		const failingRule = getPasswordRules(data.password).find((r) => !r.met);
 		if (failingRule) errors.password = failingRule.errorMsg;
+		if (!data.consent) errors.consent = copy.register.errors.consentRequired;
 		return errors;
 	}
 

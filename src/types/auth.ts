@@ -16,6 +16,7 @@ export interface RegisterFieldErrors {
 	email?: string;
 	password?: string;
 	avatar?: string;
+	consent?: string;
 }
 
 /** Shape returned by the auth service on success. */

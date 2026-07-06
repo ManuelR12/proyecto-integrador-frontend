@@ -30,19 +30,8 @@ const CopyIcon = () => (
 	</svg>
 );
 
-const GearIcon = () => (
-	<svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
-		<path
-			fillRule="evenodd"
-			d="M11.983 1.907a.75.75 0 01.734.011l2.25 1.5a.75.75 0 01.232.938l-1.106 2.213a6.96 6.96 0 011.732 1.732l2.213 1.106a.75.75 0 01.938.232l1.5 2.25a.75.75 0 01-.011.734l-1.5 2.25a.75.75 0 01-.938.232l-2.213-1.106a6.96 6.96 0 01-1.732 1.732l-1.106 2.213a.75.75 0 01-.232.938l-2.25 1.5a.75.75 0 01-.734.011l-2.25-1.5a.75.75 0 01-.232-.938l1.106-2.213a6.96 6.96 0 01-1.732-1.732l-2.213-1.106a.75.75 0 01-.938-.232l-1.5-2.25a.75.75 0 01.011-.734l1.5-2.25a.75.75 0 01.938-.232l2.213 1.106a6.96 6.96 0 011.732-1.732l1.106-2.213a.75.75 0 01.232-.938l2.25-1.5zM10 13.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"
-			clipRule="evenodd"
-		/>
-	</svg>
-);
-
-const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
+const RoomCard = ({ room }: RoomCardProps) => {
 	const { showToast } = useToast();
-	const isOwner = Boolean(currentUserId && room.ownerId === currentUserId);
 	const visibleParticipants = room.participants.slice(0, 4);
 	const overflowCount = Math.max(room.participants.length - visibleParticipants.length, 0);
 
@@ -57,19 +46,17 @@ const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 		}
 	};
 
-	const handleSettings = () => {
-		showToast(copy.roomCard.settingsSoon, "info");
-	};
-
 	return (
-		<article className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+		<article className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex min-w-0 items-start gap-3">
 					<div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
 						<MonitorIcon />
 					</div>
 					<div className="min-w-0">
-						<h3 className="truncate text-base font-semibold text-slate-900">{room.title}</h3>
+						<h3 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
+							{room.title}
+						</h3>
 						<div className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
 							<span>
 								{copy.roomCard.idPrefix} {room.id}
@@ -126,17 +113,6 @@ const RoomCard = ({ room, currentUserId }: RoomCardProps) => {
 				>
 					{copy.roomCard.enter}
 				</Link>
-				{isOwner && (
-					<button
-						type="button"
-						onClick={handleSettings}
-						aria-label={`${copy.roomCard.settings}: ${room.title}`}
-						className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
-					>
-						<GearIcon />
-						{copy.roomCard.settings}
-					</button>
-				)}
 			</div>
 		</article>
 	);

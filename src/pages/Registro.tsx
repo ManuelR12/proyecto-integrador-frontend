@@ -153,6 +153,26 @@ const Registro = () => {
 								/>
 								<PasswordStrengthChecklist password={fields.password} />
 							</div>
+
+							<div className="flex items-start gap-2">
+								<input
+									id="consent"
+									type="checkbox"
+									checked={fields.consent}
+									onChange={(e) => setField("consent", e.target.checked)}
+									aria-invalid={Boolean(fieldErrors.consent)}
+									aria-describedby={fieldErrors.consent ? "consent-error" : undefined}
+									className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-slate-300 text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+								/>
+								<label htmlFor="consent" className="text-sm text-slate-700">
+									{copy.register.consentLabel}
+								</label>
+							</div>
+							{fieldErrors.consent && (
+								<p id="consent-error" role="alert" className="-mt-2 text-xs text-red-600">
+									{fieldErrors.consent}
+								</p>
+							)}
 						</fieldset>
 
 						{serverError && (

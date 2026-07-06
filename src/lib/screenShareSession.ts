@@ -115,7 +115,7 @@ export async function startScreenShareSession(): Promise<boolean> {
 
 	try {
 		const displayStream = await navigator.mediaDevices.getDisplayMedia({
-			video: true,
+			video: { frameRate: { ideal: 30, max: 30 } },
 			audio: true,
 		});
 
@@ -129,6 +129,8 @@ export async function startScreenShareSession(): Promise<boolean> {
 			displayStream.getTracks().forEach((track) => track.stop());
 			return false;
 		}
+		// "detail" favors sharpness/motion smoothness over resolution, better for text-heavy shares.
+		screenVideoTrack.contentHint = "detail";
 
 		const screenAudioTrack = displayStream.getAudioTracks()[0] ?? null;
 		const localStream = store.localStream;
