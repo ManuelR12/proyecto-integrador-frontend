@@ -438,12 +438,10 @@ const Home = () => {
 				<Reveal>
 					<div className="mx-auto max-w-xl px-6 text-center">
 						<h2 className="text-4xl font-extrabold tracking-tight text-slate-900">
-							Empieza gratis.
-							<br />
-							<span className="text-blue-600">Sin tarjeta.</span>
+							Empieza Ahora.
 						</h2>
 						<p className="mt-4 text-lg leading-relaxed text-slate-600">
-							Únete a tu primera sala de estudio en menos de un minuto.
+							Invita a tus amigos y compañeros.
 						</p>
 						<div className="mt-8 flex flex-wrap items-center justify-center gap-3">
 							<Link

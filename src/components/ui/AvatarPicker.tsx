@@ -92,7 +92,7 @@ const AvatarPicker = ({
 	};
 
 	return (
-		<div className="flex flex-col gap-1.5">
+		<div className="flex flex-col gap-1.5 overflow-hidden">
 			{label && <span className="text-sm font-medium text-slate-700">{label}</span>}
 
 			<label
