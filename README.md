@@ -386,7 +386,9 @@ Cada _push_ a `main` genera un despliegue de producción, y cada Pull Request ge
 
 - **Backend / Signaling Server:**
   [jeangiraldoo/proyecto-integrador-backend](https://github.com/jeangiraldoo/proyecto-integrador-backend)
-- **Documentación de la API (Swagger):** https://proyecto-integrador-backend-k2tf.onrender.com/docs
+
+> La documentación de la API (Swagger) no es un repositorio; su enlace está en la sección
+> [Despliegues en producción](#despliegues-en-producción).
 
 ---
 
