@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 760" width="720" height="760" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" role="img" aria-label="Diagrama de flujo de la arquitectura de Agora, de arriba hacia abajo: el usuario abre el frontend en React, que se comunica con el backend Node.js con Socket.io; el backend usa Firebase y hace la señalizacion WebRTC; el audio y video viajan directo entre los pares.">
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#475569"/>
+    </marker>
+    <marker id="arV" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L7.5,3 L0,6 Z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+
+  <rect x="8" y="8" width="704" height="744" rx="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- 1. Usuario -->
+  <rect x="210" y="34" width="300" height="60" rx="12" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+  <text x="360" y="60" text-anchor="middle" font-size="15" font-weight="700" fill="#334155">Usuario</text>
+  <text x="360" y="80" text-anchor="middle" font-size="12" fill="#64748b">Estudiante en el navegador</text>
+
+  <line x1="360" y1="94" x2="360" y2="150" stroke="#475569" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="372" y="126" font-size="11.5" fill="#334155" stroke="#f8fafc" stroke-width="3" paint-order="stroke">abre la SPA e interactúa</text>
+
+  <!-- 2. Frontend -->
+  <rect x="150" y="150" width="420" height="94" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+  <text x="360" y="180" text-anchor="middle" font-size="16" font-weight="700" fill="#1e3a8a">Frontend — SPA (este repo)</text>
+  <text x="360" y="203" text-anchor="middle" font-size="12" fill="#334155">React + Vite · React Router · Zustand · axios · socket.io-client</text>
+  <text x="360" y="223" text-anchor="middle" font-size="12" fill="#64748b">Firebase Auth (cliente) · desplegado en Vercel</text>
+
+  <!-- Flechas Frontend -> Backend -->
+  <line x1="280" y1="244" x2="280" y2="322" stroke="#475569" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="272" y="287" text-anchor="end" font-size="11.5" fill="#334155" stroke="#f8fafc" stroke-width="3" paint-order="stroke">REST · HTTPS</text>
+  <line x1="440" y1="244" x2="440" y2="322" stroke="#475569" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="448" y="287" text-anchor="start" font-size="11.5" fill="#334155" stroke="#f8fafc" stroke-width="3" paint-order="stroke">Socket.io · WSS</text>
+
+  <!-- 3. Backend -->
+  <rect x="150" y="322" width="420" height="94" rx="12" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+  <text x="360" y="352" text-anchor="middle" font-size="16" font-weight="700" fill="#065f46">Backend + Servidor de señalización</text>
+  <text x="360" y="375" text-anchor="middle" font-size="12" fill="#334155">Node.js / Express · Socket.io · firebase-admin</text>
+  <text x="360" y="395" text-anchor="middle" font-size="12" fill="#64748b">API de salas y perfil · desplegado en Render</text>
+
+  <!-- Backend -> Firebase -->
+  <path d="M255,416 C 230,455 215,470 205,506" fill="none" stroke="#475569" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="150" y="470" text-anchor="middle" font-size="11.5" fill="#334155" stroke="#f8fafc" stroke-width="3" paint-order="stroke">firebase-admin</text>
+
+  <!-- Backend -> Pares (señalización) -->
+  <path d="M465,416 C 490,455 505,470 515,506" fill="none" stroke="#475569" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="566" y="462" text-anchor="middle" font-size="11.5" fill="#334155" stroke="#f8fafc" stroke-width="3" paint-order="stroke">señalización</text>
+  <text x="566" y="479" text-anchor="middle" font-size="11" fill="#64748b" stroke="#f8fafc" stroke-width="3" paint-order="stroke">offer / answer / ICE</text>
+
+  <!-- 4a. Firebase -->
+  <rect x="70" y="508" width="250" height="94" rx="12" fill="#fff7ed" stroke="#f59e0b" stroke-width="2"/>
+  <text x="195" y="538" text-anchor="middle" font-size="15.5" font-weight="700" fill="#92400e">Firebase</text>
+  <text x="195" y="561" text-anchor="middle" font-size="12" fill="#334155">Authentication</text>
+  <text x="195" y="581" text-anchor="middle" font-size="12" fill="#334155">Cloud Firestore (tiempo real)</text>
+
+  <!-- 4b. Otros pares -->
+  <rect x="392" y="508" width="258" height="94" rx="12" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="521" y="538" text-anchor="middle" font-size="15.5" font-weight="700" fill="#5b21b6">Otros pares</text>
+  <text x="521" y="561" text-anchor="middle" font-size="12" fill="#334155">navegadores de los demás</text>
+  <text x="521" y="581" text-anchor="middle" font-size="11.5" fill="#64748b">cada uno = instancia del frontend</text>
+
+  <!-- Media P2P directo: de los pares de vuelta al frontend por el costado derecho -->
+  <path d="M650,545 C 700,470 700,270 572,205" fill="none" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#arV)"/>
+  <text x="694" y="360" text-anchor="middle" font-size="12" font-weight="600" fill="#5b21b6" stroke="#f8fafc" stroke-width="3" paint-order="stroke" transform="rotate(90 694 360)">Audio/Video P2P · WebRTC (STUN/TURN)</text>
+
+  <!-- Nota inferior -->
+  <line x1="40" y1="648" x2="680" y2="648" stroke="#e2e8f0" stroke-width="1.2"/>
+  <text x="360" y="682" text-anchor="middle" font-size="12" font-weight="600" fill="#475569">El servidor solo hace autenticación, salas y señalización.</text>
+  <text x="360" y="704" text-anchor="middle" font-size="12" fill="#64748b">El audio y el video viajan directo entre los navegadores (malla P2P), sin pasar por el servidor.</text>
+</svg>
